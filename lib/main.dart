@@ -1,13 +1,16 @@
 import 'dart:math';
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-
 //import 'package:just_audio/just_audio.dart';
 //import 'package:audio_manager/audio_manager.dart';
 import 'package:audioplayers/audioplayers.dart';
 
+import 'settings.dart';
 //import 'pages/home_page.dart';
 
 // ----------------------------------------------------
@@ -87,27 +90,7 @@ void pauseMusic() {
 }
 
 // ----------------------------------------------------
-
-class Stage {
-  String name;
-  int count;
-
-  Stage(this.name, this.count);
-
-  @override
-  String toString() {
-    return 'Stage: {name: $name, count: $count}';
-  }
-}
-
-class ConfigParam {
-  String name;
-  int rounds;
-  List<Stage> stages;
-
-  ConfigParam(this.name, this.rounds, this.stages);
-}
-
+/*
 int findParamIndex(String cfg) {
   for (var pindex = 0; pindex < gConfigParams.length; pindex++) {
     if (gConfigParams[pindex].name == cfg) return pindex;
@@ -115,25 +98,20 @@ int findParamIndex(String cfg) {
   return -1;
 }
 
+List<ConfigParam> gConfigParams = <ConfigParam>[];
+*/
 // ----------------------------------------------------
 
 Random r = new Random();
-List<ConfigParam> gConfigParams = <ConfigParam>[];
 int countDuration = 1800;
 
 void main() async {
-  gConfigParams.add(new ConfigParam('Anulom Vilom', 10, [
-    Stage('Inhale Left', 4),
-    Stage('Exhale Right', 4),
-    Stage('Inhale Right', 4),
-    Stage('Exhale Left', 4),
-  ]));
-  gConfigParams.add(new ConfigParam('Deep Breathing', 20, [
-    Stage('Inhale', 4),
-    Stage('Exhale', 4),
-  ]));
-
-  runApp(MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => Settings(),
+      child: MyApp(),
+    ),
+  );
 
   initSpeak();
   //initMusic();
@@ -179,7 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         actions: [
           IconButton(
-            onPressed: () => _editSettings(),
+            onPressed: () => _editSettings(context),
             icon: Icon(Icons.settings),
             tooltip: 'Settings',
           )
@@ -187,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: _listConfigsPage(),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addConfig,
+        onPressed: () => _addConfig(context),
         tooltip: 'Add Config',
         child: Icon(Icons.add),
       ),
@@ -195,65 +173,71 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _listConfigsPage() {
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: gConfigParams.length,
-      itemBuilder: (BuildContext context, int index) {
-        return Row(
-          children: [
-            Expanded(
-              flex: 85,
-              child: InkWell(
-                onTap: () => _configSelected(gConfigParams[index].name),
-                child: Container(
-                  height: 50,
-                  decoration: new BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                    color: Colors.amber[100],
+    return Consumer<Settings>(
+      builder: (context, settings, _) => ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: settings.lengthParams(),
+        itemBuilder: (BuildContext context, int index) {
+          return Row(
+            children: [
+              Expanded(
+                flex: 85,
+                child: InkWell(
+                  onTap: () =>
+                      _configSelected(context, settings.getParam(index).name),
+                  child: Container(
+                    height: 50,
+                    decoration: new BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      color: Colors.amber[100],
+                    ),
+                    child: Center(
+                        child: Text(
+                      '${settings.getParam(index).name}',
+                      style: TextStyle(fontSize: 20),
+                    )),
                   ),
-                  child: Center(
-                      child: Text(
-                    '${gConfigParams[index].name}',
-                    style: TextStyle(fontSize: 20),
-                  )),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Container(),
-            ),
-            Expanded(
-              flex: 12,
-              child: CircleAvatar(
-                radius: 25,
-                child: IconButton(
-                  onPressed: () => _editConfig(gConfigParams[index].name),
-                  icon: Icon(Icons.edit),
-                  tooltip: 'Edit config',
+              Expanded(
+                flex: 3,
+                child: Container(),
+              ),
+              Expanded(
+                flex: 12,
+                child: CircleAvatar(
+                  radius: 25,
+                  child: IconButton(
+                    onPressed: () =>
+                        _editConfig(context, settings.getParam(index).name),
+                    icon: Icon(Icons.edit),
+                    tooltip: 'Edit config',
+                  ),
                 ),
               ),
-            ),
-          ],
-        );
-      },
-      separatorBuilder: (BuildContext context, int index) => Container(
-        height: 20,
+            ],
+          );
+        },
+        separatorBuilder: (BuildContext context, int index) => Container(
+          height: 20,
+        ),
       ),
     );
   }
 
-  void _addConfig() {
+  void _addConfig(context) {
+    var settings = Provider.of<Settings>(context, listen: false);
     String cfgName;
 
     do {
       cfgName = 'Config ' + r.nextInt(1000).toString();
-    } while (findParamIndex(cfgName) != -1);
-    gConfigParams.add(new ConfigParam(cfgName, 10, [Stage('Stagename', 4)]));
-    _editConfig(cfgName);
+    } while (settings.findParamIndex(cfgName) != -1);
+
+    settings.addParam(new ConfigParam(cfgName, 10, [Stage('Stagename', 4)]));
+    _editConfig(context, cfgName);
   }
 
-  void _configSelected(String cfg) {
+  void _configSelected(context, String cfg) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (BuildContext context) {
         return CounterPage(cfg: cfg);
@@ -263,7 +247,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _editConfig(String cfg) {
+  void _editConfig(context, String cfg) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (BuildContext context) {
         return EditConfigPage(cfg: cfg);
@@ -273,7 +257,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _editSettings() {
+  void _editSettings(context) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (BuildContext context) {
         return EditSettingsPage();
@@ -371,13 +355,15 @@ class _EditConfigPageState extends State<EditConfigPage> {
       appBar: AppBar(
         title: Text('Edit Config'),
       ),
-      body: _editConfigPage(widget.cfg),
+      body: _editConfigPage(context, widget.cfg),
     );
   }
 
-  Widget _editConfigPage(cfg) {
-    var pindex = findParamIndex(cfg);
-    ConfigParam cp = gConfigParams[pindex];
+  Widget _editConfigPage(context, cfg) {
+    var settings = Provider.of<Settings>(context, listen: false);
+    print('**** _editConfigPage: ${settings.cps}');
+    var pindex = settings.findParamIndex(cfg);
+    ConfigParam cp = settings.getParam(pindex);
 
     return FormBuilder(
       key: _formKey,
@@ -404,7 +390,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
                         labelText: 'Number of rounds',
                       ))),
             ] +
-            _stageList(cfg) +
+            _stageList(settings, cfg) +
             [
               Container(
                   padding: EdgeInsets.all(20),
@@ -412,11 +398,11 @@ class _EditConfigPageState extends State<EditConfigPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
-                          onPressed: () => _saveConfig(cfg),
+                          onPressed: () => _saveConfig(context, cfg),
                           child: Text('Save')),
                       ElevatedButton(
                           style: ElevatedButton.styleFrom(primary: Colors.red),
-                          onPressed: () => _deleteConfig(cfg),
+                          onPressed: () => _deleteConfig(context, cfg),
                           child: Text('Delete')),
                     ],
                   )),
@@ -425,15 +411,16 @@ class _EditConfigPageState extends State<EditConfigPage> {
     );
   }
 
-  void _saveConfig(cfg) {
-    int pindex = findParamIndex(cfg);
+  void _saveConfig(context, cfg) {
+    var settings = Provider.of<Settings>(context, listen: false);
+    int pindex = settings.findParamIndex(cfg);
 
     _formKey.currentState!.save();
     var values = _formKey.currentState!.value;
 
     String newName = values['configName'];
-    if (newName != gConfigParams[pindex].name) {
-      if (findParamIndex(newName) != -1) {
+    if (newName != settings.getParam(pindex).name) {
+      if (settings.findParamIndex(newName) != -1) {
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
@@ -446,40 +433,51 @@ class _EditConfigPageState extends State<EditConfigPage> {
       }
     }
 
-    gConfigParams[pindex].name = values['configName'];
-    gConfigParams[pindex].rounds = values['rounds'].toInt();
-    for (var i = 0; i < gConfigParams[pindex].stages.length; i++) {
-      gConfigParams[pindex].stages[i].name = values['stagename' + i.toString()];
-      gConfigParams[pindex].stages[i].count =
-          int.parse(values['stagecount' + i.toString()]);
+    ConfigParam cp = settings.getParam(pindex);
+    cp.name = values['configName'];
+    cp.rounds = values['rounds'].toInt();
+    for (var i = 0; i < cp.stages.length; i++) {
+      cp.stages[i].name = values['stagename' + i.toString()];
+      cp.stages[i].count = int.parse(values['stagecount' + i.toString()]);
     }
+    settings.setParam(pindex, cp);
+
     Navigator.pop(context);
   }
 
-  void _deleteConfig(cfg) {
-    var pindex = findParamIndex(cfg);
-    gConfigParams.removeAt(pindex);
+  void _deleteConfig(context, cfg) {
+    var settings = Provider.of<Settings>(context, listen: false);
+    print('**** _deleteConfig: ${settings.cps}');
+    settings.removeParam(cfg);
+
     Navigator.pop(context);
   }
 
-  void _addStage(cfg) {
+  void _addStage(context, cfg) {
+    var settings = Provider.of<Settings>(context, listen: false);
+
     setState(() {
-      var pindex = findParamIndex(cfg);
-      gConfigParams[pindex].stages.add(Stage('Stagename', 4));
+      var pindex = settings.findParamIndex(cfg);
+      ConfigParam cp = settings.getParam(pindex);
+      cp.stages.add(Stage('Stagename', 4));
+      settings.setParam(pindex, cp);
     });
   }
 
-  void _deleteStage(cfg, i) {
+  void _deleteStage(context, cfg, i) {
+    var settings = Provider.of<Settings>(context, listen: false);
     setState(() {
-      var pindex = findParamIndex(cfg);
-      gConfigParams[pindex].stages.removeAt(i);
+      var pindex = settings.findParamIndex(cfg);
+      ConfigParam cp = settings.getParam(pindex);
+      cp.stages.removeAt(i);
+      settings.setParam(pindex, cp);
     });
   }
 
-  List<Container> _stageList(cfg) {
+  List<Container> _stageList(settings, cfg) {
     List<Container> list = [];
-    var pindex = findParamIndex(cfg);
-    var stages = gConfigParams[pindex].stages;
+    var pindex = settings.findParamIndex(cfg);
+    var stages = settings.getParam(pindex).stages;
 
     list.add(Container(
         padding: EdgeInsets.all(16),
@@ -520,7 +518,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
                   : IconButton(
                       icon: Icon(Icons.delete),
                       color: Colors.red,
-                      onPressed: () => _deleteStage(cfg, i),
+                      onPressed: () => _deleteStage(context, cfg, i),
                     ),
             ),
             Expanded(flex: 10, child: Container()),
@@ -534,7 +532,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
       child: CircleAvatar(
         child: IconButton(
           icon: Icon(Icons.add),
-          onPressed: () => _addStage(cfg),
+          onPressed: () => _addStage(context, cfg),
           tooltip: 'Add Stage',
         ),
       ),
@@ -558,13 +556,22 @@ class _CounterPageState extends State<CounterPage> {
   int _curCount = 1;
   int _curStage = 0;
   int _curRound = 1;
+  double _totSeconds = 0;
   bool _paused = true;
   bool _reset = true;
-  double _totSeconds = 0;
+  Timer _timerClock = Timer(Duration(milliseconds: 100), () {});
+
+  @override
+  void dispose() {
+    _timerClock.cancel();
+    pauseMusic();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    int pindex = findParamIndex(widget.cfg);
+    var settings = Provider.of<Settings>(context);
+    int pindex = settings.findParamIndex(widget.cfg);
 
     return WillPopScope(
       onWillPop: () async {
@@ -597,7 +604,7 @@ class _CounterPageState extends State<CounterPage> {
                       style: TextStyle(fontSize: 20),
                     ),
                     Text(
-                      ' ${gConfigParams[pindex].rounds}',
+                      ' ${settings.getParam(pindex).rounds}',
                       style: TextStyle(fontSize: 40),
                     ),
                   ],
@@ -614,7 +621,7 @@ class _CounterPageState extends State<CounterPage> {
                 ),
                 child: Center(
                     child: Text(
-                  gConfigParams[pindex].stages[_curStage].name,
+                  settings.getParam(pindex).stages[_curStage].name,
                   style: TextStyle(fontSize: 40),
                 )),
               ),
@@ -690,18 +697,22 @@ class _CounterPageState extends State<CounterPage> {
       _reset = false;
     }
     startMusic();
-    new Timer.periodic(Duration(milliseconds: countDuration), _handleTimeout);
+    _timerClock = new Timer.periodic(
+        Duration(milliseconds: countDuration), _handleTimeout);
     _paused = false;
   }
 
   void _handleTimeout(Timer t) {
+    var settings = Provider.of<Settings>(context, listen: false);
+    print(_paused);
+
     if (_paused) {
       t.cancel();
       pauseMusic();
     } else {
       setState(() {
-        int pindex = findParamIndex(widget.cfg);
-        ConfigParam cp = gConfigParams[pindex];
+        int pindex = settings.findParamIndex(widget.cfg);
+        ConfigParam cp = settings.getParam(pindex);
         Stage stage = cp.stages[_curStage];
         int _totStages = cp.stages.length;
         String msg = '';
