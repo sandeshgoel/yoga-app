@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 class Stage {
@@ -26,10 +27,18 @@ class ConfigParam {
 }
 
 class Settings with ChangeNotifier {
+  Random r = new Random();
+
   double speechRate = 0.3;
 
   void setSpeechRate(double speechRate) {
     this.speechRate = speechRate;
+  }
+
+  int countDuration = 1800;
+
+  void setCountDuration(int countDuration) {
+    this.countDuration = countDuration;
   }
 
   final List<ConfigParam> cps = [

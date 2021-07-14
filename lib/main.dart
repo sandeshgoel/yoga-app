@@ -1,76 +1,16 @@
-import 'dart:math';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-//import 'package:just_audio/just_audio.dart';
-//import 'package:audio_manager/audio_manager.dart';
-import 'package:audioplayers/audioplayers.dart';
 
 import 'settings.dart';
 import 'tts.dart';
+import 'audio.dart';
 //import 'pages/home_page.dart';
 
 // ----------------------------------------------------
-
-/*
-void initMusic() {
-  AudioManager.instance
-      .start("assets/audio/yoga.mp3", "Yoga music",
-          desc: "Relaxing yoga music", cover: "", auto: false)
-      .then((err) {
-    print(err);
-  });
-
-  AudioManager.instance.onEvents((events, args) {
-    if (events != AudioManagerEvents.timeupdate) print("$events, $args");
-    if (events == AudioManagerEvents.ended) startMusic();
-  });
-}
-
-void startMusic() {
-  // Play or pause; that is, pause if currently playing, otherwise play
-  AudioManager.instance.play();
-  print('Starting music');
-}
-
-void pauseMusic() {
-  // Play or pause; that is, pause if currently playing, otherwise play
-  AudioManager.instance.playOrPause();
-  print('Pausing music');
-}
-*/
-
-AudioCache player = AudioCache();
-var audioPlayer;
-bool audioInitialized = false;
-
-void initMusic() async {
-  audioPlayer = await player.loop("audio/yoga.mp3");
-  audioInitialized = true;
-  //audioPlayer.setUrl("assets/audio/yoga.mp3");
-  //audioPlayer.setReleaseMode(ReleaseMode.LOOP);
-}
-
-void startMusic() {
-  if (!audioInitialized)
-    initMusic();
-  else
-    audioPlayer.resume();
-  print('Starting music');
-}
-
-void pauseMusic() {
-  audioPlayer.pause();
-  print('Pausing music');
-}
-
-// ----------------------------------------------------
-
-Random r = new Random();
-int countDuration = 1800;
 
 void main() async {
   runApp(
@@ -79,9 +19,6 @@ void main() async {
       child: MyApp(),
     ),
   );
-
-  //initSpeak();
-  //initMusic();
 }
 
 class MyApp extends StatelessWidget {
@@ -197,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
     String cfgName;
 
     do {
-      cfgName = 'Config ' + r.nextInt(1000).toString();
+      cfgName = 'Config ' + settings.r.nextInt(1000).toString();
     } while (settings.findParamIndex(cfgName) != -1);
 
     settings.addParam(new ConfigParam(cfgName, 10, [Stage('Stagename', 4)]));
@@ -269,7 +206,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
               padding: EdgeInsets.all(16),
               child: FormBuilderSlider(
                 name: 'duration',
-                initialValue: countDuration.toDouble() / 1000,
+                initialValue: settings.countDuration.toDouble() / 1000,
                 min: 1,
                 max: 3,
                 divisions: 20,
@@ -277,7 +214,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                   labelText: 'Count Duration (seconds)',
                 ),
                 onChanged: (value) {
-                  countDuration = (value! * 1000).toInt();
+                  settings.setCountDuration((value! * 1000).toInt());
                 },
               ),
             ),
@@ -530,11 +467,12 @@ class _CounterPageState extends State<CounterPage> {
   bool _reset = true;
   Timer _timerClock = Timer(Duration(milliseconds: 100), () {});
   Tts _tts = Tts();
+  AudioMusic _am = AudioMusic();
 
   @override
   void dispose() {
     _timerClock.cancel();
-    pauseMusic();
+    _am.pauseMusic();
     super.dispose();
   }
 
@@ -663,13 +601,15 @@ class _CounterPageState extends State<CounterPage> {
   }
 
   void _startTimer() {
+    var settings = Provider.of<Settings>(context, listen: false);
+
     if (_reset) {
       _tts.speak(context, "Starting routine ...");
       _reset = false;
     }
-    startMusic();
+    _am.startMusic();
     _timerClock = new Timer.periodic(
-        Duration(milliseconds: countDuration), _handleTimeout);
+        Duration(milliseconds: settings.countDuration), _handleTimeout);
     _paused = false;
   }
 
@@ -679,7 +619,7 @@ class _CounterPageState extends State<CounterPage> {
 
     if (_paused) {
       t.cancel();
-      pauseMusic();
+      _am.pauseMusic();
     } else {
       setState(() {
         int pindex = settings.findParamIndex(widget.cfg);
@@ -688,7 +628,7 @@ class _CounterPageState extends State<CounterPage> {
         int _totStages = cp.stages.length;
         String msg = '';
 
-        _totSeconds += countDuration / 1000;
+        _totSeconds += settings.countDuration / 1000;
 
         _curCount = (_curCount + 1);
         if (_curCount == stage.count + 1) _curCount = 1;
