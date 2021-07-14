@@ -5,35 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 //import 'package:just_audio/just_audio.dart';
 //import 'package:audio_manager/audio_manager.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 import 'settings.dart';
+import 'tts.dart';
 //import 'pages/home_page.dart';
-
-// ----------------------------------------------------
-
-FlutterTts flutterTts = FlutterTts();
-double speechRate = 0.3;
-
-void initSpeak() {
-  flutterTts.setSpeechRate(speechRate);
-  flutterTts.setPitch(0.8);
-
-  //var voices = await flutterTts.getLanguages;
-  //print('Voices: $voices');
-  //flutterTts.setVoice({"name": "Karen", "locale": "en-IN"});
-}
-
-void speak(context, String msg) {
-  flutterTts.speak(msg);
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    content: Text(msg),
-    duration: Duration(milliseconds: 1000),
-  ));
-}
 
 // ----------------------------------------------------
 
@@ -90,17 +68,6 @@ void pauseMusic() {
 }
 
 // ----------------------------------------------------
-/*
-int findParamIndex(String cfg) {
-  for (var pindex = 0; pindex < gConfigParams.length; pindex++) {
-    if (gConfigParams[pindex].name == cfg) return pindex;
-  }
-  return -1;
-}
-
-List<ConfigParam> gConfigParams = <ConfigParam>[];
-*/
-// ----------------------------------------------------
 
 Random r = new Random();
 int countDuration = 1800;
@@ -113,7 +80,7 @@ void main() async {
     ),
   );
 
-  initSpeak();
+  //initSpeak();
   //initMusic();
 }
 
@@ -291,6 +258,8 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
   }
 
   Widget _editSettingsPage() {
+    var settings = Provider.of<Settings>(context, listen: false);
+
     return Column(children: <Widget>[
       FormBuilder(
         key: _settingsFormKey,
@@ -316,7 +285,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
               padding: EdgeInsets.all(16),
               child: FormBuilderSlider(
                 name: 'speech_rate',
-                initialValue: speechRate,
+                initialValue: settings.speechRate,
                 min: 0.1,
                 max: 1.0,
                 divisions: 9,
@@ -324,7 +293,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                   labelText: 'Speech Rate',
                 ),
                 onChanged: (value) {
-                  speechRate = value!.toDouble();
+                  settings.setSpeechRate(value!.toDouble());
                 },
               ),
             ),
@@ -560,6 +529,7 @@ class _CounterPageState extends State<CounterPage> {
   bool _paused = true;
   bool _reset = true;
   Timer _timerClock = Timer(Duration(milliseconds: 100), () {});
+  Tts _tts = Tts();
 
   @override
   void dispose() {
@@ -572,6 +542,7 @@ class _CounterPageState extends State<CounterPage> {
   Widget build(BuildContext context) {
     var settings = Provider.of<Settings>(context);
     int pindex = settings.findParamIndex(widget.cfg);
+    _tts.setSpeechRate(settings.speechRate);
 
     return WillPopScope(
       onWillPop: () async {
@@ -693,7 +664,7 @@ class _CounterPageState extends State<CounterPage> {
 
   void _startTimer() {
     if (_reset) {
-      speak(context, "Starting routine ...");
+      _tts.speak(context, "Starting routine ...");
       _reset = false;
     }
     startMusic();
@@ -746,16 +717,16 @@ class _CounterPageState extends State<CounterPage> {
                         ],
                       ),
                   barrierDismissible: false);
-              speak(context, msg);
+              _tts.speak(context, msg);
               return;
             } else {
               msg = 'Round $_curRound ';
             }
           }
           msg += cp.stages[_curStage].name;
-          speak(context, msg);
+          _tts.speak(context, msg);
         } else {
-          speak(context, _curCount.toString());
+          _tts.speak(context, _curCount.toString());
         }
       });
     }

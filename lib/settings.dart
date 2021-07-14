@@ -26,6 +26,12 @@ class ConfigParam {
 }
 
 class Settings with ChangeNotifier {
+  double speechRate = 0.3;
+
+  void setSpeechRate(double speechRate) {
+    this.speechRate = speechRate;
+  }
+
   final List<ConfigParam> cps = [
     ConfigParam('Anulom Vilom', 10, [
       Stage('Inhale Left', 4),
