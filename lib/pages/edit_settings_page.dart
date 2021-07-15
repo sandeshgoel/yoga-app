@@ -14,6 +14,20 @@ class EditSettingsPage extends StatefulWidget {
 class _EditSettingsPageState extends State<EditSettingsPage> {
   final _settingsFormKey = new GlobalKey<FormBuilderState>();
 
+  late Settings _settings;
+
+  @override
+  void didChangeDependencies() {
+    _settings = Provider.of<Settings>(context, listen: false);
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _settings.saveSettings();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
