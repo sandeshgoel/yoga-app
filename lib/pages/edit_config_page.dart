@@ -161,7 +161,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
           children: [
             Expanded(flex: 10, child: Container()),
             Expanded(
-              flex: 50,
+              flex: 45,
               child: FormBuilderTextField(
                 name: 'stagename$i',
                 initialValue: stages[i].name,
@@ -177,7 +177,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
                 textAlign: TextAlign.center,
               ),
             ),
-            Expanded(flex: 5, child: Container()),
+            Expanded(flex: 10, child: Container()),
             Expanded(
               flex: 5,
               child: stages.length == 1
