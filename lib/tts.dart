@@ -5,6 +5,7 @@ class Tts {
   FlutterTts flutterTts = FlutterTts();
   double speechRate = 0.3;
   double pitch = 0.8;
+  bool _debug = false;
 
   Tts() {
     flutterTts.setSpeechRate(this.speechRate);
@@ -22,9 +23,10 @@ class Tts {
 
   void speak(context, String msg) {
     flutterTts.speak(msg);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
-      duration: Duration(milliseconds: 1000),
-    ));
+    if (_debug)
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(msg),
+        duration: Duration(milliseconds: 1000),
+      ));
   }
 }

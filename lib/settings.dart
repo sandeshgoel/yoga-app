@@ -9,7 +9,7 @@ class Stage {
 
   @override
   String toString() {
-    return 'Stage: {name: $name, count: $count}';
+    return '{$name, $count}';
   }
 }
 
@@ -22,7 +22,7 @@ class ConfigParam {
 
   @override
   String toString() {
-    return 'ConfigParam: {name: $name, rounds: $rounds, stages: $stages}\n';
+    return '{$name, $rounds, stages: $stages}\n';
   }
 }
 
