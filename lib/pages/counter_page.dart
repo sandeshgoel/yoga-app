@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'package:yoga/services/tts.dart';
 import 'package:yoga/services/audio.dart';
-import 'package:yoga/settings.dart';
+import 'package:yoga/services/settings.dart';
 
 class CounterPage extends StatefulWidget {
   final String cfg;

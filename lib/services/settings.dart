@@ -60,6 +60,8 @@ class Settings with ChangeNotifier {
   Random r = new Random();
 
   String uid = '';
+  String email = '';
+  String name = '';
 
   double speechRate = 0.3;
   int countDuration = 1800;
@@ -80,14 +82,20 @@ class Settings with ChangeNotifier {
   // ----------------------------------------------------
 
   void settingsFromJson(Map<String, dynamic> jval) {
-    this.speechRate = jval['speechRate'];
-    this.countDuration = jval['countDuration'];
-    this.cps =
-        jval['cps'].map<ConfigParam>((x) => ConfigParam.fromJson(x)).toList();
+    this.name = jval['name'] ?? this.name;
+    //this.email = jval['email'] ?? this.email;
+    this.speechRate = jval['speechRate'] ?? 0.3;
+    this.countDuration = jval['countDuration'] ?? 1800;
+    this.cps = (jval['cps'] ?? {})
+        .map<ConfigParam>((x) => ConfigParam.fromJson(x))
+        .toList();
+    notifyListeners();
   }
 
   Map<String, dynamic> settingsToJson() {
     return {
+      'name': this.name,
+      'email': this.email,
       'speechRate': this.speechRate,
       'countDuration': this.countDuration,
       'cps': this.cps.map((x) => x.toJson()).toList()
@@ -112,7 +120,7 @@ class Settings with ChangeNotifier {
     print('**** Loading settings');
     if (value != '') {
       Map<String, dynamic> jval = jsonDecode(value);
-      settingsFromJson(jval);
+      if (jval['email'] == this.email) settingsFromJson(jval);
     }
   }
 

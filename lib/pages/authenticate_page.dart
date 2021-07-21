@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:yoga/services/auth.dart';
-import 'package:yoga/services/database.dart';
-import 'package:yoga/settings.dart';
+
 import 'package:yoga/shared/constants.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -97,7 +95,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                                     if (regResult == null) {
                                       print("error registering");
                                     } else {
-                                      _rightAfterSignIn(regResult.uid);
+//                                      _rightAfterSignIn(regResult);
                                     }
                                     Navigator.pop(context);
                                   },
@@ -114,7 +112,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                     if (signResult == null) {
                       print("error signing in");
                     } else {
-                      _rightAfterSignIn(signResult.uid);
+//                      _rightAfterSignIn(signResult);
                     }
                   }
                   if (mounted) {
@@ -132,10 +130,13 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
       ),
     );
   }
-
-  void _rightAfterSignIn(String uid) async {
+/*
+  void _rightAfterSignIn(user) async {
+    String uid = user.uid;
     Settings settings = Provider.of<Settings>(context, listen: false);
     settings.uid = uid;
+    settings.email = user.email;
+
     print('Signed in user $uid, reading DB, updating local cache');
 
     var doc = await DBService(uid: uid).getUserData();
@@ -150,6 +151,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
     }
     settings.saveSettings();
   }
+  */
 }
 
 class Loading extends StatelessWidget {

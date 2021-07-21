@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:yoga/settings.dart';
+import 'package:yoga/services/settings.dart';
 
 class EditConfigPage extends StatefulWidget {
   final String cfg;

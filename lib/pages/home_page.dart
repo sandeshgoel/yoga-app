@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:yoga/services/auth.dart';
 
-import 'package:yoga/settings.dart';
+import 'package:yoga/services/settings.dart';
 import 'counter_page.dart';
 import 'edit_settings_page.dart';
 import 'edit_config_page.dart';
