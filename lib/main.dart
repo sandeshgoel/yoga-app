@@ -48,7 +48,6 @@ class Wrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dynamic user = Provider.of<User?>(context);
-    print(user);
 
     return ((user != null)
         ? MyHomePage(title: 'Yoga Assist')

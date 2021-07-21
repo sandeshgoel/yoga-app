@@ -51,7 +51,6 @@ class AuthService {
 
   Future checkEmail(String email) async {
     List<String> res = await _auth.fetchSignInMethodsForEmail(email);
-    print(res);
     return res;
   }
 }

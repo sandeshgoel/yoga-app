@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:yoga/services/database.dart';
 
 class Stage {
   late String name;
@@ -23,6 +24,8 @@ class Stage {
     this.count = json['count'];
   }
 }
+
+// ------------------------------------------------------
 
 class ConfigParam {
   late String name;
@@ -51,8 +54,12 @@ class ConfigParam {
   }
 }
 
+// ------------------------------------------------------
+
 class Settings with ChangeNotifier {
   Random r = new Random();
+
+  String uid = '';
 
   double speechRate = 0.3;
   int countDuration = 1800;
@@ -72,29 +79,40 @@ class Settings with ChangeNotifier {
 
   // ----------------------------------------------------
 
-  void saveSettings() async {
-    final prefs = await SharedPreferences.getInstance();
+  void settingsFromJson(Map<String, dynamic> jval) {
+    this.speechRate = jval['speechRate'];
+    this.countDuration = jval['countDuration'];
+    this.cps =
+        jval['cps'].map<ConfigParam>((x) => ConfigParam.fromJson(x)).toList();
+  }
 
-    String value = jsonEncode({
+  Map<String, dynamic> settingsToJson() {
+    return {
       'speechRate': this.speechRate,
       'countDuration': this.countDuration,
       'cps': this.cps.map((x) => x.toJson()).toList()
-    });
-    print('**** Saving settings: $value');
+    };
+  }
+
+  void saveSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    Map<String, dynamic> jval = settingsToJson();
+    String value = jsonEncode(jval);
+    print('**** Saving settings');
     prefs.setString('settings', value);
+
+    await DBService(uid: uid).updateUserData(jval);
   }
 
   void loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
 
     String value = prefs.getString('settings') ?? '';
-    print('**** Loading settings: $value');
+    print('**** Loading settings');
     if (value != '') {
       Map<String, dynamic> jval = jsonDecode(value);
-      this.speechRate = jval['speechRate'];
-      this.countDuration = jval['countDuration'];
-      this.cps =
-          jval['cps'].map<ConfigParam>((x) => ConfigParam.fromJson(x)).toList();
+      settingsFromJson(jval);
     }
   }
 

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:yoga/services/auth.dart';
+import 'package:yoga/services/database.dart';
+import 'package:yoga/settings.dart';
 import 'package:yoga/shared/constants.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -68,15 +71,16 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
               height: 20,
             ),
             ElevatedButton(
+              child: Text('Sign In'),
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
                   setState(() {
                     _loading = true;
                   });
 
-                  print('$email, $password');
-                  List res = await _auth.checkEmail(email);
-                  if (res.length == 0) {
+                  print('Checking $email, $password in firebase ...');
+                  List userAuthList = await _auth.checkEmail(email);
+                  if (userAuthList.length == 0) {
                     print('User not registered');
                     showDialog(
                         context: context,
@@ -86,45 +90,65 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                               title: Text('Register?'),
                               actions: [
                                 ElevatedButton(
-                                    onPressed: () async {
-                                      dynamic res =
-                                          await _auth.register(email, password);
-                                      if (res == null) {
-                                        print("error registering");
-                                      } else {
-                                        print(res);
-                                      }
-                                      Navigator.pop(context);
-                                    },
-                                    child: Text('Yes')),
+                                  child: Text('Yes'),
+                                  onPressed: () async {
+                                    dynamic regResult =
+                                        await _auth.register(email, password);
+                                    if (regResult == null) {
+                                      print("error registering");
+                                    } else {
+                                      _rightAfterSignIn(regResult.uid);
+                                    }
+                                    Navigator.pop(context);
+                                  },
+                                ),
                                 ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    child: Text('No'))
+                                  child: Text('No'),
+                                  onPressed: () => Navigator.pop(context),
+                                )
                               ],
                             ),
                         barrierDismissible: false);
                   } else {
-                    dynamic res = await _auth.signIn(email, password);
-                    if (res == null) {
+                    dynamic signResult = await _auth.signIn(email, password);
+                    if (signResult == null) {
                       print("error signing in");
                     } else {
-                      print(res);
+                      _rightAfterSignIn(signResult.uid);
                     }
                   }
-
-                  setState(() {
+                  if (mounted) {
+                    setState(() {
+                      _loading = false;
+                    });
+                  } else {
                     _loading = false;
-                  });
+                  }
                 }
               },
-              child: Text('Sign In'),
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _rightAfterSignIn(String uid) async {
+    Settings settings = Provider.of<Settings>(context, listen: false);
+    settings.uid = uid;
+    print('Signed in user $uid, reading DB, updating local cache');
+
+    var doc = await DBService(uid: uid).getUserData();
+    var cfg = doc.data();
+    if (cfg != null) {
+      if (cfg.isNotEmpty)
+        settings.settingsFromJson(cfg);
+      else
+        print('DB config is empty!!');
+    } else {
+      print('DB record does not exist!!');
+    }
+    settings.saveSettings();
   }
 }
 
