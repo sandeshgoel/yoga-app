@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:yoga/auth.dart';
+import 'package:yoga/services/auth.dart';
 
 import 'package:yoga/settings.dart';
 import 'counter_page.dart';
@@ -23,19 +23,25 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.person),
-          onPressed: () async {
-            await _auth.signOut();
-          },
-          tooltip: 'Logout',
+          onPressed: () => _editSettings(context),
+          icon: Icon(Icons.settings),
+          tooltip: 'Settings',
         ),
         title: Text(widget.title),
-        actions: [
-          IconButton(
-            onPressed: () => _editSettings(context),
-            icon: Icon(Icons.settings),
-            tooltip: 'Settings',
-          )
+        actions: <Widget>[
+          TextButton.icon(
+            icon: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+            label: Text(
+              'logout',
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: () async {
+              await _auth.signOut();
+            },
+          ),
         ],
       ),
       body: _listConfigsPage(),

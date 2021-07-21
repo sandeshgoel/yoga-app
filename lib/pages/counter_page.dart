@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:yoga/tts.dart';
-import 'package:yoga/audio.dart';
+import 'package:yoga/services/tts.dart';
+import 'package:yoga/services/audio.dart';
 import 'package:yoga/settings.dart';
 
 class CounterPage extends StatefulWidget {
