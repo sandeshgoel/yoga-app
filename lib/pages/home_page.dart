@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:yoga/auth.dart';
 
 import 'package:yoga/settings.dart';
 import 'counter_page.dart';
@@ -15,14 +16,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final AuthService _auth = AuthService();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.login),
-          onPressed: () => {},
-          tooltip: 'Login',
+          icon: Icon(Icons.person),
+          onPressed: () async {
+            await _auth.signOut();
+          },
+          tooltip: 'Logout',
         ),
         title: Text(widget.title),
         actions: [

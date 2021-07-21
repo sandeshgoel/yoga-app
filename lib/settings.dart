@@ -89,12 +89,13 @@ class Settings with ChangeNotifier {
 
     String value = prefs.getString('settings') ?? '';
     print('**** Loading settings: $value');
-
-    Map<String, dynamic> jval = jsonDecode(value);
-    this.speechRate = jval['speechRate'];
-    this.countDuration = jval['countDuration'];
-    this.cps =
-        jval['cps'].map<ConfigParam>((x) => ConfigParam.fromJson(x)).toList();
+    if (value != '') {
+      Map<String, dynamic> jval = jsonDecode(value);
+      this.speechRate = jval['speechRate'];
+      this.countDuration = jval['countDuration'];
+      this.cps =
+          jval['cps'].map<ConfigParam>((x) => ConfigParam.fromJson(x)).toList();
+    }
   }
 
   // ----------------------------------------------------
