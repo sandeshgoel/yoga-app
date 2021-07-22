@@ -35,7 +35,19 @@ class _EditConfigPageState extends State<EditConfigPage> {
       appBar: AppBar(
         title: Text('Edit Config'),
       ),
-      body: _editConfigPage(context, widget.cfg),
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/images/bg-blue.jpeg"),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          _editConfigPage(context, widget.cfg),
+        ],
+      ),
     );
   }
 
@@ -50,30 +62,33 @@ class _EditConfigPageState extends State<EditConfigPage> {
       child: ListView(
         children: [
               Container(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: FormBuilderTextField(
                     name: 'configName',
                     initialValue: cfg,
                     decoration: InputDecoration(
                       labelText: 'Config Name',
                     ),
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   )),
               Container(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: FormBuilderSlider(
-                      name: 'rounds',
-                      initialValue: cp.rounds.toDouble(),
-                      min: 1,
-                      max: 50,
-                      divisions: 49,
-                      decoration: InputDecoration(
+                    name: 'rounds',
+                    initialValue: cp.rounds.toDouble(),
+                    min: 1,
+                    max: 50,
+                    divisions: 49,
+                    decoration: InputDecoration(
                         labelText: 'Number of rounds',
-                      ))),
+                        labelStyle: TextStyle(fontWeight: FontWeight.bold)),
+                    textStyle: TextStyle(fontWeight: FontWeight.bold),
+                  )),
             ] +
             _stageList(settings, cfg) +
             [
               Container(
-                  padding: EdgeInsets.all(20),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -164,7 +179,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
         child: Center(
             child: Text(
           'Stages: ${stages.length}',
-          style: TextStyle(fontSize: 20),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ))));
 
     for (var i = 0; i < stages.length; i++) {
@@ -178,6 +193,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
               child: FormBuilderTextField(
                 name: 'stagename$i',
                 initialValue: stages[i].name,
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
             Expanded(flex: 10, child: Container()),
@@ -188,6 +204,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
                 initialValue: stages[i].count.toString(),
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
             Expanded(flex: 10, child: Container()),

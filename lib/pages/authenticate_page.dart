@@ -15,6 +15,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
   final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
+  bool _checkboxValue = false;
 
   String email = 'sandesh@gmail.com';
   String password = 'sandesh';
@@ -27,7 +28,19 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
             appBar: AppBar(
               title: Text('Sign In to Yoga Assist'),
             ),
-            body: _signInPage(),
+            body: Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("assets/images/background.jpg"),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                _signInPage()
+              ],
+            ),
           );
   }
 
@@ -51,6 +64,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                 email = val;
               },
               decoration: textInputDeco.copyWith(hintText: 'Email'),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             SizedBox(
               height: 20,
@@ -64,12 +78,13 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                 password = val;
               },
               decoration: textInputDeco.copyWith(hintText: 'Password'),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             SizedBox(
-              height: 20,
+              height: 30,
             ),
             ElevatedButton(
-              child: Text('Sign In'),
+              child: Text(_checkboxValue ? 'Register' : 'Sign In'),
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
                   setState(() {
@@ -80,40 +95,38 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                   List userAuthList = await _auth.checkEmail(email);
                   if (userAuthList.length == 0) {
                     print('User not registered');
-                    showDialog(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                              content: Text(
-                                  '$email is not registered, do you want to register now?'),
-                              title: Text('Register?'),
-                              actions: [
-                                ElevatedButton(
-                                  child: Text('Yes'),
-                                  onPressed: () async {
-                                    dynamic regResult =
-                                        await _auth.register(email, password);
-                                    if (regResult == null) {
-                                      print("error registering");
-                                    } else {
-//                                      _rightAfterSignIn(regResult);
-                                    }
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                ElevatedButton(
-                                  child: Text('No'),
-                                  onPressed: () => Navigator.pop(context),
-                                )
-                              ],
-                            ),
-                        barrierDismissible: false);
+                    if (!_checkboxValue)
+                      showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                                content: Text('$email is not registered,' +
+                                    ' do you want to register now?'),
+                                title: Text('Register?'),
+                                actions: [
+                                  ElevatedButton(
+                                    child: Text('Yes'),
+                                    onPressed: () async {
+                                      dynamic regResult =
+                                          await _auth.register(email, password);
+                                      if (regResult == null)
+                                        print("error registering");
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                  ElevatedButton(
+                                    child: Text('No'),
+                                    onPressed: () => Navigator.pop(context),
+                                  )
+                                ],
+                              ),
+                          barrierDismissible: false);
+                    else {
+                      dynamic regResult = await _auth.register(email, password);
+                      if (regResult == null) print("error registering");
+                    }
                   } else {
                     dynamic signResult = await _auth.signIn(email, password);
-                    if (signResult == null) {
-                      print("error signing in");
-                    } else {
-//                      _rightAfterSignIn(signResult);
-                    }
+                    if (signResult == null) print("error signing in");
                   }
                   if (mounted) {
                     setState(() {
@@ -125,33 +138,39 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                 }
               },
             ),
+            SizedBox(
+              height: 30,
+            ),
+            Container(
+              color: Colors.white.withOpacity(0.6),
+              child: CheckboxListTile(
+                value: _checkboxValue,
+                onChanged: (val) {
+                  if (_checkboxValue == false) {
+                    setState(() {
+                      _checkboxValue = true;
+                    });
+                  } else if (_checkboxValue == true) {
+                    setState(() {
+                      _checkboxValue = false;
+                    });
+                  }
+                },
+                title: Text(
+                  'I don\'t have an account, need to register',
+                  style: TextStyle(
+                      fontSize: 16.0,
+//                      color: Colors.black,
+//                      backgroundColor: Colors.white.withOpacity(0.4),
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+            )
           ],
         ),
       ),
     );
   }
-/*
-  void _rightAfterSignIn(user) async {
-    String uid = user.uid;
-    Settings settings = Provider.of<Settings>(context, listen: false);
-    settings.uid = uid;
-    settings.email = user.email;
-
-    print('Signed in user $uid, reading DB, updating local cache');
-
-    var doc = await DBService(uid: uid).getUserData();
-    var cfg = doc.data();
-    if (cfg != null) {
-      if (cfg.isNotEmpty)
-        settings.settingsFromJson(cfg);
-      else
-        print('DB config is empty!!');
-    } else {
-      print('DB record does not exist!!');
-    }
-    settings.saveSettings();
-  }
-  */
 }
 
 class Loading extends StatelessWidget {

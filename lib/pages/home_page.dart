@@ -8,8 +8,7 @@ import 'edit_settings_page.dart';
 import 'edit_config_page.dart';
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
-  final String title;
+  MyHomePage({Key? key}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -20,6 +19,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    var settings = Provider.of<Settings>(context);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -27,7 +28,8 @@ class _MyHomePageState extends State<MyHomePage> {
           icon: Icon(Icons.settings),
           tooltip: 'Settings',
         ),
-        title: Text(widget.title),
+        title: Text('Welcome: ${settings.getName()}',
+            style: TextStyle(fontSize: 18)),
         actions: <Widget>[
           TextButton.icon(
             icon: Icon(
@@ -44,7 +46,19 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      body: _listConfigsPage(),
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/images/background.jpg"),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          _listConfigsPage(),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addConfig(context),
         tooltip: 'Add Config',
@@ -70,7 +84,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     height: 50,
                     decoration: new BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
-                      color: Colors.amber[100],
+                      color: Colors.white.withOpacity(0.6),
+                      border: Border.all(color: Colors.blue, width: 2),
                     ),
                     child: Center(
                         child: Text(
@@ -94,6 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     icon: Icon(Icons.edit),
                     tooltip: 'Edit config',
                   ),
+                  backgroundColor: Colors.white.withOpacity(0.6),
                 ),
               ),
             ],

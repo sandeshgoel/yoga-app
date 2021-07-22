@@ -42,9 +42,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class Wrapper extends StatelessWidget {
+class Wrapper extends StatefulWidget {
   Wrapper({Key? key}) : super(key: key);
 
+  @override
+  _WrapperState createState() => _WrapperState();
+}
+
+class _WrapperState extends State<Wrapper> {
   @override
   Widget build(BuildContext context) {
     final dynamic user = Provider.of<User?>(context);
@@ -53,18 +58,18 @@ class Wrapper extends StatelessWidget {
       _rightAfterSignIn(context, user);
     }
 
-    return ((user != null)
-        ? MyHomePage(title: 'Yoga Assist')
-        : AuthenticatePage());
+    return ((user != null) ? MyHomePage() : AuthenticatePage());
   }
 
   void _rightAfterSignIn(context, user) async {
-    String uid = user.uid;
     Settings settings = Provider.of<Settings>(context, listen: false);
+    String uid = user.uid;
+
+    settings.initSettings();
     settings.uid = uid;
     settings.email = user.email;
 
-    print('Signed in user $uid, reading DB, updating local cache');
+    print('Signed in user ${settings.email}, reading DB ...');
 
     var doc = await DBService(uid: uid).getUserData();
     var cfg = doc.data();
@@ -77,5 +82,14 @@ class Wrapper extends StatelessWidget {
       print('DB record does not exist!!');
     }
     settings.saveSettings();
+
+    if (settings.getName() == '') {
+      if (user.displayName == null)
+        settings.setName(settings.email.split('@')[0]);
+      else
+        settings.setName(user.displayName);
+    }
+
+    print('User name: ${settings.getName()}');
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:wakelock/wakelock.dart';
 
 import 'package:yoga/services/tts.dart';
 import 'package:yoga/services/audio.dart';
@@ -30,6 +31,7 @@ class _CounterPageState extends State<CounterPage> {
   void dispose() {
     _timerClock.cancel();
     _am.pauseMusic();
+    Wakelock.disable();
     super.dispose();
   }
 
@@ -38,6 +40,7 @@ class _CounterPageState extends State<CounterPage> {
     var settings = Provider.of<Settings>(context);
     int pindex = settings.findParamIndex(widget.cfg);
     _tts.setSpeechRate(settings.speechRate);
+    Wakelock.enable();
 
     return WillPopScope(
       onWillPop: () async {
@@ -48,101 +51,120 @@ class _CounterPageState extends State<CounterPage> {
         appBar: AppBar(
           title: Text(widget.cfg),
         ),
-        body: Column(
+        body: Stack(
           children: [
-            Expanded(flex: 5, child: Container()),
-            Expanded(
-              flex: 15,
-              child: Container(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Round ',
-                      style: TextStyle(fontSize: 20),
+            Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage("assets/images/background.jpg"),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Column(
+              children: [
+                Expanded(flex: 5, child: Container()),
+                Expanded(
+                  flex: 15,
+                  child: Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Round ',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        Text(
+                          ' $_curRound ',
+                          style: TextStyle(fontSize: 40),
+                        ),
+                        Text(
+                          ' of ',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        Text(
+                          ' ${settings.getParam(pindex).rounds}',
+                          style: TextStyle(fontSize: 40),
+                        ),
+                      ],
                     ),
-                    Text(
-                      ' $_curRound ',
+                  ),
+                ),
+                Expanded(
+                  flex: 15,
+                  child: Container(
+                    margin: EdgeInsets.all(16),
+                    decoration: new BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      color: Colors.amber.withOpacity(0.6),
+                    ),
+                    child: Center(
+                        child: Text(
+                      settings.getParam(pindex).stages[_curStage].name,
                       style: TextStyle(fontSize: 40),
-                    ),
-                    Text(
-                      ' of ',
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    Text(
-                      ' ${settings.getParam(pindex).rounds}',
-                      style: TextStyle(fontSize: 40),
-                    ),
-                  ],
+                    )),
+                  ),
                 ),
-              ),
-            ),
-            Expanded(
-              flex: 15,
-              child: Container(
-                margin: EdgeInsets.all(16),
-                decoration: new BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                  color: Colors.amber[100],
+                Expanded(flex: 5, child: Container()),
+                Expanded(
+                  flex: 25,
+                  child: Container(
+                    decoration: new BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.green.withOpacity(0.6),
+                    ),
+                    child: Center(
+                        child: Text(
+                      _curCount.toString(),
+                      style: TextStyle(fontSize: 80),
+                    )),
+                  ),
                 ),
-                child: Center(
-                    child: Text(
-                  settings.getParam(pindex).stages[_curStage].name,
-                  style: TextStyle(fontSize: 40),
-                )),
-              ),
-            ),
-            Expanded(flex: 5, child: Container()),
-            Expanded(
-              flex: 25,
-              child: Container(
-                decoration: new BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.green,
+                Expanded(flex: 5, child: Container()),
+                Expanded(
+                  flex: 10,
+                  child: Container(
+                    margin: EdgeInsets.all(16),
+                    decoration: new BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      color: Colors.white.withOpacity(0.6),
+                    ),
+                    child: Center(
+                        child: Text(
+                            'TIME ELAPSED : ' +
+                                (_totSeconds ~/ 60).toString() +
+                                ' min ' +
+                                (_totSeconds.toInt() % 60).toString() +
+                                ' sec',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold))),
+                  ),
                 ),
-                child: Center(
-                    child: Text(
-                  _curCount.toString(),
-                  style: TextStyle(fontSize: 80),
-                )),
-              ),
+                Expanded(
+                    flex: 15,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                            onPressed: () => _startTimer(),
+                            child: Text('Start')),
+                        ElevatedButton(
+                            onPressed: () {
+                              _paused = true;
+                            },
+                            child: Text('Pause')),
+                        ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _resetCounter();
+                              });
+                            },
+                            child: Text('Reset')),
+                      ],
+                    )),
+                Expanded(flex: 5, child: Container()),
+              ],
             ),
-            Expanded(
-              flex: 20,
-              child: Container(
-                child: Center(
-                    child: Text(
-                  'TIME ELAPSED : ' +
-                      (_totSeconds ~/ 60).toString() +
-                      ' min ' +
-                      (_totSeconds.toInt() % 60).toString() +
-                      ' sec',
-                  style: TextStyle(fontSize: 20),
-                )),
-              ),
-            ),
-            Expanded(
-                flex: 10,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                        onPressed: () => _startTimer(), child: Text('Start')),
-                    ElevatedButton(
-                        onPressed: () {
-                          _paused = true;
-                        },
-                        child: Text('Pause')),
-                    ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _resetCounter();
-                          });
-                        },
-                        child: Text('Reset')),
-                  ],
-                )),
-            Expanded(flex: 5, child: Container()),
           ],
         ),
       ),
@@ -196,6 +218,7 @@ class _CounterPageState extends State<CounterPage> {
             _curRound++;
             if (_curRound > cp.rounds) {
               t.cancel();
+              _am.pauseMusic();
 
               msg = 'Your routine is complete!!\n' +
                   '${cp.rounds} rounds in ${_totSeconds.toInt()} seconds.';

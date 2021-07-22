@@ -59,34 +59,63 @@ class ConfigParam {
 class Settings with ChangeNotifier {
   Random r = new Random();
 
-  String uid = '';
-  String email = '';
-  String name = '';
+  late String uid;
+  late String email;
+  late String _name;
 
-  double speechRate = 0.3;
-  int countDuration = 1800;
+  late double speechRate;
+  late int countDuration;
 
-  List<ConfigParam> cps = [
-    ConfigParam('Anulom Vilom', 10, [
-      Stage('Inhale Left', 4),
-      Stage('Exhale Right', 4),
-      Stage('Inhale Right', 4),
-      Stage('Exhale Left', 4),
-    ]),
-    ConfigParam('Deep Breathing', 20, [
-      Stage('Inhale', 4),
-      Stage('Exhale', 4),
-    ])
-  ];
+  late List<ConfigParam> cps;
+
+  Settings() {
+    initSettings();
+  }
+
+  void initSettings() {
+    _name = '';
+    email = '';
+    uid = '';
+    speechRate = 0.3;
+    countDuration = 1800;
+    cps = [
+      ConfigParam('Anulom Vilom', 10, [
+        Stage('Inhale Left', 4),
+        Stage('Exhale Right', 4),
+        Stage('Inhale Right', 4),
+        Stage('Exhale Left', 4),
+      ]),
+      ConfigParam('Deep Breathing', 20, [
+        Stage('Inhale', 4),
+        Stage('Exhale', 4),
+      ])
+    ];
+  }
+
+  // ----------------------------------------------------
+
+  String getName() {
+    return _name;
+  }
+
+  void setName(String name) {
+    this._name = name;
+    notifyListeners();
+  }
+
+  void setEmail(String email) {
+    this.email = email;
+    notifyListeners();
+  }
 
   // ----------------------------------------------------
 
   void settingsFromJson(Map<String, dynamic> jval) {
-    this.name = jval['name'] ?? this.name;
+    this._name = jval['name'] ?? this._name;
     //this.email = jval['email'] ?? this.email;
-    this.speechRate = jval['speechRate'] ?? 0.3;
-    this.countDuration = jval['countDuration'] ?? 1800;
-    this.cps = (jval['cps'] ?? {})
+    this.speechRate = jval['speechRate'] ?? this.speechRate;
+    this.countDuration = jval['countDuration'] ?? this.countDuration;
+    this.cps = (jval['cps'] ?? (this.cps.map((x) => x.toJson()).toList()))
         .map<ConfigParam>((x) => ConfigParam.fromJson(x))
         .toList();
     notifyListeners();
@@ -94,7 +123,7 @@ class Settings with ChangeNotifier {
 
   Map<String, dynamic> settingsToJson() {
     return {
-      'name': this.name,
+      'name': this._name,
       'email': this.email,
       'speechRate': this.speechRate,
       'countDuration': this.countDuration,

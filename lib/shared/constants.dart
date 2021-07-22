@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-const textInputDeco = InputDecoration(
-  fillColor: Colors.white,
+var textInputDeco = InputDecoration(
+  fillColor: Colors.white.withOpacity(0.6),
   filled: true,
   enabledBorder:
       OutlineInputBorder(borderSide: BorderSide(color: Colors.white, width: 2)),

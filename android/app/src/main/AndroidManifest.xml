@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.yoga">
    <application
-        android:label="yoga"
-        android:icon="@mipmap/ic_launcher">
+        android:label="Yoga Assist"
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

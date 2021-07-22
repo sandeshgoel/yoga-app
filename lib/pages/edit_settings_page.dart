@@ -35,7 +35,19 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
       appBar: AppBar(
         title: Text('Settings'),
       ),
-      body: _editSettingsPage(),
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/images/bg-blue.jpeg"),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          _editSettingsPage(),
+        ],
+      ),
     );
   }
 
@@ -49,26 +61,29 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
           child: Column(
             children: [
               Container(
-                padding: EdgeInsets.all(16),
-                height: 50,
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: Text(
                   settings.email,
-                  style: TextStyle(color: Colors.black),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ),
               Container(
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: TextFormField(
-                  initialValue: settings.name,
+                  initialValue: settings.getName(),
                   validator: (val) => val!.isNotEmpty ? null : 'Enter a name',
                   onChanged: (val) {
-                    settings.name = val;
+                    if (val != '')
+                      settings.setName(val);
+                    else
+                      settings.setName(settings.email.split('@')[0]);
                   },
                   decoration: textInputDeco.copyWith(hintText: 'Name'),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ),
               Container(
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: FormBuilderSlider(
                   name: 'duration',
                   initialValue: settings.countDuration.toDouble() / 1000,
@@ -84,7 +99,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                 ),
               ),
               Container(
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: FormBuilderSlider(
                   name: 'speech_rate',
                   initialValue: settings.speechRate,
