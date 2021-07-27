@@ -39,7 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
               color: Colors.white,
             ),
             label: Text(
-              'logout',
+              'Log Out',
               style: TextStyle(color: Colors.white),
             ),
             onPressed: () async {

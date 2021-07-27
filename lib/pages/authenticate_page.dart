@@ -28,7 +28,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
         ? Loading()
         : Scaffold(
             appBar: AppBar(
-              title: Text('Sign In to Yoga Assist'),
+              title: Text('Welcome to Yoga Assist'),
             ),
             body: Stack(
               children: [

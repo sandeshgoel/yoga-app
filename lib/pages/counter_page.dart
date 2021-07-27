@@ -214,8 +214,9 @@ class _CounterPageState extends State<CounterPage> {
     int pindex = settings.findParamIndex(widget.cfg);
     ConfigParam cp = settings.getParam(pindex);
 
+    _am.startMusic();
     if (_reset) {
-      String msg = "Starting ${cp.rounds} rounds of the routine ${cp.name}. ";
+      String msg = "This routine has ${cp.rounds} rounds of ${cp.name}. ";
       msg += "Each round has ${cp.stages.length} stages. ";
       for (var i = 0; i < cp.stages.length; i++) {
         msg += "${cp.stages[i].name}";
@@ -226,11 +227,12 @@ class _CounterPageState extends State<CounterPage> {
         else
           msg += ", ";
       }
+      msg += " Starting round 1 now ... ${cp.stages[0].name}";
       print(msg);
-      _tts.speak(context, msg);
+      await _tts.speak(context, msg);
       _reset = false;
     }
-    _am.startMusic();
+
     _timerClock = new Timer.periodic(
         Duration(milliseconds: settings.countDuration), _handleTimeout);
     _paused = false;
