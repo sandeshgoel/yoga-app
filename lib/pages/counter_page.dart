@@ -63,7 +63,6 @@ class _CounterPageState extends State<CounterPage> {
             ),
             Column(
               children: [
-                Expanded(flex: 5, child: Container()),
                 Expanded(
                   flex: 15,
                   child: Container(
@@ -76,7 +75,8 @@ class _CounterPageState extends State<CounterPage> {
                         ),
                         Text(
                           ' $_curRound ',
-                          style: TextStyle(fontSize: 40),
+                          style: TextStyle(
+                              fontSize: 40, fontWeight: FontWeight.bold),
                         ),
                         Text(
                           ' of ',
@@ -84,16 +84,28 @@ class _CounterPageState extends State<CounterPage> {
                         ),
                         Text(
                           ' ${settings.getParam(pindex).rounds}',
-                          style: TextStyle(fontSize: 40),
+                          style: TextStyle(
+                              fontSize: 40, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                   ),
                 ),
                 Expanded(
-                  flex: 15,
+                  flex: 5,
                   child: Container(
-                    margin: EdgeInsets.all(16),
+                    //margin: EdgeInsets.all(16),
+                    child: Center(
+                        child: Text(
+                      'Stage ${_curStage + 1} of ${settings.getParam(pindex).stages.length}',
+                      style: TextStyle(fontSize: 12),
+                    )),
+                  ),
+                ),
+                Expanded(
+                  flex: 10,
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 20),
                     decoration: new BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                       color: Colors.amber.withOpacity(0.6),
@@ -105,22 +117,38 @@ class _CounterPageState extends State<CounterPage> {
                     )),
                   ),
                 ),
-                Expanded(flex: 5, child: Container()),
+                Expanded(flex: 10, child: Container()),
                 Expanded(
-                  flex: 25,
+                  flex: 20,
                   child: Container(
                     decoration: new BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.green.withOpacity(0.6),
-                    ),
+                        shape: BoxShape.circle,
+                        color: Colors.green.withOpacity(0.8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.green.withOpacity(0.8),
+                            blurRadius: 10.0,
+                            spreadRadius: 10.0,
+                          ),
+                        ]),
                     child: Center(
-                        child: Text(
-                      _curCount.toString(),
-                      style: TextStyle(fontSize: 80),
+                        child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _curCount.toString(),
+                          style: TextStyle(
+                              fontSize: 80, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          '/${settings.getParam(pindex).stages[_curStage].count}',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ],
                     )),
                   ),
                 ),
-                Expanded(flex: 5, child: Container()),
+                Expanded(flex: 10, child: Container()),
                 Expanded(
                   flex: 10,
                   child: Container(
@@ -130,14 +158,16 @@ class _CounterPageState extends State<CounterPage> {
                       color: Colors.white.withOpacity(0.6),
                     ),
                     child: Center(
-                        child: Text(
-                            'TIME ELAPSED : ' +
-                                (_totSeconds ~/ 60).toString() +
-                                ' min ' +
-                                (_totSeconds.toInt() % 60).toString() +
-                                ' sec',
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold))),
+                      child: Text(
+                        'TIME ELAPSED : ' +
+                            (_totSeconds ~/ 60).toString() +
+                            ' min ' +
+                            (_totSeconds.toInt() % 60).toString() +
+                            ' sec',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ),
                 ),
                 Expanded(
@@ -179,11 +209,25 @@ class _CounterPageState extends State<CounterPage> {
     _reset = true;
   }
 
-  void _startTimer() {
+  void _startTimer() async {
     var settings = Provider.of<Settings>(context, listen: false);
+    int pindex = settings.findParamIndex(widget.cfg);
+    ConfigParam cp = settings.getParam(pindex);
 
     if (_reset) {
-      _tts.speak(context, "Starting routine ...");
+      String msg = "Starting ${cp.rounds} rounds of the routine ${cp.name}. ";
+      msg += "Each round has ${cp.stages.length} stages. ";
+      for (var i = 0; i < cp.stages.length; i++) {
+        msg += "${cp.stages[i].name}";
+        if (i == (cp.stages.length - 2))
+          msg += " and ";
+        else if (i == (cp.stages.length - 1))
+          msg += ".";
+        else
+          msg += ", ";
+      }
+      print(msg);
+      _tts.speak(context, msg);
       _reset = false;
     }
     _am.startMusic();
@@ -192,13 +236,17 @@ class _CounterPageState extends State<CounterPage> {
     _paused = false;
   }
 
+  void _pauseTimer(Timer t) {
+    t.cancel();
+    _am.pauseMusic();
+  }
+
   void _handleTimeout(Timer t) {
     var settings = Provider.of<Settings>(context, listen: false);
     print(_paused);
 
     if (_paused) {
-      t.cancel();
-      _am.pauseMusic();
+      _pauseTimer(t);
     } else {
       setState(() {
         int pindex = settings.findParamIndex(widget.cfg);
@@ -217,8 +265,7 @@ class _CounterPageState extends State<CounterPage> {
           if (_curStage == 0) {
             _curRound++;
             if (_curRound > cp.rounds) {
-              t.cancel();
-              _am.pauseMusic();
+              _pauseTimer(t);
 
               msg = 'Your routine is complete!!\n' +
                   '${cp.rounds} rounds in ${_totSeconds.toInt()} seconds.';

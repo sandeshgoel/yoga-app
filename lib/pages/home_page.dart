@@ -20,6 +20,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     var settings = Provider.of<Settings>(context);
+    GoogleSignInProvider google =
+        Provider.of<GoogleSignInProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -42,6 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             onPressed: () async {
               await _auth.signOut();
+              await google.googleSignOut();
             },
           ),
         ],
@@ -83,14 +86,15 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Container(
                     height: 50,
                     decoration: new BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                      color: Colors.white.withOpacity(0.6),
-                      border: Border.all(color: Colors.blue, width: 2),
+                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                      color: Colors.white.withOpacity(0.4),
+                      border: Border.all(color: Colors.lightBlue, width: 1),
                     ),
                     child: Center(
                         child: Text(
                       '${settings.getParam(index).name}',
-                      style: TextStyle(fontSize: 20),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     )),
                   ),
                 ),
@@ -109,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     icon: Icon(Icons.edit),
                     tooltip: 'Edit config',
                   ),
-                  backgroundColor: Colors.white.withOpacity(0.6),
+                  backgroundColor: Colors.white.withOpacity(0.4),
                 ),
               ),
             ],

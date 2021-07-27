@@ -14,8 +14,12 @@ void main() async {
   await Firebase.initializeApp();
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => Settings(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<Settings>(create: (_) => Settings()),
+        ChangeNotifierProvider<GoogleSignInProvider>(
+            create: (_) => GoogleSignInProvider()),
+      ],
       child: MyApp(),
     ),
   );
