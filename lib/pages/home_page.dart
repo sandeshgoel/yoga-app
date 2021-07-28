@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:yoga/services/auth.dart';
 
+import 'package:yoga/services/auth.dart';
 import 'package:yoga/services/settings.dart';
 import 'counter_page.dart';
 import 'edit_settings_page.dart';
@@ -20,34 +20,84 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     var settings = Provider.of<Settings>(context);
-    GoogleSignInProvider google =
+    var _photo = settings.getPhoto();
+    GoogleSignInProvider _google =
         Provider.of<GoogleSignInProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => _editSettings(context),
-          icon: Icon(Icons.settings),
-          tooltip: 'Settings',
-        ),
-        title: Text('Welcome: ${settings.getName()}',
-            style: TextStyle(fontSize: 18)),
-        actions: <Widget>[
-          TextButton.icon(
-            icon: Icon(
-              Icons.person,
-              color: Colors.white,
+        actions: [
+          Container(
+            margin: EdgeInsets.only(right: 15),
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(width: 2, color: Colors.yellow),
+              image: DecorationImage(
+                fit: BoxFit.contain,
+                image: (_photo == '')
+                    ? AssetImage("assets/icon/yoga.png") as ImageProvider
+                    : NetworkImage(_photo),
+              ),
             ),
-            label: Text(
-              'Log Out',
-              style: TextStyle(color: Colors.white),
-            ),
-            onPressed: () async {
-              await _auth.signOut();
-              await google.googleSignOut();
-            },
           ),
         ],
+        title: Text('Welcome: ${settings.getName()}',
+            style: TextStyle(fontSize: 18)),
+        leading: PopupMenuButton(
+          icon: Icon(Icons.menu), //don't specify icon if you want 3 dot menu
+          color: Colors.white,
+          offset: Offset(0, 50),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          itemBuilder: (context) => [
+            PopupMenuItem<int>(
+              value: 0,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.settings,
+                    color: Colors.black,
+                  ),
+                  Text(
+                    "  Settings",
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+            PopupMenuItem<int>(
+              value: 1,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.logout,
+                    color: Colors.black,
+                  ),
+                  Text(
+                    "  Log out",
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          onSelected: (item) async {
+            print(item);
+            switch (item) {
+              case 0:
+                _editSettings(context);
+                break;
+              case 1:
+                await _auth.signOut();
+                await _google.googleSignOut();
+                break;
+              default:
+                print('invalid item $item');
+            }
+          },
+        ),
       ),
       body: Stack(
         children: [

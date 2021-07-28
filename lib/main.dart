@@ -93,7 +93,8 @@ class _WrapperState extends State<Wrapper> {
       else
         settings.setName(user.displayName);
     }
+    settings.setPhoto(user.photoURL ?? '');
 
-    print('User name: ${settings.getName()}');
+    print('User name: ${settings.getName()}, photo: ${settings.getPhoto()}');
   }
 }

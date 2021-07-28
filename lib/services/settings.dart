@@ -62,6 +62,7 @@ class Settings with ChangeNotifier {
   late String uid;
   late String email;
   late String _name;
+  late String _photo;
 
   late double speechRate;
   late int countDuration;
@@ -76,6 +77,8 @@ class Settings with ChangeNotifier {
     _name = '';
     email = '';
     uid = '';
+    _photo = '';
+
     speechRate = 0.3;
     countDuration = 1800;
     cps = [
@@ -100,6 +103,15 @@ class Settings with ChangeNotifier {
 
   void setName(String name) {
     this._name = name;
+    notifyListeners();
+  }
+
+  String getPhoto() {
+    return _photo;
+  }
+
+  void setPhoto(String photo) {
+    this._photo = photo;
     notifyListeners();
   }
 

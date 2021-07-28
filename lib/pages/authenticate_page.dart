@@ -19,8 +19,8 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
   bool _loading = false;
   bool _checkboxValue = false;
 
-  String email = 'sandesh@gmail.com';
-  String password = 'sandesh';
+  String email = '';
+  String password = '';
 
   @override
   Widget build(BuildContext context) {
