@@ -16,7 +16,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider<Settings>(create: (_) => Settings()),
+        ChangeNotifierProvider<YogaSettings>(create: (_) => YogaSettings()),
         ChangeNotifierProvider<GoogleSignInProvider>(
             create: (_) => GoogleSignInProvider()),
       ],
@@ -28,7 +28,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var settings = Provider.of<Settings>(context, listen: false);
+    var settings = Provider.of<YogaSettings>(context, listen: false);
     settings.loadSettings();
 
     return StreamProvider<User?>.value(
@@ -66,7 +66,7 @@ class _WrapperState extends State<Wrapper> {
   }
 
   void _rightAfterSignIn(context, user) async {
-    Settings settings = Provider.of<Settings>(context, listen: false);
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
     String uid = user.uid;
 
     settings.initSettings();

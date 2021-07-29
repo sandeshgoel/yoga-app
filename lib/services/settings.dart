@@ -56,7 +56,7 @@ class ConfigParam {
 
 // ------------------------------------------------------
 
-class Settings with ChangeNotifier {
+class YogaSettings with ChangeNotifier {
   Random r = new Random();
 
   late String uid;
@@ -69,7 +69,7 @@ class Settings with ChangeNotifier {
 
   late List<ConfigParam> cps;
 
-  Settings() {
+  YogaSettings() {
     initSettings();
   }
 

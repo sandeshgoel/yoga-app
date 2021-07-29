@@ -6,26 +6,17 @@ class Tts {
   double speechRate = 0.3;
   double pitch = 0.8;
   bool _debug = false;
-  bool _speaking = false;
 
   Tts() {
     flutterTts.setSpeechRate(this.speechRate);
     flutterTts.setPitch(this.pitch);
 
-    print('Setting start handler');
-    flutterTts.setStartHandler(() {
-      _speaking = true;
-      print('tts started');
-    });
-
-    flutterTts.setCompletionHandler(() {
-      _speaking = false;
-      print('tts complete');
-    });
+    flutterTts.awaitSpeakCompletion(true);
 
     //var voices = await flutterTts.getLanguages;
     //print('Voices: $voices');
-    //flutterTts.setVoice({"name": "Karen", "locale": "en-IN"});
+    flutterTts.setVoice({"name": "en-IN-language", "locale": "en-IN"});
+    flutterTts.setLanguage("en-IN");
   }
 
   void setSpeechRate(speechRate) {
@@ -34,18 +25,12 @@ class Tts {
   }
 
   Future<void> speak(context, String msg) async {
-    _speaking = true;
-    var res = await flutterTts.speak(msg);
-    print(res);
+    await flutterTts.speak(msg);
+
     if (_debug)
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(msg),
         duration: Duration(milliseconds: 1000),
       ));
-
-    while (_speaking) {
-      await Future.delayed(Duration(milliseconds: 1000));
-      print(_speaking);
-    }
   }
 }

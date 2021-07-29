@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wakelock/wakelock.dart';
+import 'package:yoga/services/database.dart';
 
 import 'package:yoga/services/tts.dart';
 import 'package:yoga/services/audio.dart';
 import 'package:yoga/services/settings.dart';
+import 'package:yoga/services/user_activity.dart';
 
 class CounterPage extends StatefulWidget {
   final String cfg;
@@ -37,7 +39,7 @@ class _CounterPageState extends State<CounterPage> {
 
   @override
   Widget build(BuildContext context) {
-    var settings = Provider.of<Settings>(context);
+    var settings = Provider.of<YogaSettings>(context);
     int pindex = settings.findParamIndex(widget.cfg);
     _tts.setSpeechRate(settings.speechRate);
     Wakelock.enable();
@@ -201,16 +203,36 @@ class _CounterPageState extends State<CounterPage> {
     );
   }
 
-  void _resetCounter() {
-    _curCount = 1;
-    _curStage = 0;
-    _curRound = 1;
-    _totSeconds = 0;
-    _reset = true;
+  void _resetCounter() async {
+    /*
+    var voices = await _tts.flutterTts.getVoices;
+    for (var voice in voices) {
+      if (voice['locale'] == 'en-IN') print('Voice: $voice');
+    }*/
+    int duration = _totSeconds.toInt();
+
+    setState(() {
+      _curCount = 1;
+      _curStage = 0;
+      _curRound = 1;
+      _totSeconds = 0;
+      _reset = true;
+    });
+
+    if (duration > 10) {
+      var settings = Provider.of<YogaSettings>(context, listen: false);
+      int pindex = settings.findParamIndex(widget.cfg);
+      ConfigParam cp = settings.getParam(pindex);
+
+      Map<String, dynamic> act =
+          UserActivity(settings.uid, cp.name, DateTime.now(), duration)
+              .toJson();
+      await DBService(uid: settings.uid).addUserActivity(act);
+    }
   }
 
   void _startTimer() async {
-    var settings = Provider.of<Settings>(context, listen: false);
+    var settings = Provider.of<YogaSettings>(context, listen: false);
     int pindex = settings.findParamIndex(widget.cfg);
     ConfigParam cp = settings.getParam(pindex);
 
@@ -244,7 +266,7 @@ class _CounterPageState extends State<CounterPage> {
   }
 
   void _handleTimeout(Timer t) {
-    var settings = Provider.of<Settings>(context, listen: false);
+    var settings = Provider.of<YogaSettings>(context, listen: false);
     print(_paused);
 
     if (_paused) {
@@ -270,7 +292,7 @@ class _CounterPageState extends State<CounterPage> {
               _pauseTimer(t);
 
               msg = 'Your routine is complete!!\n' +
-                  '${cp.rounds} rounds in ${_totSeconds.toInt()} seconds.';
+                  '${cp.rounds} rounds in about ${(_totSeconds + 30) ~/ 60} minutes.';
               showDialog(
                   context: context,
                   builder: (_) => AlertDialog(

@@ -15,11 +15,11 @@ class EditConfigPage extends StatefulWidget {
 
 class _EditConfigPageState extends State<EditConfigPage> {
   final _formKey = new GlobalKey<FormBuilderState>();
-  late Settings _settings;
+  late YogaSettings _settings;
 
   @override
   void didChangeDependencies() {
-    _settings = Provider.of<Settings>(context, listen: false);
+    _settings = Provider.of<YogaSettings>(context, listen: false);
     super.didChangeDependencies();
   }
 
@@ -52,7 +52,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
   }
 
   Widget _editConfigPage(context, cfg) {
-    var settings = Provider.of<Settings>(context, listen: false);
+    var settings = Provider.of<YogaSettings>(context, listen: false);
     print('**** _editConfigPage: ${settings.cps}');
     var pindex = settings.findParamIndex(cfg);
     ConfigParam cp = settings.getParam(pindex);
@@ -107,7 +107,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
   }
 
   void _saveConfig(context, cfg) {
-    var settings = Provider.of<Settings>(context, listen: false);
+    var settings = Provider.of<YogaSettings>(context, listen: false);
     int pindex = settings.findParamIndex(cfg);
 
     _formKey.currentState!.save();
@@ -141,7 +141,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
   }
 
   void _deleteConfig(context, cfg) {
-    var settings = Provider.of<Settings>(context, listen: false);
+    var settings = Provider.of<YogaSettings>(context, listen: false);
     print('**** _deleteConfig: ${settings.cps}');
     settings.removeParam(cfg);
 
@@ -149,7 +149,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
   }
 
   void _addStage(context, cfg) {
-    var settings = Provider.of<Settings>(context, listen: false);
+    var settings = Provider.of<YogaSettings>(context, listen: false);
 
     setState(() {
       var pindex = settings.findParamIndex(cfg);
@@ -160,7 +160,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
   }
 
   void _deleteStage(context, cfg, i) {
-    var settings = Provider.of<Settings>(context, listen: false);
+    var settings = Provider.of<YogaSettings>(context, listen: false);
     setState(() {
       var pindex = settings.findParamIndex(cfg);
       ConfigParam cp = settings.getParam(pindex);

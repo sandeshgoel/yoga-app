@@ -15,11 +15,11 @@ class EditSettingsPage extends StatefulWidget {
 class _EditSettingsPageState extends State<EditSettingsPage> {
   final _settingsFormKey = new GlobalKey<FormBuilderState>();
 
-  late Settings _settings;
+  late YogaSettings _settings;
 
   @override
   void didChangeDependencies() {
-    _settings = Provider.of<Settings>(context, listen: false);
+    _settings = Provider.of<YogaSettings>(context, listen: false);
     super.didChangeDependencies();
   }
 
@@ -52,7 +52,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
   }
 
   Widget _editSettingsPage() {
-    var settings = Provider.of<Settings>(context, listen: false);
+    var settings = Provider.of<YogaSettings>(context, listen: false);
 
     return SingleChildScrollView(
       child: Column(children: <Widget>[
