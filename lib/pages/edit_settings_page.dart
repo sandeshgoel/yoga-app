@@ -86,7 +86,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: FormBuilderSlider(
                   name: 'duration',
-                  initialValue: settings.countDuration.toDouble() / 1000,
+                  initialValue: settings.getCountDuration().toDouble() / 1000,
                   min: 1,
                   max: 3,
                   divisions: 20,
@@ -102,7 +102,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: FormBuilderSlider(
                   name: 'speech_rate',
-                  initialValue: settings.speechRate,
+                  initialValue: settings.getSpeechRate(),
                   min: 0.1,
                   max: 1.0,
                   divisions: 9,
@@ -111,6 +111,22 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                   ),
                   onChanged: (value) {
                     settings.setSpeechRate(value!.toDouble());
+                  },
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                child: FormBuilderSlider(
+                  name: 'daily_target',
+                  initialValue: settings.getDailyTarget().toDouble(),
+                  min: 1,
+                  max: 60,
+                  divisions: 59,
+                  decoration: InputDecoration(
+                    labelText: 'Daily Target (minutes)',
+                  ),
+                  onChanged: (value) {
+                    settings.setDailyTarget(value!.toInt());
                   },
                 ),
               ),

@@ -41,7 +41,7 @@ class _CounterPageState extends State<CounterPage> {
   Widget build(BuildContext context) {
     var settings = Provider.of<YogaSettings>(context);
     int pindex = settings.findParamIndex(widget.cfg);
-    _tts.setSpeechRate(settings.speechRate);
+    _tts.setSpeechRate(settings.getSpeechRate());
     Wakelock.enable();
 
     return WillPopScope(
@@ -256,7 +256,7 @@ class _CounterPageState extends State<CounterPage> {
     }
 
     _timerClock = new Timer.periodic(
-        Duration(milliseconds: settings.countDuration), _handleTimeout);
+        Duration(milliseconds: settings.getCountDuration()), _handleTimeout);
     _paused = false;
   }
 
@@ -279,7 +279,7 @@ class _CounterPageState extends State<CounterPage> {
         int _totStages = cp.stages.length;
         String msg = '';
 
-        _totSeconds += settings.countDuration / 1000;
+        _totSeconds += settings.getCountDuration() / 1000;
 
         _curCount = (_curCount + 1);
         if (_curCount == stage.count + 1) _curCount = 1;

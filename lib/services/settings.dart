@@ -64,8 +64,9 @@ class YogaSettings with ChangeNotifier {
   late String _name;
   late String _photo;
 
-  late double speechRate;
-  late int countDuration;
+  late double _speechRate;
+  late int _countDuration;
+  late int _dailyTarget;
 
   late List<ConfigParam> cps;
 
@@ -79,8 +80,9 @@ class YogaSettings with ChangeNotifier {
     uid = '';
     _photo = '';
 
-    speechRate = 0.3;
-    countDuration = 1800;
+    _speechRate = 0.3;
+    _countDuration = 1800;
+    _dailyTarget = 10;
     cps = [
       ConfigParam('Anulom Vilom', 10, [
         Stage('Inhale Left', 4),
@@ -125,8 +127,9 @@ class YogaSettings with ChangeNotifier {
   void settingsFromJson(Map<String, dynamic> jval) {
     this._name = jval['name'] ?? this._name;
     //this.email = jval['email'] ?? this.email;
-    this.speechRate = jval['speechRate'] ?? this.speechRate;
-    this.countDuration = jval['countDuration'] ?? this.countDuration;
+    this._speechRate = jval['speechRate'] ?? this._speechRate;
+    this._countDuration = jval['countDuration'] ?? this._countDuration;
+    this._dailyTarget = jval['dailyTarget'] ?? this._dailyTarget;
     this.cps = (jval['cps'] ?? (this.cps.map((x) => x.toJson()).toList()))
         .map<ConfigParam>((x) => ConfigParam.fromJson(x))
         .toList();
@@ -137,8 +140,9 @@ class YogaSettings with ChangeNotifier {
     return {
       'name': this._name,
       'email': this.email,
-      'speechRate': this.speechRate,
-      'countDuration': this.countDuration,
+      'speechRate': this._speechRate,
+      'countDuration': this._countDuration,
+      'dailyTarget': this._dailyTarget,
       'cps': this.cps.map((x) => x.toJson()).toList()
     };
   }
@@ -167,14 +171,32 @@ class YogaSettings with ChangeNotifier {
 
   // ----------------------------------------------------
 
+  void setDailyTarget(int dailyTarget) {
+    this._dailyTarget = dailyTarget;
+  }
+
+  int getDailyTarget() {
+    return this._dailyTarget;
+  }
+
+  // ----------------------------------------------------
+
   void setSpeechRate(double speechRate) {
-    this.speechRate = speechRate;
+    this._speechRate = speechRate;
+  }
+
+  double getSpeechRate() {
+    return this._speechRate;
   }
 
   // ----------------------------------------------------
 
   void setCountDuration(int countDuration) {
-    this.countDuration = countDuration;
+    this._countDuration = countDuration;
+  }
+
+  int getCountDuration() {
+    return this._countDuration;
   }
 
   // ----------------------------------------------------
