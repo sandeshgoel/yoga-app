@@ -3,6 +3,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 
 class Tts {
   final FlutterTts flutterTts = FlutterTts();
+  String speechVoice = '';
   double speechRate = 0.3;
   double pitch = 0.8;
   bool _debug = false;
@@ -24,6 +25,11 @@ class Tts {
     flutterTts.setSpeechRate(this.speechRate);
   }
 
+  void setSpeechVoice(speechVoice) {
+    this.speechVoice = speechVoice;
+    flutterTts.setVoice({"name": speechVoice, "locale": "en-IN"});
+  }
+
   Future<void> speak(context, String msg) async {
     await flutterTts.speak(msg);
 
@@ -32,5 +38,9 @@ class Tts {
         content: Text(msg),
         duration: Duration(milliseconds: 1000),
       ));
+  }
+
+  void stop() {
+    flutterTts.stop();
   }
 }

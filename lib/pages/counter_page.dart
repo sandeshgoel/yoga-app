@@ -33,6 +33,7 @@ class _CounterPageState extends State<CounterPage> {
   void dispose() {
     _timerClock.cancel();
     _am.pauseMusic();
+    _tts.stop();
     Wakelock.disable();
     super.dispose();
   }
@@ -42,6 +43,8 @@ class _CounterPageState extends State<CounterPage> {
     var settings = Provider.of<YogaSettings>(context);
     int pindex = settings.findParamIndex(widget.cfg);
     _tts.setSpeechRate(settings.getSpeechRate());
+    _tts.setSpeechVoice(settings.getVoice());
+
     Wakelock.enable();
 
     return WillPopScope(
@@ -204,11 +207,6 @@ class _CounterPageState extends State<CounterPage> {
   }
 
   void _resetCounter() async {
-    /*
-    var voices = await _tts.flutterTts.getVoices;
-    for (var voice in voices) {
-      if (voice['locale'] == 'en-IN') print('Voice: $voice');
-    }*/
     int duration = _totSeconds.toInt();
 
     setState(() {
@@ -225,9 +223,9 @@ class _CounterPageState extends State<CounterPage> {
       ConfigParam cp = settings.getParam(pindex);
 
       Map<String, dynamic> act =
-          UserActivity(settings.uid, cp.name, DateTime.now(), duration)
+          UserActivity(settings.getUid(), cp.name, DateTime.now(), duration)
               .toJson();
-      await DBService(uid: settings.uid).addUserActivity(act);
+      await DBService(uid: settings.getUid()).addUserActivity(act);
     }
   }
 

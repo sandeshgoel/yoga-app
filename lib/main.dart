@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:yoga/services/auth.dart';
 import 'package:yoga/services/database.dart';
 import 'package:yoga/pages/authenticate_page.dart';
+import 'package:yoga/services/tts.dart';
 
 import 'services/settings.dart';
 import 'pages/home_page.dart';
@@ -70,10 +71,10 @@ class _WrapperState extends State<Wrapper> {
     String uid = user.uid;
 
     settings.initSettings();
-    settings.uid = uid;
-    settings.email = user.email;
+    settings.setUid(uid);
+    settings.setEmail(user.email);
 
-    print('Signed in user ${settings.email}, reading DB ...');
+    print('Signed in user ${settings.getEmail()}, reading DB ...');
 
     var doc = await DBService(uid: uid).getUserData();
     var cfg = doc.data();
@@ -89,12 +90,23 @@ class _WrapperState extends State<Wrapper> {
 
     if (settings.getName() == '') {
       if (user.displayName == null)
-        settings.setName(settings.email.split('@')[0]);
+        settings.setName(settings.getEmail().split('@')[0]);
       else
         settings.setName(user.displayName);
     }
     settings.setPhoto(user.photoURL ?? '');
 
     print('User name: ${settings.getName()}, photo: ${settings.getPhoto()}');
+
+    var voices = await Tts().flutterTts.getVoices;
+    List<String> filterVoices = [];
+    for (var voice in voices) {
+      if (voice['locale'] == 'en-IN') {
+        print('Voice: $voice');
+        filterVoices.add(voice['name']);
+      }
+    }
+    settings.setVoices(filterVoices);
+    if (settings.getVoice() == '') settings.setVoice(filterVoices[0]);
   }
 }

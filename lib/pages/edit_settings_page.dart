@@ -14,8 +14,8 @@ class EditSettingsPage extends StatefulWidget {
 
 class _EditSettingsPageState extends State<EditSettingsPage> {
   final _settingsFormKey = new GlobalKey<FormBuilderState>();
-
   late YogaSettings _settings;
+  String dropdownValue = '';
 
   @override
   void didChangeDependencies() {
@@ -60,10 +60,12 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
           key: _settingsFormKey,
           child: Column(
             children: [
+              // Email and user name
+
               Container(
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: Text(
-                  settings.email,
+                  settings.getEmail(),
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ),
@@ -76,12 +78,15 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                     if (val != '')
                       settings.setName(val);
                     else
-                      settings.setName(settings.email.split('@')[0]);
+                      settings.setName(settings.getEmail().split('@')[0]);
                   },
                   decoration: textInputDeco.copyWith(hintText: 'Name'),
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ),
+
+              // Count Duration
+
               Container(
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: FormBuilderSlider(
@@ -98,6 +103,9 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                   },
                 ),
               ),
+
+              // Speech Rate
+
               Container(
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: FormBuilderSlider(
@@ -114,6 +122,9 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                   },
                 ),
               ),
+
+              // Daily Target
+
               Container(
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: FormBuilderSlider(
@@ -129,6 +140,35 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                     settings.setDailyTarget(value!.toInt());
                   },
                 ),
+              ),
+
+              // Voice
+
+              DropdownButton<String>(
+                value: dropdownValue == ''
+                    ? settings.getVoices()[0]
+                    : dropdownValue,
+                icon: const Icon(Icons.arrow_downward),
+                //iconSize: 24,
+                //elevation: 16,
+                //style: const TextStyle(color: Colors.deepPurple),
+                underline: Container(
+                  height: 2,
+                  color: Colors.deepPurpleAccent,
+                ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    dropdownValue = newValue!;
+                    settings.setVoice(newValue);
+                  });
+                },
+                items:
+                    settings.getVoices().map<DropdownMenuItem<String>>((value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
               ),
             ],
           ),

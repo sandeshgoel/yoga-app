@@ -59,11 +59,13 @@ class ConfigParam {
 class YogaSettings with ChangeNotifier {
   Random r = new Random();
 
-  late String uid;
-  late String email;
+  late String _uid;
+  late String _email;
   late String _name;
   late String _photo;
 
+  late List<String> _voices;
+  late String _speechVoice;
   late double _speechRate;
   late int _countDuration;
   late int _dailyTarget;
@@ -76,10 +78,12 @@ class YogaSettings with ChangeNotifier {
 
   void initSettings() {
     _name = '';
-    email = '';
-    uid = '';
+    _email = '';
+    _uid = '';
     _photo = '';
 
+    _voices = [];
+    _speechVoice = '';
     _speechRate = 0.3;
     _countDuration = 1800;
     _dailyTarget = 10;
@@ -117,9 +121,38 @@ class YogaSettings with ChangeNotifier {
     notifyListeners();
   }
 
+  String getEmail() {
+    return _email;
+  }
+
   void setEmail(String email) {
-    this.email = email;
+    this._email = email;
     notifyListeners();
+  }
+
+  String getUid() {
+    return _uid;
+  }
+
+  void setUid(String uid) {
+    this._uid = uid;
+    notifyListeners();
+  }
+
+  List<String> getVoices() {
+    return _voices;
+  }
+
+  void setVoices(List<String> voices) {
+    this._voices = voices;
+  }
+
+  String getVoice() {
+    return _speechVoice;
+  }
+
+  void setVoice(String voice) {
+    this._speechVoice = voice;
   }
 
   // ----------------------------------------------------
@@ -139,7 +172,7 @@ class YogaSettings with ChangeNotifier {
   Map<String, dynamic> settingsToJson() {
     return {
       'name': this._name,
-      'email': this.email,
+      'email': this._email,
       'speechRate': this._speechRate,
       'countDuration': this._countDuration,
       'dailyTarget': this._dailyTarget,
@@ -155,7 +188,7 @@ class YogaSettings with ChangeNotifier {
     print('**** Saving settings');
     prefs.setString('settings', value);
 
-    await DBService(uid: uid).updateUserData(jval);
+    await DBService(uid: _uid).updateUserData(jval);
   }
 
   void loadSettings() async {
@@ -165,7 +198,7 @@ class YogaSettings with ChangeNotifier {
     print('**** Loading settings');
     if (value != '') {
       Map<String, dynamic> jval = jsonDecode(value);
-      if (jval['email'] == this.email) settingsFromJson(jval);
+      if (jval['email'] == this._email) settingsFromJson(jval);
     }
   }
 

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -160,7 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<List<UserActivity>> _activity() async {
     var settings = Provider.of<YogaSettings>(context);
     QuerySnapshot queryRef =
-        await DBService(uid: settings.uid).getUserActivityWeek();
+        await DBService(uid: settings.getUid()).getUserActivityWeek();
     return queryRef.docs.map((doc) => UserActivity.fromJson(doc)).toList();
   }
 
@@ -211,7 +213,8 @@ class _MyHomePageState extends State<MyHomePage> {
             actList.forEach((act) {
               children.add(Text(
                 '${DateFormat("MMM-dd HH:mm").format(act.start)}: ${act.actName} for ${act.duration} seconds',
-                style: TextStyle(fontSize: 12),
+                style: TextStyle(
+                    fontSize: 12, fontFeatures: [FontFeature.tabularFigures()]),
               ));
             });
 
