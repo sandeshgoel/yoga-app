@@ -53,6 +53,32 @@ class ConfigParam {
   }
 }
 
+class Routine {
+  late String name;
+  late List<ConfigParam> exercises;
+
+  Routine(this.name, this.exercises);
+
+  @override
+  String toString() {
+    return '{$name, exercises: $exercises}\n';
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': this.name,
+      'exercises': this.exercises.map((x) => x.toJson()).toList()
+    };
+  }
+
+  Routine.fromJson(Map<String, dynamic> json) {
+    this.name = json['name'];
+    this.exercises = json['exercises']
+        .map<ConfigParam>((x) => ConfigParam.fromJson(x))
+        .toList();
+  }
+}
+
 // ------------------------------------------------------
 
 class YogaSettings with ChangeNotifier {
@@ -68,6 +94,7 @@ class YogaSettings with ChangeNotifier {
   late int _dailyTarget;
 
   late List<ConfigParam> cps;
+  late List<Routine> routines;
 
   YogaSettings() {
     initSettings();
@@ -96,6 +123,26 @@ class YogaSettings with ChangeNotifier {
         Stage('Exhale', 4),
       ])
     ];
+    routines = [Routine('Daily10', [])];
+  }
+
+  // ----------------------------------------------------
+
+  List<Routine> _routineLib = [
+    Routine('Routine 1', [ConfigParam('Anulom Vilom', 10, [])]),
+    Routine('Routine 2', [])
+  ];
+
+  List<Routine> getRoutineLib() {
+    return _routineLib;
+  }
+
+  Routine? getRoutineFromLib(String name) {
+    for (int i = 0; i < _routineLib.length; i++) {
+      if (_routineLib[i].name == name) return _routineLib[i];
+    }
+    print('getRoutineFromLib: Routine $name not found!!');
+    return null;
   }
 
   // ----------------------------------------------------
@@ -125,10 +172,12 @@ class YogaSettings with ChangeNotifier {
     return _exerciseLib;
   }
 
-  ConfigParam? getExercise(String name) {
+  ConfigParam? getExerciseFromLib(String name) {
     for (int i = 0; i < _exerciseLib.length; i++) {
       if (_exerciseLib[i].name == name) return _exerciseLib[i];
     }
+    print('getExerciseFromLib: Exercise $name not found!!');
+
     return null;
   }
 
@@ -198,6 +247,10 @@ class YogaSettings with ChangeNotifier {
     this.cps = (jval['cps'] ?? (this.cps.map((x) => x.toJson()).toList()))
         .map<ConfigParam>((x) => ConfigParam.fromJson(x))
         .toList();
+    this.routines =
+        (jval['routines'] ?? (this.routines.map((x) => x.toJson()).toList()))
+            .map<Routine>((x) => Routine.fromJson(x))
+            .toList();
     notifyListeners();
   }
 
@@ -209,7 +262,8 @@ class YogaSettings with ChangeNotifier {
       'speechVoice': this._speechVoice,
       'countDuration': this._countDuration,
       'dailyTarget': this._dailyTarget,
-      'cps': this.cps.map((x) => x.toJson()).toList()
+      'cps': this.cps.map((x) => x.toJson()).toList(),
+      'routines': this.routines.map((x) => x.toJson()).toList(),
     };
   }
 
@@ -303,6 +357,46 @@ class YogaSettings with ChangeNotifier {
 
   void setParam(int index, ConfigParam cp) {
     cps[index] = cp;
+    notifyListeners();
+  }
+  // ----------------------------------------------------
+
+  int lengthRoutines() {
+    return routines.length;
+  }
+
+  void addRoutine(Routine cp) {
+    routines.add(cp);
+    print('addRoutine: Added routine $cp');
+    print(routines);
+    notifyListeners();
+  }
+
+  int findRoutineIndex(String cfg) {
+    for (var pindex = 0; pindex < routines.length; pindex++) {
+      if (routines[pindex].name == cfg) return pindex;
+    }
+    print('**** findRoutineIndex: $cfg not found');
+    print(routines);
+    return -1;
+  }
+
+  void removeRoutine(String cfg) {
+    int index = findRoutineIndex(cfg);
+    if (index >= 0) {
+      routines.removeAt(index);
+      notifyListeners();
+    } else {
+      print('removeRoutine $cfg: not found');
+    }
+  }
+
+  Routine getRoutine(int index) {
+    return routines[index];
+  }
+
+  void setRoutine(int index, Routine cp) {
+    routines[index] = cp;
     notifyListeners();
   }
 }

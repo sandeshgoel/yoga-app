@@ -1,26 +1,18 @@
 import 'dart:ui';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:yoga/pages/activity_page.dart';
+import 'package:yoga/pages/routines_page.dart';
 
 import 'package:yoga/services/auth.dart';
-import 'package:yoga/services/database.dart';
 import 'package:yoga/services/settings.dart';
-import 'package:yoga/services/user_activity.dart';
+
 import 'package:yoga/shared/constants.dart';
 import 'counter_page.dart';
 import 'edit_settings_page.dart';
 import 'edit_config_page.dart';
-
-class ActData {
-  final DateTime day;
-  final double minutes;
-
-  ActData(this.day, this.minutes);
-}
+import 'activity_page.dart';
+import 'edit_routine_page.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key? key}) : super(key: key);
@@ -141,222 +133,28 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             TabBarView(
               children: [
-                _listConfigsPage(),
-                Icon(Icons.directions_transit),
-                _activityPage(),
+                _listExercisePage(),
+                RoutinesPage(),
+                ActivityPage(),
               ],
             ),
           ],
         ),
-        floatingActionButton: indexTab > 0
+        floatingActionButton: indexTab > 1
             ? null
             : FloatingActionButton(
-                onPressed: () => _showExercisePicker(),
-                tooltip: 'Add Config',
+                onPressed: () {
+                  indexTab == 0 ? _showExercisePicker() : _showRoutinePicker();
+                },
                 child: Icon(Icons.add),
               ),
       ),
     );
   }
 
-  Future<List<UserActivity>> _activity() async {
-    var settings = Provider.of<YogaSettings>(context);
-    QuerySnapshot queryRef =
-        await DBService(uid: settings.getUid()).getUserActivityWeek();
-    return queryRef.docs.map((doc) => UserActivity.fromJson(doc)).toList();
-  }
+// -----------------------------------------------------
 
-  Widget _activityPage() {
-    var settings = Provider.of<YogaSettings>(context);
-
-    return FutureBuilder<List<UserActivity>>(
-        future: _activity(), // a previously-obtained Future<String> or null
-        builder:
-            (BuildContext context, AsyncSnapshot<List<UserActivity>> snapshot) {
-          Widget ret;
-          List<Widget> children = [];
-
-          if (snapshot.hasData) {
-            List<UserActivity> actList = snapshot.data!;
-
-            DateTime now = DateTime.now();
-            DateTime lastMidnight = DateTime(now.year, now.month, now.day);
-            List<DateTime> days = [];
-            for (int i = 6; i >= 0; i--) {
-              days.add(lastMidnight.subtract(Duration(days: i)));
-            }
-
-            Map<DateTime, int> totMap = {};
-            for (UserActivity act in actList) {
-              var date =
-                  DateTime(act.start.year, act.start.month, act.start.day);
-              totMap[date] = (totMap[date] ?? 0) + act.duration;
-            }
-
-            List<ActData> data = [];
-            List<double> timeList = [];
-            for (DateTime day in days) {
-              int minutes = totMap[day] ?? 0;
-              minutes += 30;
-              minutes ~/= 60;
-              timeList.add(minutes.toDouble());
-              data.add(ActData(day, minutes.toDouble()));
-            }
-            print(data.map((d) => '${d.day}:${d.minutes}').toList());
-
-            int totTime = totMap[lastMidnight] ?? 0;
-
-            totTime += 30;
-            totTime ~/= 60;
-            int leftTime = settings.getDailyTarget() - totTime;
-
-            actList.forEach((act) {
-              children.add(Text(
-                '${DateFormat("MMM-dd HH:mm").format(act.start)}: ${act.actName} for ${(act.duration / 60).toStringAsFixed(1)} mins',
-                style: GoogleFonts.robotoMono(fontSize: 10),
-              ));
-            });
-
-            ret = SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  // Today's minutes
-
-                  Container(
-                    width: double.infinity,
-                    margin: EdgeInsets.only(top: 20, right: 20, left: 20),
-                    decoration: boxDeco,
-                    child: Column(
-                      children: [
-                        Container(
-                          margin: EdgeInsets.all(10),
-                          child: Text('Today\'s minutes',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                        Container(
-                          margin: EdgeInsets.all(10),
-                          decoration: new BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.green.withOpacity(0.8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.green.withOpacity(0.8),
-                                  blurRadius: 10.0,
-                                  spreadRadius: 10.0,
-                                ),
-                              ]),
-                          child: Center(
-                            child: Text(
-                              totTime.toString(),
-                              style: TextStyle(
-                                  fontSize: 60, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.all(10),
-                          child: Text(
-                            (leftTime > 0)
-                                ? '$leftTime minutes more to meet today\'s goal'
-                                : 'Congrats, reached today\'s goal',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Weekly chart
-
-                  Container(
-                    width: double.infinity,
-                    margin: EdgeInsets.only(top: 20, right: 20, left: 20),
-                    decoration: boxDeco,
-                    child: Column(
-                      children: [
-                        Container(
-                          margin: EdgeInsets.all(10),
-                          child: Text('Last Week',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                        Container(
-                          margin: EdgeInsets.all(20),
-                          height: 150,
-                          child: charts.TimeSeriesChart(
-                            <charts.Series<ActData, DateTime>>[
-                              charts.Series(
-                                id: "Minutes",
-                                data: data,
-                                domainFn: (ActData s, _) => s.day,
-                                measureFn: (ActData s, _) => s.minutes,
-                              ),
-                            ],
-                            animate: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Raw Activity Log
-
-                  Container(
-                    width: double.infinity,
-                    margin: EdgeInsets.only(top: 20, right: 20, left: 20),
-                    padding: EdgeInsets.all(20),
-                    decoration: boxDeco,
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                          margin: EdgeInsets.only(bottom: 10),
-                          child: Text('Raw Activity Log',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: children,
-                        )
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          } else if (snapshot.hasError) {
-            ret = Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  const Icon(
-                    Icons.error_outline,
-                    color: Colors.red,
-                    size: 60,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text('Error: ${snapshot.error}'),
-                  )
-                ]);
-          } else {
-            ret = Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    child: CircularProgressIndicator(),
-                    width: 60,
-                    height: 60,
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(top: 16),
-                    child: Text('Awaiting result...'),
-                  )
-                ]);
-          }
-          return ret;
-        });
-  }
-
-  Widget _listConfigsPage() {
+  Widget _listExercisePage() {
     return Consumer<YogaSettings>(builder: (context, settings, _) {
       return ListView.separated(
         padding: const EdgeInsets.all(16),
@@ -368,8 +166,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Expanded(
                 flex: 85,
                 child: InkWell(
-                  onTap: () =>
-                      _configSelected(context, settings.getParam(index).name),
+                  onTap: () => _configSelected(context, cp.name),
                   child: Container(
                     height: 50,
                     decoration: boxDeco,
@@ -397,8 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: CircleAvatar(
                   radius: 25,
                   child: IconButton(
-                    onPressed: () =>
-                        _editConfig(context, settings.getParam(index).name),
+                    onPressed: () => _editConfig(context, cp.name),
                     icon: Icon(Icons.edit),
                     tooltip: 'Edit config',
                   ),
@@ -415,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Widget _createTile(String name) {
+  Widget _createExerciseTile(String name) {
     return GestureDetector(
       onTap: () {
         Navigator.pop(context);
@@ -445,13 +241,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     ] +
                     settings
                         .getExerciseLib()
-                        .map((e) => _createTile(e.name))
+                        .map((e) => _createExerciseTile(e.name))
                         .toList() +
                     [
                       SizedBox(
                         height: 20,
                       ),
-                      _createTile('Custom ...')
+                      _createExerciseTile('Custom ...')
                     ],
               ),
               title: Text('Add exercise'),
@@ -476,7 +272,7 @@ class _MyHomePageState extends State<MyHomePage> {
           builder: (_) => AlertDialog(
                 title: Text('Already present'),
                 content: Text(
-                    'The exercise $cfgName is already present. Delete it to add it again.'),
+                    'The exercise $cfgName is already present. Delete it first to add it again.'),
                 actions: [
                   ElevatedButton(
                       onPressed: () => Navigator.pop(context),
@@ -493,7 +289,7 @@ class _MyHomePageState extends State<MyHomePage> {
       } while (settings.findParamIndex(cfgName) != -1);
       settings.addParam(new ConfigParam(cfgName, 10, [Stage('Stagename', 4)]));
     } else {
-      settings.addParam(settings.getExercise(cfgName)!);
+      settings.addParam(settings.getExerciseFromLib(cfgName)!);
     }
 
     _editConfig(context, cfgName);
@@ -502,7 +298,10 @@ class _MyHomePageState extends State<MyHomePage> {
   void _configSelected(context, String cfg) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (BuildContext context) {
-        return CounterPage(cfg: cfg);
+        return CounterPage(
+          cfg: cfg,
+          routine: 'Single',
+        );
       }),
     ).then((value) {
       setState(() {});
@@ -523,6 +322,104 @@ class _MyHomePageState extends State<MyHomePage> {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (BuildContext context) {
         return EditSettingsPage();
+      }),
+    ).then((value) {
+      setState(() {});
+    });
+  }
+
+// ----------------------------------------------------
+
+  Widget _createRoutineTile(String name) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        _addRoutine(context, name);
+      },
+      child: Container(
+          margin: EdgeInsets.all(10),
+          padding: EdgeInsets.all(10),
+          width: double.infinity,
+          decoration: boxDeco,
+          child: Text(name)),
+    );
+  }
+
+  void _showRoutinePicker() {
+    var settings = Provider.of<YogaSettings>(context, listen: false);
+
+    showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+              content: Column(
+                children: <Widget>[
+                      Text('Choose a routine from the library'),
+                      SizedBox(
+                        height: 20,
+                      ),
+                    ] +
+                    settings
+                        .getRoutineLib()
+                        .map((e) => _createRoutineTile(e.name))
+                        .toList() +
+                    [
+                      SizedBox(
+                        height: 20,
+                      ),
+                      _createRoutineTile('Custom ...')
+                    ],
+              ),
+              title: Text('Add routine'),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text('Cancel'))
+              ],
+            ),
+        barrierDismissible: false);
+  }
+
+  void _addRoutine(context, String cfgName) {
+    var settings = Provider.of<YogaSettings>(context, listen: false);
+    int index = settings.findRoutineIndex(cfgName);
+
+    if (index != -1) {
+      showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+                title: Text('Already present'),
+                content: Text(
+                    'The routine $cfgName is already present. Delete it first to add it again.'),
+                actions: [
+                  ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('OK'))
+                ],
+              ),
+          barrierDismissible: false);
+      return;
+    } else if (cfgName == 'Custom ...') {
+      int i = 1;
+      do {
+        cfgName = 'Custom routine ' + i.toString();
+        i++;
+      } while (settings.findRoutineIndex(cfgName) != -1);
+      settings.addRoutine(Routine(cfgName, []));
+    } else {
+      Routine r = settings.getRoutineFromLib(cfgName)!;
+      print('_addRoutine: Adding routine $cfgName');
+      settings.addRoutine(r);
+    }
+
+    _editRoutine(context, cfgName);
+  }
+
+  void _editRoutine(context, String cfg) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (BuildContext context) {
+        return EditRoutinePage(cfg: cfg);
       }),
     ).then((value) {
       setState(() {});

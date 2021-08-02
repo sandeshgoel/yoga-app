@@ -27,3 +27,10 @@ class UserActivity {
     };
   }
 }
+
+class ActData {
+  final DateTime day;
+  final double minutes;
+
+  ActData(this.day, this.minutes);
+}

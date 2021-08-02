@@ -12,7 +12,9 @@ import 'package:yoga/services/user_activity.dart';
 
 class CounterPage extends StatefulWidget {
   final String cfg;
-  const CounterPage({Key? key, required this.cfg}) : super(key: key);
+  final String routine;
+  const CounterPage({Key? key, required this.cfg, required this.routine})
+      : super(key: key);
 
   @override
   _CounterPageState createState() => _CounterPageState();
@@ -28,6 +30,7 @@ class _CounterPageState extends State<CounterPage> {
   Timer _timerClock = Timer(Duration(milliseconds: 100), () {});
   Tts _tts = Tts();
   AudioMusic _am = AudioMusic();
+  String exercise = '';
 
   @override
   void dispose() {
@@ -41,7 +44,16 @@ class _CounterPageState extends State<CounterPage> {
   @override
   Widget build(BuildContext context) {
     var settings = Provider.of<YogaSettings>(context);
-    int pindex = settings.findParamIndex(widget.cfg);
+
+    if (widget.routine == 'Single') {
+      exercise = widget.cfg;
+    } else {
+      int rindex = settings.findRoutineIndex(widget.routine);
+      Routine r = settings.getRoutine(rindex);
+      exercise = r.exercises[0].name;
+    }
+
+    int pindex = settings.findParamIndex(exercise);
     ConfigParam cp = settings.getParam(pindex);
 
     _tts.setSpeechRate(settings.getSpeechRate());
@@ -56,7 +68,7 @@ class _CounterPageState extends State<CounterPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.cfg),
+          title: Text('Routine: ${widget.routine}'),
         ),
         body: Stack(
           children: [
@@ -70,8 +82,18 @@ class _CounterPageState extends State<CounterPage> {
             ),
             Column(
               children: [
+                Expanded(flex: 5, child: Container()),
                 Expanded(
-                  flex: 15,
+                    flex: 10,
+                    child: Container(
+                      child: Text(
+                        'Exercise: $exercise',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    )),
+                Expanded(
+                  flex: 10,
                   child: Container(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -124,7 +146,7 @@ class _CounterPageState extends State<CounterPage> {
                     )),
                   ),
                 ),
-                Expanded(flex: 10, child: Container()),
+                Expanded(flex: 5, child: Container()),
                 Expanded(
                   flex: 20,
                   child: Container(
@@ -155,7 +177,7 @@ class _CounterPageState extends State<CounterPage> {
                     )),
                   ),
                 ),
-                Expanded(flex: 10, child: Container()),
+                Expanded(flex: 5, child: Container()),
                 Expanded(
                   flex: 10,
                   child: Container(
@@ -183,7 +205,7 @@ class _CounterPageState extends State<CounterPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         ElevatedButton(
-                            onPressed: () => _startTimer(),
+                            onPressed: () => _startTimer(exercise),
                             child: Text('Start')),
                         ElevatedButton(
                             onPressed: () {
@@ -193,7 +215,7 @@ class _CounterPageState extends State<CounterPage> {
                         ElevatedButton(
                             onPressed: () {
                               setState(() {
-                                _resetCounter();
+                                _resetCounter(exercise);
                               });
                             },
                             child: Text('Reset')),
@@ -212,7 +234,7 @@ class _CounterPageState extends State<CounterPage> {
     );
   }
 
-  void _resetCounter() async {
+  void _resetCounter(String exercise) async {
     int duration = _totSeconds.toInt();
 
     setState(() {
@@ -225,7 +247,7 @@ class _CounterPageState extends State<CounterPage> {
 
     if (duration > 10) {
       var settings = Provider.of<YogaSettings>(context, listen: false);
-      int pindex = settings.findParamIndex(widget.cfg);
+      int pindex = settings.findParamIndex(exercise);
       ConfigParam cp = settings.getParam(pindex);
 
       Map<String, dynamic> act =
@@ -235,9 +257,9 @@ class _CounterPageState extends State<CounterPage> {
     }
   }
 
-  void _startTimer() async {
+  void _startTimer(String exercise) async {
     var settings = Provider.of<YogaSettings>(context, listen: false);
-    int pindex = settings.findParamIndex(widget.cfg);
+    int pindex = settings.findParamIndex(exercise);
     ConfigParam cp = settings.getParam(pindex);
 
     _am.startMusic();
@@ -277,7 +299,7 @@ class _CounterPageState extends State<CounterPage> {
       _pauseTimer(t);
     } else {
       setState(() {
-        int pindex = settings.findParamIndex(widget.cfg);
+        int pindex = settings.findParamIndex(exercise);
         ConfigParam cp = settings.getParam(pindex);
         Stage stage = cp.stages[_curStage];
         int _totStages = cp.stages.length;
@@ -305,7 +327,7 @@ class _CounterPageState extends State<CounterPage> {
                         actions: [
                           ElevatedButton(
                               onPressed: () {
-                                _resetCounter();
+                                _resetCounter(exercise);
                                 Navigator.pop(context);
                               },
                               child: Text('OK'))
