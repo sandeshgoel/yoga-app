@@ -1,5 +1,21 @@
 import 'package:flutter/material.dart';
 
+var boxDeco = BoxDecoration(
+  borderRadius: BorderRadius.all(Radius.circular(20)),
+  color: Colors.white.withOpacity(0.6),
+  boxShadow: [
+    BoxShadow(
+      color: Colors.grey.withOpacity(0.8),
+      offset: const Offset(3.0, 3.0),
+      blurRadius: 5,
+    ),
+    BoxShadow(
+      color: Colors.white,
+      offset: const Offset(0.0, 0.0),
+    ), //BoxSh
+  ],
+);
+
 var textInputDeco2 = InputDecoration(
   fillColor: Colors.white.withOpacity(0.6),
   filled: true,

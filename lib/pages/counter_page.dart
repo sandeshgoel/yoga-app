@@ -42,6 +42,8 @@ class _CounterPageState extends State<CounterPage> {
   Widget build(BuildContext context) {
     var settings = Provider.of<YogaSettings>(context);
     int pindex = settings.findParamIndex(widget.cfg);
+    ConfigParam cp = settings.getParam(pindex);
+
     _tts.setSpeechRate(settings.getSpeechRate());
     _tts.setSpeechVoice(settings.getVoice());
 
@@ -102,7 +104,7 @@ class _CounterPageState extends State<CounterPage> {
                     //margin: EdgeInsets.all(16),
                     child: Center(
                         child: Text(
-                      'Stage ${_curStage + 1} of ${settings.getParam(pindex).stages.length}',
+                      'Stage ${_curStage + 1} of ${cp.stages.length}',
                       style: TextStyle(fontSize: 12),
                     )),
                   ),
@@ -117,7 +119,7 @@ class _CounterPageState extends State<CounterPage> {
                     ),
                     child: Center(
                         child: Text(
-                      settings.getParam(pindex).stages[_curStage].name,
+                      cp.stages[_curStage].name,
                       style: TextStyle(fontSize: 40),
                     )),
                   ),
@@ -146,7 +148,7 @@ class _CounterPageState extends State<CounterPage> {
                               fontSize: 80, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          '/${settings.getParam(pindex).stages[_curStage].count}',
+                          '/${cp.stages[_curStage].count}',
                           style: TextStyle(fontSize: 12),
                         ),
                       ],
@@ -197,7 +199,11 @@ class _CounterPageState extends State<CounterPage> {
                             child: Text('Reset')),
                       ],
                     )),
-                Expanded(flex: 5, child: Container()),
+                Expanded(
+                    flex: 5,
+                    child: Container(
+                      child: Text('Voice: ${settings.getVoice()}'),
+                    )),
               ],
             ),
           ],
@@ -236,7 +242,7 @@ class _CounterPageState extends State<CounterPage> {
 
     _am.startMusic();
     if (_reset) {
-      String msg = "This routine has ${cp.rounds} rounds of ${cp.name}. ";
+      String msg = "This exercise has ${cp.rounds} rounds of ${cp.name}. ";
       msg += "Each round has ${cp.stages.length} stages. ";
       for (var i = 0; i < cp.stages.length; i++) {
         msg += "${cp.stages[i].name}";

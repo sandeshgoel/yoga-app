@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yoga/services/database.dart';
@@ -57,8 +56,6 @@ class ConfigParam {
 // ------------------------------------------------------
 
 class YogaSettings with ChangeNotifier {
-  Random r = new Random();
-
   late String _uid;
   late String _email;
   late String _name;
@@ -103,6 +100,40 @@ class YogaSettings with ChangeNotifier {
 
   // ----------------------------------------------------
 
+  List<ConfigParam> _exerciseLib = [
+    ConfigParam('Anulom Vilom', 10, [
+      Stage('Inhale Left', 4),
+      Stage('Exhale Right', 4),
+      Stage('Inhale Right', 4),
+      Stage('Exhale Left', 4),
+    ]),
+    ConfigParam('Deep Breathing', 20, [
+      Stage('Inhale', 4),
+      Stage('Exhale', 4),
+    ]),
+    ConfigParam('Bhramari', 10,
+        [Stage('Inhale', 3), Stage('Exhale with humming sound', 6)]),
+    ConfigParam('Sheetkari', 10,
+        [Stage('Inhale from mouth', 4), Stage('Exhale from nose', 4)]),
+    ConfigParam(
+        'Surya Bhedi', 10, [Stage('Inhale right', 4), Stage('Exhale left', 4)]),
+    ConfigParam('Chandra Bhedi', 10,
+        [Stage('Inhale left', 4), Stage('Exhale right', 4)]),
+  ];
+
+  List<ConfigParam> getExerciseLib() {
+    return _exerciseLib;
+  }
+
+  ConfigParam? getExercise(String name) {
+    for (int i = 0; i < _exerciseLib.length; i++) {
+      if (_exerciseLib[i].name == name) return _exerciseLib[i];
+    }
+    return null;
+  }
+
+  // ----------------------------------------------------
+
   String getName() {
     return _name;
   }
@@ -127,7 +158,7 @@ class YogaSettings with ChangeNotifier {
 
   void setEmail(String email) {
     this._email = email;
-    notifyListeners();
+    //notifyListeners();
   }
 
   String getUid() {
@@ -136,7 +167,7 @@ class YogaSettings with ChangeNotifier {
 
   void setUid(String uid) {
     this._uid = uid;
-    notifyListeners();
+    //notifyListeners();
   }
 
   List<String> getVoices() {
@@ -161,6 +192,7 @@ class YogaSettings with ChangeNotifier {
     this._name = jval['name'] ?? this._name;
     //this.email = jval['email'] ?? this.email;
     this._speechRate = jval['speechRate'] ?? this._speechRate;
+    this._speechVoice = jval['speechVoice'] ?? this._speechVoice;
     this._countDuration = jval['countDuration'] ?? this._countDuration;
     this._dailyTarget = jval['dailyTarget'] ?? this._dailyTarget;
     this.cps = (jval['cps'] ?? (this.cps.map((x) => x.toJson()).toList()))
@@ -174,6 +206,7 @@ class YogaSettings with ChangeNotifier {
       'name': this._name,
       'email': this._email,
       'speechRate': this._speechRate,
+      'speechVoice': this._speechVoice,
       'countDuration': this._countDuration,
       'dailyTarget': this._dailyTarget,
       'cps': this.cps.map((x) => x.toJson()).toList()

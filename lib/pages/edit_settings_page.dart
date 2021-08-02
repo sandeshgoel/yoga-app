@@ -53,6 +53,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
 
   Widget _editSettingsPage() {
     var settings = Provider.of<YogaSettings>(context, listen: false);
+    dropdownValue = settings.getVoice();
 
     return SingleChildScrollView(
       child: Column(children: <Widget>[
@@ -145,10 +146,8 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
               // Voice
 
               DropdownButton<String>(
-                value: dropdownValue == ''
-                    ? settings.getVoices()[0]
-                    : dropdownValue,
-                icon: const Icon(Icons.arrow_downward),
+                value: dropdownValue,
+                icon: const Icon(Icons.arrow_drop_down),
                 //iconSize: 24,
                 //elevation: 16,
                 //style: const TextStyle(color: Colors.deepPurple),
@@ -162,11 +161,14 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                     settings.setVoice(newValue);
                   });
                 },
-                items:
-                    settings.getVoices().map<DropdownMenuItem<String>>((value) {
+                items: settings
+                    .getVoices()
+                    .asMap()
+                    .entries
+                    .map<DropdownMenuItem<String>>((entry) {
                   return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
+                    value: entry.value,
+                    child: Text('${entry.key}: ${entry.value}'),
                   );
                 }).toList(),
               ),

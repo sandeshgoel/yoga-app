@@ -1,5 +1,5 @@
 import 'dart:ui';
-
+import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +10,7 @@ import 'package:yoga/services/auth.dart';
 import 'package:yoga/services/database.dart';
 import 'package:yoga/services/settings.dart';
 import 'package:yoga/services/user_activity.dart';
+import 'package:yoga/shared/constants.dart';
 import 'counter_page.dart';
 import 'edit_settings_page.dart';
 import 'edit_config_page.dart';
@@ -102,7 +103,6 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
             onSelected: (item) async {
-              print(item);
               switch (item) {
                 case 0:
                   _editSettings(context);
@@ -151,7 +151,7 @@ class _MyHomePageState extends State<MyHomePage> {
         floatingActionButton: indexTab > 0
             ? null
             : FloatingActionButton(
-                onPressed: () => _addConfig(context),
+                onPressed: () => _showExercisePicker(),
                 tooltip: 'Add Config',
                 child: Icon(Icons.add),
               ),
@@ -212,9 +212,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
             actList.forEach((act) {
               children.add(Text(
-                '${DateFormat("MMM-dd HH:mm").format(act.start)}: ${act.actName} for ${act.duration} seconds',
-                style: TextStyle(
-                    fontSize: 12, fontFeatures: [FontFeature.tabularFigures()]),
+                '${DateFormat("MMM-dd HH:mm").format(act.start)}: ${act.actName} for ${(act.duration / 60).toStringAsFixed(1)} mins',
+                style: GoogleFonts.robotoMono(fontSize: 10),
               ));
             });
 
@@ -227,11 +226,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Container(
                     width: double.infinity,
                     margin: EdgeInsets.only(top: 20, right: 20, left: 20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(20)),
-                      color: Colors.white.withOpacity(0.6),
-                      border: Border.all(color: Colors.lightBlue, width: 1),
-                    ),
+                    decoration: boxDeco,
                     child: Column(
                       children: [
                         Container(
@@ -277,11 +272,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Container(
                     width: double.infinity,
                     margin: EdgeInsets.only(top: 20, right: 20, left: 20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(20)),
-                      color: Colors.white.withOpacity(0.6),
-                      border: Border.all(color: Colors.lightBlue, width: 1),
-                    ),
+                    decoration: boxDeco,
                     child: Column(
                       children: [
                         Container(
@@ -314,15 +305,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: double.infinity,
                     margin: EdgeInsets.only(top: 20, right: 20, left: 20),
                     padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(20)),
-                      color: Colors.white.withOpacity(0.6),
-                      border: Border.all(color: Colors.lightBlue, width: 1),
-                    ),
+                    decoration: boxDeco,
                     child: Column(
                       children: <Widget>[
                         Container(
-                          margin: EdgeInsets.only(bottom: 20),
+                          margin: EdgeInsets.only(bottom: 10),
                           child: Text('Raw Activity Log',
                               style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
@@ -375,6 +362,7 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: const EdgeInsets.all(16),
         itemCount: settings.lengthParams(),
         itemBuilder: (BuildContext context, int index) {
+          ConfigParam cp = settings.getParam(index);
           return Row(
             children: [
               Expanded(
@@ -384,16 +372,18 @@ class _MyHomePageState extends State<MyHomePage> {
                       _configSelected(context, settings.getParam(index).name),
                   child: Container(
                     height: 50,
-                    decoration: new BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(30)),
-                      color: Colors.white.withOpacity(0.4),
-                      border: Border.all(color: Colors.lightBlue, width: 1),
-                    ),
+                    decoration: boxDeco,
                     child: Center(
-                        child: Text(
-                      '${settings.getParam(index).name}',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '${cp.name}',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        Text('${cp.stages.length} stages, ${cp.rounds} rounds')
+                      ],
                     )),
                   ),
                 ),
@@ -412,7 +402,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     icon: Icon(Icons.edit),
                     tooltip: 'Edit config',
                   ),
-                  backgroundColor: Colors.white.withOpacity(0.4),
+                  backgroundColor: Colors.white.withOpacity(0.8),
                 ),
               ),
             ],
@@ -425,15 +415,87 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _addConfig(context) {
+  Widget _createTile(String name) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        _addConfig(context, name);
+      },
+      child: Container(
+          margin: EdgeInsets.all(10),
+          padding: EdgeInsets.all(10),
+          width: double.infinity,
+          decoration: boxDeco,
+          child: Text(name)),
+    );
+  }
+
+  void _showExercisePicker() {
     var settings = Provider.of<YogaSettings>(context, listen: false);
-    String cfgName;
 
-    do {
-      cfgName = 'Config ' + settings.r.nextInt(1000).toString();
-    } while (settings.findParamIndex(cfgName) != -1);
+    showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+              content: Column(
+                children: <Widget>[
+                      Text('Choose an exercise from the library'),
+                      SizedBox(
+                        height: 20,
+                      ),
+                    ] +
+                    settings
+                        .getExerciseLib()
+                        .map((e) => _createTile(e.name))
+                        .toList() +
+                    [
+                      SizedBox(
+                        height: 20,
+                      ),
+                      _createTile('Custom ...')
+                    ],
+              ),
+              title: Text('Add exercise'),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text('Cancel'))
+              ],
+            ),
+        barrierDismissible: false);
+  }
 
-    settings.addParam(new ConfigParam(cfgName, 10, [Stage('Stagename', 4)]));
+  void _addConfig(context, String cfgName) {
+    var settings = Provider.of<YogaSettings>(context, listen: false);
+    int index = settings.findParamIndex(cfgName);
+
+    if (index != -1) {
+      showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+                title: Text('Already present'),
+                content: Text(
+                    'The exercise $cfgName is already present. Delete it to add it again.'),
+                actions: [
+                  ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('OK'))
+                ],
+              ),
+          barrierDismissible: false);
+      return;
+    } else if (cfgName == 'Custom ...') {
+      int i = 1;
+      do {
+        cfgName = 'Custom exercise ' + i.toString();
+        i++;
+      } while (settings.findParamIndex(cfgName) != -1);
+      settings.addParam(new ConfigParam(cfgName, 10, [Stage('Stagename', 4)]));
+    } else {
+      settings.addParam(settings.getExercise(cfgName)!);
+    }
+
     _editConfig(context, cfgName);
   }
 
