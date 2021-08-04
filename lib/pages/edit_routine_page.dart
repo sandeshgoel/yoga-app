@@ -140,7 +140,6 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     var settings = Provider.of<YogaSettings>(context, listen: false);
 
     settings.removeRoutine(cfg);
-
     Navigator.pop(context);
   }
 
@@ -150,7 +149,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     setState(() {
       var pindex = settings.findRoutineIndex(cfg);
       Routine cp = settings.getRoutine(pindex);
-      cp.exercises.add(ConfigParam('name', 10, []));
+      cp.exercises.add(Exercise(settings.cps[0].name, 10));
       settings.setRoutine(pindex, cp);
     });
   }
@@ -187,12 +186,27 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             Expanded(flex: 10, child: Container()),
             Expanded(
               flex: 45,
+              child: FormBuilderDropdown(
+                name: 'name$i',
+                initialValue: exercises[i].name,
+                items: settings.cps
+                    .map<DropdownMenuItem<String>>(
+                        (ex) => DropdownMenuItem<String>(
+                              value: ex.name,
+                              child: Text('${ex.name}'),
+                            ))
+                    .toList(),
+              ),
+            ),
+            /*
+            Expanded(
+              flex: 20,
               child: FormBuilderTextField(
                 name: 'name$i',
                 initialValue: exercises[i].name,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-            ),
+            ),*/
             Expanded(flex: 10, child: Container()),
             Expanded(
               flex: 10,

@@ -53,9 +53,30 @@ class ConfigParam {
   }
 }
 
+class Exercise {
+  late String name;
+  late int rounds;
+
+  Exercise(this.name, this.rounds);
+
+  @override
+  String toString() {
+    return '{$name, $rounds\n';
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'name': this.name, 'rounds': this.rounds};
+  }
+
+  Exercise.fromJson(Map<String, dynamic> json) {
+    this.name = json['name'];
+    this.rounds = json['rounds'];
+  }
+}
+
 class Routine {
   late String name;
-  late List<ConfigParam> exercises;
+  late List<Exercise> exercises;
 
   Routine(this.name, this.exercises);
 
@@ -73,11 +94,19 @@ class Routine {
 
   Routine.fromJson(Map<String, dynamic> json) {
     this.name = json['name'];
-    this.exercises = json['exercises']
-        .map<ConfigParam>((x) => ConfigParam.fromJson(x))
-        .toList();
+    this.exercises =
+        json['exercises'].map<Exercise>((x) => Exercise.fromJson(x)).toList();
   }
 }
+
+const exAnulomVilom = 'Anulom Vilom';
+const exDeepBreathing = 'Deep Breathing';
+const exBhramari = 'Bhramari';
+const exSheetkari = 'Sheetkari';
+const exSuryaBhedi = 'Surya Bhedi';
+const exChandraBhedi = 'Chandra Bhedi';
+const exKapaalBhaati = 'Kapaal Bhaati';
+const exBhastrika = 'Bhastrika';
 
 // ------------------------------------------------------
 
@@ -86,12 +115,15 @@ class YogaSettings with ChangeNotifier {
   late String _email;
   late String _name;
   late String _photo;
+  late bool _verified;
 
   late List<String> _voices;
   late String _speechVoice;
   late double _speechRate;
   late int _countDuration;
   late int _dailyTarget;
+  late int _gapRoutine;
+  late bool _muteCounting;
 
   late List<ConfigParam> cps;
   late List<Routine> routines;
@@ -105,32 +137,35 @@ class YogaSettings with ChangeNotifier {
     _email = '';
     _uid = '';
     _photo = '';
+    _verified = false;
 
     _voices = [];
     _speechVoice = '';
     _speechRate = 0.3;
     _countDuration = 1800;
     _dailyTarget = 10;
-    cps = [
-      ConfigParam('Anulom Vilom', 10, [
-        Stage('Inhale Left', 4),
-        Stage('Exhale Right', 4),
-        Stage('Inhale Right', 4),
-        Stage('Exhale Left', 4),
-      ]),
-      ConfigParam('Deep Breathing', 20, [
-        Stage('Inhale', 4),
-        Stage('Exhale', 4),
-      ])
-    ];
-    routines = [Routine('Daily10', [])];
+    _gapRoutine = 5;
+    _muteCounting = false;
+
+    cps = [_exerciseLib[0]];
+    routines = [_routineLib[0]];
   }
 
   // ----------------------------------------------------
 
   List<Routine> _routineLib = [
-    Routine('Routine 1', [ConfigParam('Anulom Vilom', 10, [])]),
-    Routine('Routine 2', [])
+    Routine('Daily 10', [
+      Exercise(exDeepBreathing, 10),
+      Exercise(exBhramari, 10),
+      Exercise(exAnulomVilom, 10),
+      Exercise(exSheetkari, 10),
+    ]),
+    Routine('Routine 2', [
+      Exercise(exDeepBreathing, 10),
+      Exercise(exBhramari, 10),
+      Exercise(exChandraBhedi, 10),
+      Exercise(exSheetkari, 10),
+    ])
   ];
 
   List<Routine> getRoutineLib() {
@@ -148,24 +183,25 @@ class YogaSettings with ChangeNotifier {
   // ----------------------------------------------------
 
   List<ConfigParam> _exerciseLib = [
-    ConfigParam('Anulom Vilom', 10, [
+    ConfigParam(exAnulomVilom, 10, [
       Stage('Inhale Left', 4),
       Stage('Exhale Right', 4),
       Stage('Inhale Right', 4),
       Stage('Exhale Left', 4),
     ]),
-    ConfigParam('Deep Breathing', 20, [
-      Stage('Inhale', 4),
-      Stage('Exhale', 4),
-    ]),
-    ConfigParam('Bhramari', 10,
+    ConfigParam(exDeepBreathing, 20, [Stage('Inhale', 4), Stage('Exhale', 4)]),
+    ConfigParam(exBhramari, 10,
         [Stage('Inhale', 3), Stage('Exhale with humming sound', 6)]),
-    ConfigParam('Sheetkari', 10,
+    ConfigParam(exSheetkari, 10,
         [Stage('Inhale from mouth', 4), Stage('Exhale from nose', 4)]),
     ConfigParam(
-        'Surya Bhedi', 10, [Stage('Inhale right', 4), Stage('Exhale left', 4)]),
-    ConfigParam('Chandra Bhedi', 10,
+        exSuryaBhedi, 10, [Stage('Inhale right', 4), Stage('Exhale left', 4)]),
+    ConfigParam(exChandraBhedi, 10,
         [Stage('Inhale left', 4), Stage('Exhale right', 4)]),
+    ConfigParam(exKapaalBhaati, 10,
+        [Stage('Inhale gently', 4), Stage('Exhale with force', 4)]),
+    ConfigParam(exBhastrika, 10,
+        [Stage('Hands up and Inhale', 4), Stage('Hands down and Exhale', 4)]),
   ];
 
   List<ConfigParam> getExerciseLib() {
@@ -219,6 +255,15 @@ class YogaSettings with ChangeNotifier {
     //notifyListeners();
   }
 
+  bool getVerified() {
+    return _verified;
+  }
+
+  void setVerified(bool v) {
+    this._verified = v;
+    //notifyListeners();
+  }
+
   List<String> getVoices() {
     return _voices;
   }
@@ -244,6 +289,8 @@ class YogaSettings with ChangeNotifier {
     this._speechVoice = jval['speechVoice'] ?? this._speechVoice;
     this._countDuration = jval['countDuration'] ?? this._countDuration;
     this._dailyTarget = jval['dailyTarget'] ?? this._dailyTarget;
+    this._gapRoutine = jval['gapRoutine'] ?? this._gapRoutine;
+    this._muteCounting = jval['muteCounting'] ?? this._muteCounting;
     this.cps = (jval['cps'] ?? (this.cps.map((x) => x.toJson()).toList()))
         .map<ConfigParam>((x) => ConfigParam.fromJson(x))
         .toList();
@@ -262,6 +309,8 @@ class YogaSettings with ChangeNotifier {
       'speechVoice': this._speechVoice,
       'countDuration': this._countDuration,
       'dailyTarget': this._dailyTarget,
+      'gapRoutine': this._gapRoutine,
+      'muteCounting': this._muteCounting,
       'cps': this.cps.map((x) => x.toJson()).toList(),
       'routines': this.routines.map((x) => x.toJson()).toList(),
     };
@@ -297,6 +346,26 @@ class YogaSettings with ChangeNotifier {
 
   int getDailyTarget() {
     return this._dailyTarget;
+  }
+
+  // ----------------------------------------------------
+
+  void setGapRoutine(int gap) {
+    this._gapRoutine = gap;
+  }
+
+  int getGapRoutine() {
+    return this._gapRoutine;
+  }
+
+  // ----------------------------------------------------
+
+  void setMuteCounting(bool mute) {
+    this._muteCounting = mute;
+  }
+
+  bool getMuteCounting() {
+    return this._muteCounting;
   }
 
   // ----------------------------------------------------
@@ -398,5 +467,36 @@ class YogaSettings with ChangeNotifier {
   void setRoutine(int index, Routine cp) {
     routines[index] = cp;
     notifyListeners();
+  }
+
+  List<String> routinesWhichInclude(String ex) {
+    List<String> lr = [];
+
+    for (int i = 0; i < routines.length; i++) {
+      for (int j = 0; j < routines[i].exercises.length; j++) {
+        if (routines[i].exercises[j].name == ex) {
+          lr.add(routines[i].name);
+          break;
+        }
+      }
+    }
+
+    return lr;
+  }
+
+  bool exerciseNotPresent(String ex) {
+    for (int i = 0; i < cps.length; i++) {
+      if (cps[i].name == ex) return false;
+    }
+    return true;
+  }
+
+  List<String> exercisesNotPresent(Routine r) {
+    List<String> np = [];
+
+    for (int i = 0; i < r.exercises.length; i++) {
+      if (exerciseNotPresent(r.exercises[i].name)) np.add(r.exercises[i].name);
+    }
+    return np;
   }
 }

@@ -66,12 +66,12 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
               Container(
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: Text(
-                  settings.getEmail(),
+                  settings.getEmail() + ' ' + settings.getVerified().toString(),
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 30),
                 child: TextFormField(
                   initialValue: settings.getName(),
                   validator: (val) => val!.isNotEmpty ? null : 'Enter a name',
@@ -86,10 +86,64 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                 ),
               ),
 
+              // Voice
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Voice:    ', style: TextStyle(fontSize: 14)),
+                  DropdownButton<String>(
+                    value: dropdownValue,
+                    icon: const Icon(Icons.arrow_drop_down),
+                    iconSize: 24,
+                    elevation: 16,
+
+                    //style: const TextStyle(color: Colors.deepPurple),
+                    underline: Container(
+                      height: 2,
+                      color: Colors.deepPurpleAccent,
+                    ),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        dropdownValue = newValue!;
+                        settings.setVoice(newValue);
+                      });
+                    },
+                    items: settings
+                        .getVoices()
+                        .asMap()
+                        .entries
+                        .map<DropdownMenuItem<String>>((entry) {
+                      return DropdownMenuItem<String>(
+                        value: entry.value,
+                        child: Text('${entry.key}: ${entry.value}'),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+
+              // Mute Counting
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Mute Counting       '),
+                  Switch(
+                    value: settings.getMuteCounting(),
+                    onChanged: (val) {
+                      setState(() {
+                        settings.setMuteCounting(val);
+                      });
+                    },
+                  ),
+                ],
+              ),
+
               // Count Duration
 
               Container(
-                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 30),
                 child: FormBuilderSlider(
                   name: 'duration',
                   initialValue: settings.getCountDuration().toDouble() / 1000,
@@ -108,7 +162,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
               // Speech Rate
 
               Container(
-                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 30),
                 child: FormBuilderSlider(
                   name: 'speech_rate',
                   initialValue: settings.getSpeechRate(),
@@ -127,7 +181,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
               // Daily Target
 
               Container(
-                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 30),
                 child: FormBuilderSlider(
                   name: 'daily_target',
                   initialValue: settings.getDailyTarget().toDouble(),
@@ -143,34 +197,23 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                 ),
               ),
 
-              // Voice
+              // Gap routine
 
-              DropdownButton<String>(
-                value: dropdownValue,
-                icon: const Icon(Icons.arrow_drop_down),
-                //iconSize: 24,
-                //elevation: 16,
-                //style: const TextStyle(color: Colors.deepPurple),
-                underline: Container(
-                  height: 2,
-                  color: Colors.deepPurpleAccent,
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 30),
+                child: FormBuilderSlider(
+                  name: 'gap_routine',
+                  initialValue: settings.getGapRoutine().toDouble(),
+                  min: 1,
+                  max: 20,
+                  divisions: 19,
+                  decoration: InputDecoration(
+                    labelText: 'Gap between exercises (seconds)',
+                  ),
+                  onChanged: (value) {
+                    settings.setGapRoutine(value!.toInt());
+                  },
                 ),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    dropdownValue = newValue!;
-                    settings.setVoice(newValue);
-                  });
-                },
-                items: settings
-                    .getVoices()
-                    .asMap()
-                    .entries
-                    .map<DropdownMenuItem<String>>((entry) {
-                  return DropdownMenuItem<String>(
-                    value: entry.value,
-                    child: Text('${entry.key}: ${entry.value}'),
-                  );
-                }).toList(),
               ),
             ],
           ),

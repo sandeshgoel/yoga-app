@@ -218,7 +218,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _addConfig(context, name);
       },
       child: Container(
-          margin: EdgeInsets.all(10),
+          margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
           padding: EdgeInsets.all(10),
           width: double.infinity,
           decoration: boxDeco,
@@ -232,23 +232,23 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
         context: context,
         builder: (_) => AlertDialog(
-              content: Column(
-                children: <Widget>[
-                      Text('Choose an exercise from the library'),
-                      SizedBox(
-                        height: 20,
-                      ),
-                    ] +
-                    settings
-                        .getExerciseLib()
-                        .map((e) => _createExerciseTile(e.name))
-                        .toList() +
-                    [
+              content: Scrollbar(
+                isAlwaysShown: true,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: <Widget>[
+                      Column(
+                          children: settings
+                              .getExerciseLib()
+                              .map((e) => _createExerciseTile(e.name))
+                              .toList()),
                       SizedBox(
                         height: 20,
                       ),
                       _createExerciseTile('Custom ...')
                     ],
+                  ),
+                ),
               ),
               title: Text('Add exercise'),
               actions: [
@@ -299,8 +299,8 @@ class _MyHomePageState extends State<MyHomePage> {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (BuildContext context) {
         return CounterPage(
-          cfg: cfg,
-          routine: 'Single',
+          exercise: cfg,
+          routine: '',
         );
       }),
     ).then((value) {
@@ -337,7 +337,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _addRoutine(context, name);
       },
       child: Container(
-          margin: EdgeInsets.all(10),
+          margin: EdgeInsets.all(5),
           padding: EdgeInsets.all(10),
           width: double.infinity,
           decoration: boxDeco,
@@ -410,6 +410,21 @@ class _MyHomePageState extends State<MyHomePage> {
     } else {
       Routine r = settings.getRoutineFromLib(cfgName)!;
       print('_addRoutine: Adding routine $cfgName');
+
+      List<String> npExercises = settings.exercisesNotPresent(r);
+      if (npExercises.length > 0) {
+        showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+                  title: Text('Adding exercises'),
+                  content: Text(
+                      'The routine $cfgName includes some new exercises $npExercises.\n\nAdding these to your exercise list!!'),
+                ));
+        npExercises.forEach((ex) {
+          settings.addParam(settings.getExerciseFromLib(ex)!);
+        });
+      }
+
       settings.addRoutine(r);
     }
 

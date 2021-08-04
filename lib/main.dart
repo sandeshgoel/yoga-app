@@ -73,6 +73,7 @@ class _WrapperState extends State<Wrapper> {
     settings.initSettings();
     settings.setUid(uid);
     settings.setEmail(user.email);
+    settings.setVerified(user.emailVerified);
 
     print('Signed in user ${settings.getEmail()}, reading DB ...');
 

@@ -22,6 +22,18 @@ class _RoutinesPageState extends State<RoutinesPage> {
         itemCount: settings.lengthRoutines(),
         itemBuilder: (BuildContext context, int index) {
           Routine r = settings.getRoutine(index);
+          int totTime = 0;
+          for (int i = 0; i < r.exercises.length; i++) {
+            int c = 0;
+            ConfigParam ex =
+                settings.getParam(settings.findParamIndex(r.exercises[i].name));
+            for (int j = 0; j < ex.stages.length; j++) {
+              c += ex.stages[j].count;
+            }
+            totTime +=
+                c * r.exercises[i].rounds * settings.getCountDuration() ~/ 1000;
+          }
+
           return Row(
             children: [
               Expanded(
@@ -42,7 +54,8 @@ class _RoutinesPageState extends State<RoutinesPage> {
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
-                        Text('${r.exercises.length} exercises, 10 minutes')
+                        Text(
+                            '${r.exercises.length} exercises, ${totTime ~/ 60} minutes')
                       ],
                     )),
                   ),
@@ -80,7 +93,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (BuildContext context) {
         return CounterPage(
-          cfg: 'Routine',
+          exercise: '',
           routine: routine,
         );
       }),

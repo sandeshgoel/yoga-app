@@ -120,7 +120,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
           context: context,
           builder: (_) => AlertDialog(
             content: Text(
-                'The config name \'$newName\' already exists, choose a different name!!'),
+                'The exercise name \'$newName\' already exists, choose a different name!!'),
             title: Text('ERROR'),
           ),
         );
@@ -142,9 +142,32 @@ class _EditConfigPageState extends State<EditConfigPage> {
 
   void _deleteConfig(context, cfg) {
     var settings = Provider.of<YogaSettings>(context, listen: false);
-    print('**** _deleteConfig: ${settings.cps}');
-    settings.removeParam(cfg);
 
+    if (settings.cps.length == 1) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          content:
+              Text('Can\'t delete this, you must have at least one exercise!!'),
+          title: Text('ERROR'),
+        ),
+      );
+      return;
+    }
+
+    List<String> affectedRoutines = settings.routinesWhichInclude(cfg);
+    if (affectedRoutines.length > 0) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          content: Text(
+              'The exercise \'$cfg\' is part of routines $affectedRoutines!!\nRemove it from those routines before deleting from here.'),
+          title: Text('ERROR'),
+        ),
+      );
+      return;
+    }
+    settings.removeParam(cfg);
     Navigator.pop(context);
   }
 
