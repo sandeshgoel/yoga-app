@@ -1,9 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
 import 'package:yoga/services/auth.dart';
+import 'package:yoga/services/database.dart';
+import 'package:yoga/services/settings.dart';
+import 'package:yoga/services/tts.dart';
 import 'package:yoga/shared/constants.dart';
 
 class AuthenticatePage extends StatefulWidget {
@@ -68,11 +72,8 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
               SizedBox(
                 width: 300,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    GoogleSignInProvider google =
-                        Provider.of<GoogleSignInProvider>(context,
-                            listen: false);
-                    google.googleLogin();
+                  onPressed: () async {
+                    await _googleSignInHandler();
                   },
                   icon: FaIcon(
                     FontAwesomeIcons.google,
@@ -123,8 +124,8 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                 child: TextFormField(
                   initialValue: password,
                   obscureText: true,
-                  validator: (val) => val!.length < 6
-                      ? 'Password length must be at least 6'
+                  validator: (val) => val!.length < 1
+                      ? 'Password length must be at least 1'
                       : null,
                   onChanged: (val) {
                     password = val;
@@ -160,58 +161,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30))),
                   onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      setState(() {
-                        _loading = true;
-                      });
-
-                      print('Checking $email, $password in firebase ...');
-                      List userAuthList = await _auth.checkEmail(email);
-                      if (userAuthList.length == 0) {
-                        print('User not registered');
-                        if (!_checkboxValue)
-                          showDialog(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                    content: Text('$email is not registered,' +
-                                        ' do you want to register now?'),
-                                    title: Text('Register?'),
-                                    actions: [
-                                      ElevatedButton(
-                                        child: Text('Yes'),
-                                        onPressed: () async {
-                                          dynamic regResult = await _auth
-                                              .register(email, password);
-                                          if (regResult == null)
-                                            print("error registering");
-                                          Navigator.pop(context);
-                                        },
-                                      ),
-                                      ElevatedButton(
-                                        child: Text('No'),
-                                        onPressed: () => Navigator.pop(context),
-                                      )
-                                    ],
-                                  ),
-                              barrierDismissible: false);
-                        else {
-                          dynamic regResult =
-                              await _auth.register(email, password);
-                          if (regResult == null) print("error registering");
-                        }
-                      } else {
-                        dynamic signResult =
-                            await _auth.signIn(email, password);
-                        if (signResult == null) print("error signing in");
-                      }
-                      if (mounted) {
-                        setState(() {
-                          _loading = false;
-                        });
-                      } else {
-                        _loading = false;
-                      }
-                    }
+                    await _signInHandler();
                   },
                 ),
               ),
@@ -256,6 +206,128 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
         ),
       ),
     );
+  }
+
+  Future _rightAfterSignIn(context, user) async {
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
+    String uid = user.uid;
+
+    settings.initSettings();
+    settings.setUid(uid);
+    settings.setEmail(user.email);
+    settings.setVerified(user.emailVerified);
+
+    print('Signed in user ${settings.getEmail()}, reading DB ...');
+
+    var doc = await DBService(uid: uid).getUserData();
+    var cfg = doc.data();
+    if (cfg != null) {
+      if (cfg.isNotEmpty)
+        settings.settingsFromJson(cfg);
+      else
+        print('DB config is empty!!');
+    } else {
+      print('DB record does not exist!!');
+    }
+    settings.saveSettings();
+
+    if (settings.getName() == '') {
+      if (user.displayName == null)
+        settings.setName(settings.getEmail().split('@')[0]);
+      else
+        settings.setName(user.displayName);
+    }
+    settings.setPhoto(user.photoURL ?? '');
+
+    print('User name: ${settings.getName()}, photo: ${settings.getPhoto()}');
+
+    var voices = await Tts().flutterTts.getVoices;
+    List<String> filterVoices = [];
+    for (var voice in voices) {
+      if (voice['locale'] == 'en-IN') {
+        print('Voice: $voice');
+        filterVoices.add(voice['name']);
+      }
+    }
+    settings.setVoices(filterVoices);
+    if (settings.getVoice() == '') settings.setVoice(filterVoices[0]);
+  }
+
+  Future _googleSignInHandler() async {
+    GoogleSignInProvider google =
+        Provider.of<GoogleSignInProvider>(context, listen: false);
+    try {
+      User user = await google.googleLogin();
+      await _rightAfterSignIn(context, user);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future _register(String email, String password) async {
+    try {
+      User user = await _auth.register(email, password);
+      await _rightAfterSignIn(context, user);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future _signIn(String email, String password) async {
+    try {
+      User user = await _auth.signIn(email, password);
+      await _rightAfterSignIn(context, user);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future _signInHandler() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _loading = true;
+      });
+
+      print('Checking $email, $password in firebase ...');
+      List userAuthList = await _auth.checkEmail(email);
+      if (userAuthList.length == 0) {
+        print('User not registered');
+        if (!_checkboxValue)
+          showDialog(
+              context: context,
+              builder: (_) => AlertDialog(
+                    content: Text('$email is not registered,' +
+                        ' do you want to register now?'),
+                    title: Text('Register?'),
+                    actions: [
+                      ElevatedButton(
+                        child: Text('Yes'),
+                        onPressed: () async {
+                          _register(email, password);
+                          Navigator.pop(context);
+                        },
+                      ),
+                      ElevatedButton(
+                        child: Text('No'),
+                        onPressed: () => Navigator.pop(context),
+                      )
+                    ],
+                  ),
+              barrierDismissible: false);
+        else {
+          await _register(email, password);
+        }
+      } else {
+        await _signIn(email, password);
+      }
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      } else {
+        _loading = false;
+      }
+    }
   }
 }
 

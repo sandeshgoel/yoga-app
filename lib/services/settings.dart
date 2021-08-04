@@ -243,7 +243,7 @@ class YogaSettings with ChangeNotifier {
 
   void setEmail(String email) {
     this._email = email;
-    //notifyListeners();
+    notifyListeners();
   }
 
   String getUid() {
@@ -252,7 +252,7 @@ class YogaSettings with ChangeNotifier {
 
   void setUid(String uid) {
     this._uid = uid;
-    //notifyListeners();
+    notifyListeners();
   }
 
   bool getVerified() {
@@ -261,7 +261,7 @@ class YogaSettings with ChangeNotifier {
 
   void setVerified(bool v) {
     this._verified = v;
-    //notifyListeners();
+    notifyListeners();
   }
 
   List<String> getVoices() {
@@ -278,6 +278,7 @@ class YogaSettings with ChangeNotifier {
 
   void setVoice(String voice) {
     this._speechVoice = voice;
+    notifyListeners();
   }
 
   // ----------------------------------------------------

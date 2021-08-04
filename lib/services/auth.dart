@@ -30,6 +30,14 @@ class GoogleSignInProvider extends ChangeNotifier {
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  User? currentUser() {
+    return _auth.currentUser;
+  }
+
+  void userReload() {
+    _auth.currentUser!.reload();
+  }
+
   // auth change user stream
   Stream<User?> get user {
     return _auth.authStateChanges();
