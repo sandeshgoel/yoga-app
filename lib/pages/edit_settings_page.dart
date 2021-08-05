@@ -66,8 +66,10 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
               Container(
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: Text(
-                  settings.getEmail() + ' ' + settings.getVerified().toString(),
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  settings.getEmail() +
+                      ', Verified: ' +
+                      settings.getVerified().toString(),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
               Container(

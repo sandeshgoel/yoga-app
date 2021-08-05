@@ -27,129 +27,134 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var settings = Provider.of<YogaSettings>(context);
-    var _photo = settings.getPhoto();
     GoogleSignInProvider _google =
         Provider.of<GoogleSignInProvider>(context, listen: false);
 
-    return DefaultTabController(
-      initialIndex: 0,
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          actions: [
-            Container(
-              margin: EdgeInsets.only(right: 15),
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(width: 2, color: Colors.yellow),
-                image: DecorationImage(
-                  fit: BoxFit.contain,
-                  image: (_photo == '')
-                      ? AssetImage("assets/icon/yoga.png") as ImageProvider
-                      : NetworkImage(_photo),
-                ),
-              ),
-            ),
-          ],
-          title: Text('Welcome: ${settings.getName()}',
-              style: TextStyle(fontSize: 18)),
-          leading: PopupMenuButton(
-            icon: Icon(Icons.menu), //don't specify icon if you want 3 dot menu
-            color: Colors.white,
-            offset: Offset(0, 50),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(10))),
-            itemBuilder: (context) => [
-              PopupMenuItem<int>(
-                value: 0,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.settings,
-                      color: Colors.black,
-                    ),
-                    Text(
-                      "  Settings",
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem<int>(
-                value: 1,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.logout,
-                      color: Colors.black,
-                    ),
-                    Text(
-                      "  Log out",
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ],
+    return Consumer<YogaSettings>(builder: (context, settings, _) {
+      var _photo = settings.getPhoto();
+
+      return DefaultTabController(
+        initialIndex: 0,
+        length: 3,
+        child: Scaffold(
+          appBar: AppBar(
+            actions: [
+              Container(
+                margin: EdgeInsets.only(right: 15),
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(width: 2, color: Colors.yellow),
+                  image: DecorationImage(
+                    fit: BoxFit.contain,
+                    image: (_photo == '')
+                        ? AssetImage("assets/icon/yoga.png") as ImageProvider
+                        : NetworkImage(_photo),
+                  ),
                 ),
               ),
             ],
-            onSelected: (item) async {
-              switch (item) {
-                case 0:
-                  _editSettings(context);
-                  break;
-                case 1:
-                  await _auth.signOut();
-                  await _google.googleSignOut();
-                  break;
-                default:
-                  print('invalid item $item');
-              }
-            },
-          ),
-          bottom: TabBar(
-            onTap: (index) {
-              setState(() {
-                indexTab = index;
-              });
-            },
-            tabs: [
-              Tab(text: 'Exercises'),
-              Tab(text: 'Routines'),
-              Tab(text: 'Activity'),
-            ],
-          ),
-        ),
-        body: Stack(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("assets/images/background.jpg"),
-                  fit: BoxFit.cover,
+            title: Text('Welcome: ${settings.getName()}',
+                style: TextStyle(fontSize: 18)),
+            leading: PopupMenuButton(
+              icon:
+                  Icon(Icons.menu), //don't specify icon if you want 3 dot menu
+              color: Colors.white,
+              offset: Offset(0, 50),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10))),
+              itemBuilder: (context) => [
+                PopupMenuItem<int>(
+                  value: 0,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.settings,
+                        color: Colors.black,
+                      ),
+                      Text(
+                        "  Settings",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                PopupMenuItem<int>(
+                  value: 1,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.logout,
+                        color: Colors.black,
+                      ),
+                      Text(
+                        "  Log out",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              onSelected: (item) async {
+                switch (item) {
+                  case 0:
+                    _editSettings(context);
+                    break;
+                  case 1:
+                    await _auth.signOut();
+                    await _google.googleSignOut();
+                    break;
+                  default:
+                    print('invalid item $item');
+                }
+              },
             ),
-            TabBarView(
-              children: [
-                _listExercisePage(),
-                RoutinesPage(),
-                ActivityPage(),
+            bottom: TabBar(
+              onTap: (index) {
+                setState(() {
+                  indexTab = index;
+                });
+              },
+              tabs: [
+                Tab(text: 'Exercises'),
+                Tab(text: 'Routines'),
+                Tab(text: 'Activity'),
               ],
             ),
-          ],
-        ),
-        floatingActionButton: indexTab > 1
-            ? null
-            : FloatingActionButton(
-                onPressed: () {
-                  indexTab == 0 ? _showExercisePicker() : _showRoutinePicker();
-                },
-                child: Icon(Icons.add),
+          ),
+          body: Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage("assets/images/background.jpg"),
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
-      ),
-    );
+              TabBarView(
+                children: [
+                  _listExercisePage(),
+                  RoutinesPage(),
+                  ActivityPage(),
+                ],
+              ),
+            ],
+          ),
+          floatingActionButton: indexTab > 1
+              ? null
+              : FloatingActionButton(
+                  onPressed: () {
+                    indexTab == 0
+                        ? _showExercisePicker()
+                        : _showRoutinePicker();
+                  },
+                  child: Icon(Icons.add),
+                ),
+        ),
+      );
+    });
   }
 
 // -----------------------------------------------------

@@ -39,6 +39,7 @@ dependencies:
   wakelock: ^0.5.2
   charts_flutter: ^0.11.0
   google_fonts: ^2.1.0
+  volume_control: ^0.1.5
 
 flutter_icons:
   android: "launcher_icon"

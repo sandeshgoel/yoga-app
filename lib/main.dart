@@ -2,17 +2,31 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:volume_control/volume_control.dart';
+
 import 'package:yoga/pages/email_verify_page.dart';
 import 'package:yoga/services/auth.dart';
 
 import 'package:yoga/pages/authenticate_page.dart';
+import 'package:yoga/services/database.dart';
+import 'package:yoga/services/tts.dart';
 
 import 'services/settings.dart';
 import 'pages/home_page.dart';
 
+List<String> filterVoices = [];
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  VolumeControl.setVolume(0.5);
+  var voices = await Tts().flutterTts.getVoices;
+  for (var voice in voices) {
+    if (voice['locale'] == 'en-IN') {
+      print('Voice: $voice');
+      filterVoices.add(voice['name']);
+    }
+  }
 
   runApp(
     MultiProvider(
@@ -59,10 +73,59 @@ class _WrapperState extends State<Wrapper> {
   Widget build(BuildContext context) {
     final dynamic user = Provider.of<User?>(context);
 
+    FirebaseAuth.instance.authStateChanges().listen(_authChangeHandler);
+
     return Consumer<YogaSettings>(builder: (context, settings, _) {
       return ((user != null)
           ? (settings.getVerified() ? MyHomePage() : EmailVerifyPage())
           : AuthenticatePage());
     });
+  }
+
+  Future _authChangeHandler(User? user) async {
+    if (user == null) {
+      print('User is currently signed out!');
+    } else {
+      print('User ${user.email} is signed in!');
+      await _rightAfterSignIn(context, user);
+    }
+  }
+
+  Future _rightAfterSignIn(context, user) async {
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
+    String uid = user.uid;
+
+    print('_rightAfterSignIn: ${user.email} ${user.displayName}');
+    settings.initSettings();
+    settings.setUid(uid);
+    settings.setEmail(user.email);
+    settings.setVerified(user.emailVerified);
+
+    print('Signed in user ${settings.getEmail()}, reading DB ...');
+
+    var doc = await DBService(uid: uid).getUserData();
+    var cfg = doc.data();
+    if (cfg != null) {
+      if (cfg.isNotEmpty)
+        settings.settingsFromJson(cfg);
+      else
+        print('DB config is empty!!');
+    } else {
+      print('DB record does not exist!!');
+    }
+    settings.saveSettings();
+
+    if (settings.getName() == '') {
+      if (user.displayName == null)
+        settings.setName(settings.getEmail().split('@')[0]);
+      else
+        settings.setName(user.displayName);
+    }
+    settings.setPhoto(user.photoURL ?? '');
+
+    print('User name: ${settings.getName()}, photo: ${settings.getPhoto()}');
+
+    settings.setVoices(filterVoices);
+    if (settings.getVoice() == '') settings.setVoice(filterVoices[0]);
   }
 }

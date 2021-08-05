@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 
 class DBService {
   final String uid;
+  Map<String, dynamic> _lastCfg = {};
 
   DBService({required this.uid});
 
@@ -11,8 +15,15 @@ class DBService {
       FirebaseFirestore.instance.collection('configs');
 
   Future updateUserData(cfg) async {
-    print('Writing to DB configs ...');
-    return await cfgCollection.doc(uid).set(cfg);
+    //print('NEW: $cfg');
+    //print('OLD: $_lastCfg');
+    if (DeepCollectionEquality.unordered().equals(cfg, _lastCfg)) {
+      print('updateUserData: config unchanged, skipping write to DB');
+    } else {
+      print('updateUserData: config changed, writing to DB ...');
+      _lastCfg = jsonDecode(jsonEncode(cfg));
+      return await cfgCollection.doc(uid).set(cfg);
+    }
   }
 
   Future getUserData() async {

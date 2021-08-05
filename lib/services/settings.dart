@@ -107,6 +107,7 @@ const exSuryaBhedi = 'Surya Bhedi';
 const exChandraBhedi = 'Chandra Bhedi';
 const exKapaalBhaati = 'Kapaal Bhaati';
 const exBhastrika = 'Bhastrika';
+const exShavasana = 'Shava Aasanaa';
 
 // ------------------------------------------------------
 
@@ -116,6 +117,8 @@ class YogaSettings with ChangeNotifier {
   late String _name;
   late String _photo;
   late bool _verified;
+
+  DBService? _dbs;
 
   late List<String> _voices;
   late String _speechVoice;
@@ -148,7 +151,7 @@ class YogaSettings with ChangeNotifier {
     _muteCounting = false;
 
     cps = [_exerciseLib[0]];
-    routines = [_routineLib[0]];
+    routines = [];
   }
 
   // ----------------------------------------------------
@@ -202,6 +205,12 @@ class YogaSettings with ChangeNotifier {
         [Stage('Inhale gently', 4), Stage('Exhale with force', 4)]),
     ConfigParam(exBhastrika, 10,
         [Stage('Hands up and Inhale', 4), Stage('Hands down and Exhale', 4)]),
+    ConfigParam(exShavasana, 1, [
+      Stage('Lie down still with eyes closed and relax', 60),
+      Stage('Stretch all your muscles', 10),
+      Stage('Sit up and chant om shanti shanti', 10),
+      Stage('Open your eyes with a smile', 10)
+    ])
   ];
 
   List<ConfigParam> getExerciseLib() {
@@ -270,6 +279,7 @@ class YogaSettings with ChangeNotifier {
 
   void setVoices(List<String> voices) {
     this._voices = voices;
+    if (!_voices.contains(_speechVoice)) _speechVoice = _voices[0];
   }
 
   String getVoice() {
@@ -325,7 +335,8 @@ class YogaSettings with ChangeNotifier {
     print('**** Saving settings');
     prefs.setString('settings', value);
 
-    await DBService(uid: _uid).updateUserData(jval);
+    if (_dbs == null) _dbs = DBService(uid: _uid);
+    await _dbs!.updateUserData(jval);
   }
 
   void loadSettings() async {

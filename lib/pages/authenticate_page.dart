@@ -1,13 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
 import 'package:yoga/services/auth.dart';
-import 'package:yoga/services/database.dart';
-import 'package:yoga/services/settings.dart';
-import 'package:yoga/services/tts.dart';
 import 'package:yoga/shared/constants.dart';
 
 class AuthenticatePage extends StatefulWidget {
@@ -208,75 +204,12 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
     );
   }
 
-  Future _rightAfterSignIn(context, user) async {
-    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
-    String uid = user.uid;
-
-    settings.initSettings();
-    settings.setUid(uid);
-    settings.setEmail(user.email);
-    settings.setVerified(user.emailVerified);
-
-    print('Signed in user ${settings.getEmail()}, reading DB ...');
-
-    var doc = await DBService(uid: uid).getUserData();
-    var cfg = doc.data();
-    if (cfg != null) {
-      if (cfg.isNotEmpty)
-        settings.settingsFromJson(cfg);
-      else
-        print('DB config is empty!!');
-    } else {
-      print('DB record does not exist!!');
-    }
-    settings.saveSettings();
-
-    if (settings.getName() == '') {
-      if (user.displayName == null)
-        settings.setName(settings.getEmail().split('@')[0]);
-      else
-        settings.setName(user.displayName);
-    }
-    settings.setPhoto(user.photoURL ?? '');
-
-    print('User name: ${settings.getName()}, photo: ${settings.getPhoto()}');
-
-    var voices = await Tts().flutterTts.getVoices;
-    List<String> filterVoices = [];
-    for (var voice in voices) {
-      if (voice['locale'] == 'en-IN') {
-        print('Voice: $voice');
-        filterVoices.add(voice['name']);
-      }
-    }
-    settings.setVoices(filterVoices);
-    if (settings.getVoice() == '') settings.setVoice(filterVoices[0]);
-  }
-
   Future _googleSignInHandler() async {
     GoogleSignInProvider google =
         Provider.of<GoogleSignInProvider>(context, listen: false);
     try {
-      User user = await google.googleLogin();
-      await _rightAfterSignIn(context, user);
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  Future _register(String email, String password) async {
-    try {
-      User user = await _auth.register(email, password);
-      await _rightAfterSignIn(context, user);
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  Future _signIn(String email, String password) async {
-    try {
-      User user = await _auth.signIn(email, password);
-      await _rightAfterSignIn(context, user);
+      print('_googleSignInHandler: entered');
+      await google.googleLogin();
     } catch (e) {
       print(e);
     }
@@ -302,8 +235,8 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                     actions: [
                       ElevatedButton(
                         child: Text('Yes'),
-                        onPressed: () async {
-                          _register(email, password);
+                        onPressed: () {
+                          _auth.register(email, password);
                           Navigator.pop(context);
                         },
                       ),
@@ -315,10 +248,10 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                   ),
               barrierDismissible: false);
         else {
-          await _register(email, password);
+          _auth.register(email, password);
         }
       } else {
-        await _signIn(email, password);
+        _auth.signIn(email, password);
       }
       if (mounted) {
         setState(() {
