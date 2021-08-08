@@ -59,49 +59,52 @@ class _EditConfigPageState extends State<EditConfigPage> {
 
     return FormBuilder(
       key: _formKey,
-      child: ListView(
-        children: [
-              Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: FormBuilderTextField(
-                    name: 'configName',
-                    initialValue: cfg,
-                    decoration: InputDecoration(
-                      labelText: 'Config Name',
-                    ),
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  )),
-              Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: FormBuilderSlider(
-                    name: 'rounds',
-                    initialValue: cp.rounds.toDouble(),
-                    min: 1,
-                    max: 50,
-                    divisions: 49,
-                    decoration: InputDecoration(
-                        labelText: 'Number of rounds',
-                        labelStyle: TextStyle(fontWeight: FontWeight.bold)),
-                    textStyle: TextStyle(fontWeight: FontWeight.bold),
-                  )),
-            ] +
-            _stageList(settings, cfg) +
-            [
-              Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                          onPressed: () => _saveConfig(context, cfg),
-                          child: Text('Save')),
-                      ElevatedButton(
-                          style: ElevatedButton.styleFrom(primary: Colors.red),
-                          onPressed: () => _deleteConfig(context, cfg),
-                          child: Text('Delete')),
-                    ],
-                  )),
-            ],
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+                Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: FormBuilderTextField(
+                      name: 'configName',
+                      initialValue: cfg,
+                      decoration: InputDecoration(
+                        labelText: 'Config Name',
+                      ),
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    )),
+                Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: FormBuilderSlider(
+                      name: 'rounds',
+                      initialValue: cp.rounds.toDouble(),
+                      min: 1,
+                      max: 50,
+                      divisions: 49,
+                      decoration: InputDecoration(
+                          labelText: 'Number of rounds',
+                          labelStyle: TextStyle(fontWeight: FontWeight.bold)),
+                      textStyle: TextStyle(fontWeight: FontWeight.bold),
+                    )),
+              ] +
+              _stageList(settings, cfg) +
+              [
+                Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                            onPressed: () => _saveConfig(context, cfg),
+                            child: Text('Save')),
+                        ElevatedButton(
+                            style:
+                                ElevatedButton.styleFrom(primary: Colors.red),
+                            onPressed: () => _deleteConfig(context, cfg),
+                            child: Text('Delete')),
+                      ],
+                    )),
+              ],
+        ),
       ),
     );
   }
@@ -112,6 +115,10 @@ class _EditConfigPageState extends State<EditConfigPage> {
 
     _formKey.currentState!.save();
     var values = _formKey.currentState!.value;
+    /*print('_saveConfig: $pindex ${values.length} $values');
+    values.forEach((key, value) {
+      print('$key:$value');
+    });*/
 
     String newName = values['configName'];
     if (newName != settings.getParam(pindex).name) {
@@ -128,6 +135,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
       }
     }
 
+    //print('_saveConfig: Before $pindex ${settings.cps}');
     ConfigParam cp = settings.getParam(pindex);
     cp.name = values['configName'];
     cp.rounds = values['rounds'].toInt();
@@ -136,6 +144,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
       cp.stages[i].count = int.parse(values['stagecount' + i.toString()]);
     }
     settings.setParam(pindex, cp);
+    //print('_saveConfig: $pindex $cp');
 
     Navigator.pop(context);
   }

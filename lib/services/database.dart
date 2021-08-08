@@ -5,7 +5,7 @@ import 'package:collection/collection.dart';
 
 class DBService {
   final String uid;
-  Map<String, dynamic> _lastCfg = {};
+  static Map<String, dynamic> _lastCfg = {};
 
   DBService({required this.uid});
 

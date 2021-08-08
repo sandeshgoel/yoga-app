@@ -263,19 +263,20 @@ class _CounterPageState extends State<CounterPage> {
       _curStage = 0;
       _curRound = 1;
       _totSeconds = 0;
-      if ((widget.routine == '') |
-          (_curExIndexInRoutine + 1 == _routine.exercises.length))
+      if (widget.routine == '')
+        _totSecondsRoutine = 0;
+      else if (_curExIndexInRoutine + 1 == _routine.exercises.length)
         _totSecondsRoutine = 0;
       _reset = true;
     });
 
-    if (duration > 20) {
+    if (duration > 0) {
       var settings = Provider.of<YogaSettings>(context, listen: false);
 
-      Map<String, dynamic> act = UserActivity(
-              settings.getUid(), _curExercise.name, DateTime.now(), duration)
+      Map<String, dynamic> act = UserActivity(settings.getUser().uid,
+              _curExercise.name, DateTime.now(), duration)
           .toJson();
-      await DBService(uid: settings.getUid()).addUserActivity(act);
+      await DBService(uid: settings.getUser().uid).addUserActivity(act);
     }
   }
 
@@ -316,7 +317,7 @@ class _CounterPageState extends State<CounterPage> {
         else
           msg += ", ";
       }
-      msg += " Starting round 1 now ... ${_curExercise.stages[0].name}";
+      msg += " Starting round 1 now ... ";
       await _tts.speak(context, msg);
       _reset = false;
     }
@@ -324,6 +325,8 @@ class _CounterPageState extends State<CounterPage> {
     _timerClock = new Timer.periodic(
         Duration(milliseconds: settings.getCountDuration()), _handleTimeout);
     _paused = false;
+
+    await _tts.speak(context, _curExercise.stages[0].name);
   }
 
   void _pauseTimer(Timer t) {
@@ -413,13 +416,21 @@ class _CounterPageState extends State<CounterPage> {
 
               return;
             } else {
-              msg = 'Round $_curRound ';
+              if (_curRound == _totRounds)
+                msg = 'Last round ';
+              else {
+                if (settings.getMuteCounting()) {
+                  msg = '';
+                } else
+                  msg = 'Round $_curRound ';
+              }
             }
           }
           msg += _curExercise.stages[_curStage].name;
           _tts.speak(context, msg);
         } else {
-          if (!settings.getMuteCounting() | (_curRound <= 1))
+          if (!settings.getMuteCounting() |
+              ((_curRound == 1) & (_totRounds > 1)))
             _tts.speak(context, _curCount.toString());
         }
       });

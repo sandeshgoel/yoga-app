@@ -66,22 +66,23 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
               Container(
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 child: Text(
-                  settings.getEmail() +
+                  settings.getUser().email +
                       ', Verified: ' +
-                      settings.getVerified().toString(),
+                      settings.getUser().verified.toString(),
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
               Container(
                 padding: EdgeInsets.symmetric(vertical: 5, horizontal: 30),
                 child: TextFormField(
-                  initialValue: settings.getName(),
+                  initialValue: settings.getUser().name,
                   validator: (val) => val!.isNotEmpty ? null : 'Enter a name',
                   onChanged: (val) {
                     if (val != '')
-                      settings.setName(val);
+                      settings.setUserName(val);
                     else
-                      settings.setName(settings.getEmail().split('@')[0]);
+                      settings
+                          .setUserName(settings.getUser().email.split('@')[0]);
                   },
                   decoration: textInputDeco.copyWith(hintText: 'Name'),
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),

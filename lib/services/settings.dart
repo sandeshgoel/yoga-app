@@ -109,16 +109,53 @@ const exKapaalBhaati = 'Kapaal Bhaati';
 const exBhastrika = 'Bhastrika';
 const exShavasana = 'Shava Aasanaa';
 
+class UserInfo {
+  late String uid;
+  late String email;
+  late String name;
+  late String photo;
+  late bool verified;
+
+  UserInfo() {
+    initUser();
+  }
+
+  void initUser() {
+    name = '';
+    email = '';
+    uid = '';
+    photo = '';
+    verified = false;
+  }
+
+  @override
+  String toString() {
+    return '{$name, $email, $verified, $uid, $photo}';
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': this.name,
+      'email': this.email,
+      'uid': this.uid,
+      'photo': this.photo,
+      'verified': this.verified,
+    };
+  }
+
+  UserInfo.fromJson(Map<String, dynamic> json) {
+    this.name = json['name'];
+    this.email = json['email'];
+    this.uid = json['uid'];
+    this.photo = json['photo'];
+    this.verified = json['verified'];
+  }
+}
+
 // ------------------------------------------------------
 
 class YogaSettings with ChangeNotifier {
-  late String _uid;
-  late String _email;
-  late String _name;
-  late String _photo;
-  late bool _verified;
-
-  DBService? _dbs;
+  late UserInfo _user;
 
   late List<String> _voices;
   late String _speechVoice;
@@ -136,11 +173,8 @@ class YogaSettings with ChangeNotifier {
   }
 
   void initSettings() {
-    _name = '';
-    _email = '';
-    _uid = '';
-    _photo = '';
-    _verified = false;
+    _user = UserInfo();
+    _user.initUser();
 
     _voices = [];
     _speechVoice = '';
@@ -162,6 +196,7 @@ class YogaSettings with ChangeNotifier {
       Exercise(exBhramari, 10),
       Exercise(exAnulomVilom, 10),
       Exercise(exSheetkari, 10),
+      Exercise(exShavasana, 1)
     ]),
     Routine('Routine 2', [
       Exercise(exDeepBreathing, 10),
@@ -228,50 +263,31 @@ class YogaSettings with ChangeNotifier {
 
   // ----------------------------------------------------
 
-  String getName() {
-    return _name;
-  }
-
-  void setName(String name) {
-    this._name = name;
+  void setUser(
+      String name, String email, String uid, String photo, bool verified) {
+    this._user.name = name;
+    this._user.email = email;
+    this._user.uid = uid;
+    this._user.photo = photo;
+    this._user.verified = verified;
     notifyListeners();
   }
 
-  String getPhoto() {
-    return _photo;
+  UserInfo getUser() {
+    return _user;
   }
 
-  void setPhoto(String photo) {
-    this._photo = photo;
+  void setUserName(String name) {
+    this._user.name = name;
     notifyListeners();
   }
 
-  String getEmail() {
-    return _email;
-  }
-
-  void setEmail(String email) {
-    this._email = email;
+  void setUserVerified(bool v) {
+    this._user.verified = v;
     notifyListeners();
   }
 
-  String getUid() {
-    return _uid;
-  }
-
-  void setUid(String uid) {
-    this._uid = uid;
-    notifyListeners();
-  }
-
-  bool getVerified() {
-    return _verified;
-  }
-
-  void setVerified(bool v) {
-    this._verified = v;
-    notifyListeners();
-  }
+  // ----------------------------------------------------
 
   List<String> getVoices() {
     return _voices;
@@ -294,8 +310,7 @@ class YogaSettings with ChangeNotifier {
   // ----------------------------------------------------
 
   void settingsFromJson(Map<String, dynamic> jval) {
-    this._name = jval['name'] ?? this._name;
-    //this.email = jval['email'] ?? this.email;
+    this._user = UserInfo.fromJson(jval['user'] ?? (this._user).toJson());
     this._speechRate = jval['speechRate'] ?? this._speechRate;
     this._speechVoice = jval['speechVoice'] ?? this._speechVoice;
     this._countDuration = jval['countDuration'] ?? this._countDuration;
@@ -314,8 +329,7 @@ class YogaSettings with ChangeNotifier {
 
   Map<String, dynamic> settingsToJson() {
     return {
-      'name': this._name,
-      'email': this._email,
+      'user': (this._user).toJson(),
       'speechRate': this._speechRate,
       'speechVoice': this._speechVoice,
       'countDuration': this._countDuration,
@@ -335,8 +349,7 @@ class YogaSettings with ChangeNotifier {
     print('**** Saving settings');
     prefs.setString('settings', value);
 
-    if (_dbs == null) _dbs = DBService(uid: _uid);
-    await _dbs!.updateUserData(jval);
+    await DBService(uid: _user.uid).updateUserData(jval);
   }
 
   void loadSettings() async {
@@ -346,7 +359,7 @@ class YogaSettings with ChangeNotifier {
     print('**** Loading settings');
     if (value != '') {
       Map<String, dynamic> jval = jsonDecode(value);
-      if (jval['email'] == this._email) settingsFromJson(jval);
+      if (jval['email'] == this._user.email) settingsFromJson(jval);
     }
   }
 

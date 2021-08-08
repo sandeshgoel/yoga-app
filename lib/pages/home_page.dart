@@ -10,7 +10,7 @@ import 'package:yoga/services/settings.dart';
 import 'package:yoga/shared/constants.dart';
 import 'counter_page.dart';
 import 'edit_settings_page.dart';
-import 'edit_config_page.dart';
+import 'edit_exercise_page.dart';
 import 'activity_page.dart';
 import 'edit_routine_page.dart';
 
@@ -31,7 +31,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Provider.of<GoogleSignInProvider>(context, listen: false);
 
     return Consumer<YogaSettings>(builder: (context, settings, _) {
-      var _photo = settings.getPhoto();
+      var _photo = settings.getUser().photo;
 
       return DefaultTabController(
         initialIndex: 0,
@@ -55,7 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ],
-            title: Text('Welcome: ${settings.getName()}',
+            title: Text('Welcome: ${settings.getUser().name}',
                 style: TextStyle(fontSize: 18)),
             leading: PopupMenuButton(
               icon:
