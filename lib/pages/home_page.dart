@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:showcaseview/showcaseview.dart';
+
 import 'package:yoga/pages/activity_page.dart';
 import 'package:yoga/pages/routines_page.dart';
 
@@ -23,140 +25,183 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final AuthService _auth = AuthService();
+  final _skey0 = GlobalKey();
+  final _skey1 = GlobalKey();
   int indexTab = 0;
 
   @override
   Widget build(BuildContext context) {
-    GoogleSignInProvider _google =
-        Provider.of<GoogleSignInProvider>(context, listen: false);
-
     return Consumer<YogaSettings>(builder: (context, settings, _) {
-      var _photo = settings.getUser().photo;
-
       return DefaultTabController(
         initialIndex: 0,
         length: 3,
-        child: Scaffold(
-          appBar: AppBar(
-            actions: [
-              Container(
-                margin: EdgeInsets.only(right: 15),
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(width: 2, color: Colors.yellow),
-                  image: DecorationImage(
-                    fit: BoxFit.contain,
-                    image: (_photo == '')
-                        ? AssetImage("assets/icon/yoga.png") as ImageProvider
-                        : NetworkImage(_photo),
+        child: ShowCaseWidget(
+          builder: Builder(builder: (context) {
+            return Scaffold(
+              appBar: AppBar(
+                actions: [
+                  IconButton(
+                    icon: Icon(Icons.help_rounded),
+                    onPressed: () {
+                      setState(() {
+                        ShowCaseWidget.of(context)!
+                            .startShowCase([_skey0, _skey1]);
+                      });
+                    },
                   ),
+                ],
+                title: Text('Welcome: ${settings.getUser().name}',
+                    style: TextStyle(fontSize: 18)),
+                leading: _popupMenu(settings),
+                bottom: TabBar(
+                  onTap: (index) {
+                    setState(() {
+                      indexTab = index;
+                    });
+                  },
+                  tabs: [
+                    Showcase(
+                      key: _skey0,
+                      description:
+                          'First tab lists exercises, second lists routine, and third shows your activity',
+                      overlayPadding: EdgeInsets.symmetric(horizontal: 15),
+                      contentPadding: EdgeInsets.all(20),
+                      child: Tab(text: 'Exercises'),
+                    ),
+                    Tab(text: 'Routines'),
+                    Tab(text: 'Activity'),
+                  ],
                 ),
               ),
-            ],
-            title: Text('Welcome: ${settings.getUser().name}',
-                style: TextStyle(fontSize: 18)),
-            leading: PopupMenuButton(
-              icon:
-                  Icon(Icons.menu), //don't specify icon if you want 3 dot menu
-              color: Colors.white,
-              offset: Offset(0, 50),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10))),
-              itemBuilder: (context) => [
-                PopupMenuItem<int>(
-                  value: 0,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.settings,
-                        color: Colors.black,
-                      ),
-                      Text(
-                        "  Settings",
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    ],
-                  ),
-                ),
-                PopupMenuItem<int>(
-                  value: 1,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.logout,
-                        color: Colors.black,
-                      ),
-                      Text(
-                        "  Log out",
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              onSelected: (item) async {
-                switch (item) {
-                  case 0:
-                    _editSettings(context);
-                    break;
-                  case 1:
-                    await _auth.signOut();
-                    await _google.googleSignOut();
-                    break;
-                  default:
-                    print('invalid item $item');
-                }
-              },
-            ),
-            bottom: TabBar(
-              onTap: (index) {
-                setState(() {
-                  indexTab = index;
-                });
-              },
-              tabs: [
-                Tab(text: 'Exercises'),
-                Tab(text: 'Routines'),
-                Tab(text: 'Activity'),
-              ],
-            ),
-          ),
-          body: Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage("assets/images/background.jpg"),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              TabBarView(
+              body: Stack(
                 children: [
-                  _listExercisePage(),
-                  RoutinesPage(),
-                  ActivityPage(),
+                  Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage("assets/images/background.jpg"),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  TabBarView(
+                    children: [
+                      _listExercisePage(),
+                      RoutinesPage(),
+                      ActivityPage(),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
-          floatingActionButton: indexTab > 1
-              ? null
-              : FloatingActionButton(
-                  onPressed: () {
-                    indexTab == 0
-                        ? _showExercisePicker()
-                        : _showRoutinePicker();
-                  },
-                  child: Icon(Icons.add),
-                ),
+              floatingActionButton: _floatingButton(),
+            );
+          }),
         ),
       );
     });
   }
 
+  Widget? _floatingButton() {
+    switch (indexTab) {
+      case 0:
+        return Showcase(
+          key: _skey1,
+          description:
+              'Add exercise from a list of pre-defined exercises, or define a custom exercise',
+          shapeBorder: CircleBorder(),
+          overlayPadding: EdgeInsets.all(8),
+          contentPadding: EdgeInsets.all(20),
+          child: FloatingActionButton(
+            onPressed: () {
+              _showExercisePicker();
+            },
+            child: Icon(Icons.add),
+          ),
+        );
+
+      case 1:
+        return FloatingActionButton(
+          onPressed: () {
+            _showRoutinePicker();
+          },
+          child: Icon(Icons.add),
+        );
+
+      case 2:
+      default:
+        return null;
+    }
+  }
+
+  Widget _popupMenu(settings) {
+    GoogleSignInProvider _google =
+        Provider.of<GoogleSignInProvider>(context, listen: false);
+    var _photo = settings.getUser().photo;
+
+    return PopupMenuButton(
+      icon: Container(
+        margin: EdgeInsets.only(left: 10),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(width: 1, color: Colors.yellow),
+          image: DecorationImage(
+            fit: BoxFit.contain,
+            image: (_photo == '')
+                ? AssetImage("assets/icon/yoga.png") as ImageProvider
+                : NetworkImage(_photo),
+          ),
+        ),
+      ),
+      color: Colors.white,
+      offset: Offset(0, 50),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+      itemBuilder: (context) => [
+        PopupMenuItem<int>(
+          value: 0,
+          child: Row(
+            children: [
+              Icon(
+                Icons.settings,
+                color: Colors.black,
+              ),
+              Text(
+                "  Settings",
+                style: TextStyle(color: Colors.black),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<int>(
+          value: 1,
+          child: Row(
+            children: [
+              Icon(
+                Icons.logout,
+                color: Colors.black,
+              ),
+              Text(
+                "  Log out",
+                style: TextStyle(color: Colors.black),
+              ),
+            ],
+          ),
+        ),
+      ],
+      onSelected: (item) async {
+        switch (item) {
+          case 0:
+            _editSettings(context);
+            break;
+          case 1:
+            await _auth.signOut();
+            await _google.googleSignOut();
+            break;
+          default:
+            print('invalid item $item');
+        }
+      },
+    );
+  }
 // -----------------------------------------------------
 
   Widget _listExercisePage() {

@@ -126,6 +126,9 @@ class _WrapperState extends State<Wrapper> {
     else
       print('_rightAfterSignIn: DB returned null record for ${user.uid}!!');
 
+    if (!filterVoices.contains(settings.getVoice()))
+      settings.setVoice(filterVoices[0]);
+
     // save all settings back to DB
     settings.saveSettings();
   }

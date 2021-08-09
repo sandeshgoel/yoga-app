@@ -31,3 +31,5 @@ var textInputDeco = InputDecoration(
   focusedBorder:
       OutlineInputBorder(borderSide: BorderSide(color: Colors.blue, width: 2)),
 );
+
+var settingsTextStyle = TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
