@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:volume_control/volume_control.dart';
@@ -9,6 +10,7 @@ import 'package:yoga/services/auth.dart';
 
 import 'package:yoga/pages/authenticate_page.dart';
 import 'package:yoga/services/database.dart';
+import 'package:yoga/services/notifications.dart';
 import 'package:yoga/services/tts.dart';
 
 import 'services/settings.dart';
@@ -19,7 +21,9 @@ List<String> filterVoices = [];
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
   VolumeControl.setVolume(0.5);
+
   var voices = await Tts().flutterTts.getVoices;
   for (var voice in voices) {
     if (voice['locale'] == 'en-IN') {
@@ -28,16 +32,21 @@ void main() async {
     }
   }
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<YogaSettings>(create: (_) => YogaSettings()),
-        ChangeNotifierProvider<GoogleSignInProvider>(
-            create: (_) => GoogleSignInProvider()),
-      ],
-      child: MyApp(),
-    ),
-  );
+  await NotificationService().init();
+
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((_) {
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<YogaSettings>(create: (_) => YogaSettings()),
+          ChangeNotifierProvider<GoogleSignInProvider>(
+              create: (_) => GoogleSignInProvider()),
+        ],
+        child: MyApp(),
+      ),
+    );
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -131,5 +140,8 @@ class _WrapperState extends State<Wrapper> {
 
     // save all settings back to DB
     settings.saveSettings();
+
+    await NotificationService()
+        .show('Info', 'User ${user.email} has logged in');
   }
 }

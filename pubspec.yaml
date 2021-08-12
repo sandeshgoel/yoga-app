@@ -41,6 +41,7 @@ dependencies:
   google_fonts: ^2.1.0
   volume_control: ^0.1.5
   showcaseview: ^1.1.0
+  flutter_local_notifications: ^8.1.1
 
 flutter_icons:
   android: "launcher_icon"

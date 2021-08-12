@@ -1,4 +1,4 @@
-import 'dart:ui';
+//import 'dart:ui';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -19,10 +19,12 @@ class ActivityPage extends StatefulWidget {
 }
 
 class _ActivityPageState extends State<ActivityPage> {
+  int _totDays = 15;
+
   Future<List<UserActivity>> _activity() async {
     var settings = Provider.of<YogaSettings>(context);
-    QuerySnapshot queryRef =
-        await DBService(uid: settings.getUser().uid).getUserActivityWeek();
+    QuerySnapshot queryRef = await DBService(uid: settings.getUser().uid)
+        .getUserActivityDays(_totDays);
     return queryRef.docs.map((doc) => UserActivity.fromJson(doc)).toList();
   }
 
@@ -43,7 +45,7 @@ class _ActivityPageState extends State<ActivityPage> {
             DateTime now = DateTime.now();
             DateTime lastMidnight = DateTime(now.year, now.month, now.day);
             List<DateTime> days = [];
-            for (int i = 6; i >= 0; i--) {
+            for (int i = _totDays - 1; i >= 0; i--) {
               days.add(lastMidnight.subtract(Duration(days: i)));
             }
 
@@ -63,13 +65,21 @@ class _ActivityPageState extends State<ActivityPage> {
               timeList.add(minutes.toDouble());
               data.add(ActData(day, minutes.toDouble()));
             }
-            print(data.map((d) => '${d.day}:${d.minutes}').toList());
+            //print(data.map((d) => '${d.day}:${d.minutes}').toList());
 
             int totTime = totMap[lastMidnight] ?? 0;
 
             totTime += 30;
             totTime ~/= 60;
             int leftTime = settings.getDailyTarget() - totTime;
+            var color;
+
+            if (leftTime <= 0)
+              color = Colors.green.withOpacity(0.8);
+            else if (leftTime < totTime)
+              color = Colors.amber.withOpacity(0.8);
+            else
+              color = Colors.red.withOpacity(0.8);
 
             actList.forEach((act) {
               children.add(Text(
@@ -97,12 +107,13 @@ class _ActivityPageState extends State<ActivityPage> {
                         ),
                         Container(
                           margin: EdgeInsets.all(10),
+                          padding: EdgeInsets.all(10),
                           decoration: new BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.green.withOpacity(0.8),
+                              color: color,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.green.withOpacity(0.8),
+                                  color: color,
                                   blurRadius: 10.0,
                                   spreadRadius: 10.0,
                                 ),
@@ -111,7 +122,7 @@ class _ActivityPageState extends State<ActivityPage> {
                             child: Text(
                               totTime.toString(),
                               style: TextStyle(
-                                  fontSize: 60, fontWeight: FontWeight.bold),
+                                  fontSize: 50, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -138,7 +149,7 @@ class _ActivityPageState extends State<ActivityPage> {
                       children: [
                         Container(
                           margin: EdgeInsets.all(10),
-                          child: Text('Last Week',
+                          child: Text('Last $_totDays days (minutes)',
                               style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                         Container(
@@ -151,10 +162,28 @@ class _ActivityPageState extends State<ActivityPage> {
                                 data: data,
                                 domainFn: (ActData s, _) => s.day,
                                 measureFn: (ActData s, _) => s.minutes,
+                                colorFn: (d, _) {
+                                  if (d.minutes >= settings.getDailyTarget())
+                                    return charts.Color(r: 0, b: 0, g: 0xff);
+                                  else if (d.minutes >=
+                                      settings.getDailyTarget() / 2)
+                                    return charts.Color(r: 0xff, b: 0, g: 0xcc);
+                                  else
+                                    return charts.Color(r: 0xff, b: 0, g: 0);
+                                },
                               ),
                             ],
+                            animationDuration: Duration(seconds: 2),
                             animate: true,
+                            defaultRenderer:
+                                charts.BarRendererConfig<DateTime>(),
                           ),
+                        ),
+                        Container(
+                          margin: EdgeInsets.all(10),
+                          child: Text(
+                              'Daily Target: ${settings.getDailyTarget()} minutes',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ),

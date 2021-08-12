@@ -72,5 +72,17 @@ class DBService {
         .get();
   }
 
+  Future<QuerySnapshot> getUserActivityDays(int days) async {
+    var now = DateTime.now();
+    var lastMidnight = DateTime(now.year, now.month, now.day);
+    var startDateMidnight = lastMidnight.subtract(Duration(days: days));
+    print('Reading from DB activity ...');
+    return await actCollection
+        .where('uid', isEqualTo: uid)
+        .where('start', isGreaterThanOrEqualTo: startDateMidnight)
+        .orderBy('start', descending: true)
+        .get();
+  }
+
 // -------------------------------------------------
 }

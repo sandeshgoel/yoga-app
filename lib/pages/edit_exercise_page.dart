@@ -115,13 +115,11 @@ class _EditConfigPageState extends State<EditConfigPage> {
 
     _formKey.currentState!.save();
     var values = _formKey.currentState!.value;
-    /*print('_saveConfig: $pindex ${values.length} $values');
-    values.forEach((key, value) {
-      print('$key:$value');
-    });*/
 
     String newName = values['configName'];
-    if (newName != settings.getParam(pindex).name) {
+    String oldName = settings.getParam(pindex).name;
+    if (newName != oldName) {
+      // check to avoid duplicate name
       if (settings.findParamIndex(newName) != -1) {
         showDialog(
           context: context,
@@ -132,6 +130,14 @@ class _EditConfigPageState extends State<EditConfigPage> {
           ),
         );
         return;
+      }
+
+      // update the name in all saved routines too
+      for (var i = 0; i < settings.routines.length; i++) {
+        for (var j = 0; j < settings.routines[i].exercises.length; j++) {
+          if (settings.routines[i].exercises[j].name == oldName)
+            settings.routines[i].exercises[j].name = newName;
+        }
       }
     }
 

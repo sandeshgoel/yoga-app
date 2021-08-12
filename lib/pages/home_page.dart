@@ -456,7 +456,8 @@ class _MyHomePageState extends State<MyHomePage> {
         cfgName = 'Custom routine ' + i.toString();
         i++;
       } while (settings.findRoutineIndex(cfgName) != -1);
-      settings.addRoutine(Routine(cfgName, []));
+
+      settings.addRoutine(Routine(cfgName, [Exercise(exAnulomVilom, 10)]));
     } else {
       Routine r = settings.getRoutineFromLib(cfgName)!;
       print('_addRoutine: Adding routine $cfgName');
