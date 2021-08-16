@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:yoga/services/settings.dart';
+import 'package:yoga/services/tts.dart';
 import 'package:yoga/shared/constants.dart';
 
 class EditSettingsPage extends StatefulWidget {
@@ -91,6 +93,29 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                   ),
                 ),
 
+                // Daily Target
+
+                SizedBox(height: 10),
+                Row(
+                  children: [
+                    Text('Daily Target', style: settingsTextStyle),
+                    _infoIcon(topicDailyTarget),
+                    Expanded(child: Container()),
+                    Text('${settings.getDailyTarget()} minutes'),
+                  ],
+                ),
+                Slider(
+                  value: settings.getDailyTarget().toDouble(),
+                  min: 1,
+                  max: 60,
+                  divisions: 59,
+                  onChanged: (val) {
+                    setState(() {
+                      settings.setDailyTarget(val.toInt());
+                    });
+                  },
+                ),
+
                 // Voice
 
                 Container(
@@ -99,12 +124,14 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                     children: [
                       Text('Voice:', style: settingsTextStyle),
                       _infoIcon(topicVoice),
-                      Expanded(
-                        child: Container(),
+                      IconButton(
+                        icon: Icon(Icons.volume_down_sharp, size: 15),
+                        onPressed: () => _playVoiceSample(settings),
                       ),
+                      Expanded(child: Container()),
                       DropdownButton<String>(
                         value: dropdownValue,
-                        icon: const Icon(Icons.arrow_drop_down),
+                        //isExpanded: true,
                         onChanged: (String? newValue) {
                           setState(() {
                             dropdownValue = newValue!;
@@ -118,12 +145,37 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                             .map<DropdownMenuItem<String>>((entry) {
                           return DropdownMenuItem<String>(
                             value: entry.value,
-                            child: Text('${entry.key}: ${entry.value}'),
+                            child: Text(
+                              '${entry.key}: ${entry.value}',
+                              style: TextStyle(fontSize: 10),
+                            ),
                           );
                         }).toList(),
                       ),
                     ],
                   ),
+                ),
+
+                // Speech Rate
+
+                Row(
+                  children: [
+                    Text('Speech Rate', style: settingsTextStyle),
+                    _infoIcon(topicSpeechRate),
+                    Expanded(child: Container()),
+                    Text('${settings.getSpeechRate()}'),
+                  ],
+                ),
+                Slider(
+                  value: settings.getSpeechRate(),
+                  min: 0.1,
+                  max: 1.0,
+                  divisions: 9,
+                  onChanged: (val) {
+                    setState(() {
+                      settings.setSpeechRate(val);
+                    });
+                  },
                 ),
 
                 // Mute Counting
@@ -149,7 +201,6 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
 
                 // Count Duration Slider
 
-                SizedBox(height: 10),
                 Row(
                   children: [
                     Text('Count Duration', style: settingsTextStyle),
@@ -166,52 +217,6 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                   onChanged: (val) {
                     setState(() {
                       settings.setCountDuration((val * 1000).toInt());
-                    });
-                  },
-                ),
-
-                // Speech Rate
-
-                SizedBox(height: 10),
-                Row(
-                  children: [
-                    Text('Speech Rate', style: settingsTextStyle),
-                    _infoIcon(topicSpeechRate),
-                    Expanded(child: Container()),
-                    Text('${settings.getSpeechRate()}'),
-                  ],
-                ),
-                Slider(
-                  value: settings.getSpeechRate(),
-                  min: 0.1,
-                  max: 1.0,
-                  divisions: 9,
-                  onChanged: (val) {
-                    setState(() {
-                      settings.setSpeechRate(val);
-                    });
-                  },
-                ),
-
-                // Daily Target
-
-                SizedBox(height: 10),
-                Row(
-                  children: [
-                    Text('Daily Target', style: settingsTextStyle),
-                    _infoIcon(topicDailyTarget),
-                    Expanded(child: Container()),
-                    Text('${settings.getDailyTarget()} minutes'),
-                  ],
-                ),
-                Slider(
-                  value: settings.getDailyTarget().toDouble(),
-                  min: 1,
-                  max: 60,
-                  divisions: 59,
-                  onChanged: (val) {
-                    setState(() {
-                      settings.setDailyTarget(val.toInt());
                     });
                   },
                 ),
@@ -244,7 +249,24 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () => showAboutDialog(context: context),
+                      onTap: () async {
+                        PackageInfo packageInfo =
+                            await PackageInfo.fromPlatform();
+
+                        //String appName = packageInfo.appName;
+                        //String packageName = packageInfo.packageName;
+                        String version = packageInfo.version;
+                        String buildNumber = packageInfo.buildNumber;
+
+                        showAboutDialog(
+                            context: context,
+                            applicationVersion: 'Ver $version+$buildNumber',
+                            applicationIcon: Image.asset(
+                              "assets/icon/yoga.png",
+                              height: 40,
+                              width: 40,
+                            ));
+                      },
                       child: Container(
                           padding: EdgeInsets.symmetric(vertical: 20),
                           child: Text('About', style: settingsTextStyle)),
@@ -258,6 +280,20 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
         )
       ]),
     );
+  }
+
+  void _playVoiceSample(settings) async {
+    Tts _tts = Tts();
+    _tts.setSpeechRate(settings.getSpeechRate());
+    _tts.setSpeechVoice(settings.getVoice());
+
+    String msg = 'Voice Test. Inhale and exhale';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      duration: Duration(milliseconds: 2000),
+    ));
+
+    await _tts.speak(context, msg);
   }
 
   static const String topicVoice = 'voice';

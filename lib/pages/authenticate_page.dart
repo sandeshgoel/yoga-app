@@ -120,8 +120,8 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                 child: TextFormField(
                   initialValue: password,
                   obscureText: true,
-                  validator: (val) => val!.length < 1
-                      ? 'Password length must be at least 1'
+                  validator: (val) => val!.length < 6
+                      ? 'Password length must be at least 6'
                       : null,
                   onChanged: (val) {
                     password = val;

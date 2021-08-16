@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:yoga/services/settings.dart';
+import 'package:yoga/shared/constants.dart';
 
 class EditConfigPage extends StatefulWidget {
   final String cfg;
@@ -33,7 +34,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Config'),
+        title: Text('Edit Exercise Config'),
       ),
       body: Stack(
         children: [
@@ -60,50 +61,71 @@ class _EditConfigPageState extends State<EditConfigPage> {
     return FormBuilder(
       key: _formKey,
       child: SingleChildScrollView(
-        child: Column(
-          children: [
-                Container(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    child: FormBuilderTextField(
-                      name: 'configName',
-                      initialValue: cfg,
-                      decoration: InputDecoration(
-                        labelText: 'Config Name',
+        child: Container(
+          margin: EdgeInsets.symmetric(horizontal: 30),
+          child: Column(
+            children: [
+                  FormBuilderTextField(
+                    name: 'configName',
+                    initialValue: cfg,
+                    decoration: InputDecoration(
+                      labelText: 'Exercise Name',
+                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+
+                  // Number of rounds
+
+                  FormBuilderSlider(
+                    name: 'rounds',
+                    initialValue: cp.rounds.toDouble(),
+                    min: 1,
+                    max: 50,
+                    divisions: 49,
+                    decoration: InputDecoration(
+                        labelText: 'Number of rounds',
+                        labelStyle: TextStyle(fontWeight: FontWeight.bold)),
+                    textStyle: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+
+                  // Alternate Left Right
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Alternate Left/Right', style: settingsTextStyle),
+                      Expanded(
+                        child: Container(),
                       ),
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    )),
-                Container(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    child: FormBuilderSlider(
-                      name: 'rounds',
-                      initialValue: cp.rounds.toDouble(),
-                      min: 1,
-                      max: 50,
-                      divisions: 49,
-                      decoration: InputDecoration(
-                          labelText: 'Number of rounds',
-                          labelStyle: TextStyle(fontWeight: FontWeight.bold)),
-                      textStyle: TextStyle(fontWeight: FontWeight.bold),
-                    )),
-              ] +
-              _stageList(settings, cfg) +
-              [
-                Container(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                            onPressed: () => _saveConfig(context, cfg),
-                            child: Text('Save')),
-                        ElevatedButton(
-                            style:
-                                ElevatedButton.styleFrom(primary: Colors.red),
-                            onPressed: () => _deleteConfig(context, cfg),
-                            child: Text('Delete')),
-                      ],
-                    )),
-              ],
+                      Switch(
+                        value: cp.altLeftRight,
+                        onChanged: (val) {
+                          setState(() {
+                            cp.altLeftRight = val;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20)
+                ] +
+                _stageList(settings, cfg) +
+                [
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                          onPressed: () => _saveConfig(context, cfg),
+                          child: Text('Save', style: settingsTextStyle)),
+                      ElevatedButton(
+                          style: ElevatedButton.styleFrom(primary: Colors.red),
+                          onPressed: () => _deleteConfig(context, cfg),
+                          child: Text('Delete', style: settingsTextStyle)),
+                    ],
+                  ),
+                ],
+          ),
         ),
       ),
     );
@@ -207,69 +229,63 @@ class _EditConfigPageState extends State<EditConfigPage> {
     });
   }
 
-  List<Container> _stageList(settings, cfg) {
-    List<Container> list = [];
+  List<Widget> _stageList(settings, cfg) {
+    List<Widget> list = [];
     var pindex = settings.findParamIndex(cfg);
     var stages = settings.getParam(pindex).stages;
 
-    list.add(Container(
-        padding: EdgeInsets.all(16),
-        child: Center(
-            child: Text(
-          'Stages: ${stages.length}',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ))));
+    list.add(Center(
+        child: Text(
+      'Stages: ${stages.length}',
+      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    )));
 
     for (var i = 0; i < stages.length; i++) {
-      list.add(Container(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Expanded(flex: 10, child: Container()),
-            Expanded(
-              flex: 45,
-              child: FormBuilderTextField(
-                name: 'stagename$i',
-                initialValue: stages[i].name,
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+      list.add(Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(flex: 10, child: Container()),
+          Expanded(
+            flex: 45,
+            child: FormBuilderTextField(
+              name: 'stagename$i',
+              initialValue: stages[i].name,
+              style: settingsTextStyle,
             ),
-            Expanded(flex: 10, child: Container()),
-            Expanded(
-              flex: 10,
-              child: FormBuilderTextField(
-                name: 'stagecount$i',
-                initialValue: stages[i].count.toString(),
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+          ),
+          Expanded(flex: 10, child: Container()),
+          Expanded(
+            flex: 10,
+            child: FormBuilderTextField(
+              name: 'stagecount$i',
+              initialValue: stages[i].count.toString(),
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              style: settingsTextStyle,
             ),
-            Expanded(flex: 10, child: Container()),
-            Expanded(
-              flex: 5,
-              child: stages.length == 1
-                  ? Container()
-                  : IconButton(
-                      icon: Icon(Icons.delete),
-                      color: Colors.red,
-                      onPressed: () => _deleteStage(context, cfg, i),
-                    ),
-            ),
-            Expanded(flex: 10, child: Container()),
-          ],
-        ),
+          ),
+          Expanded(flex: 10, child: Container()),
+          Expanded(
+            flex: 5,
+            child: stages.length == 1
+                ? Container()
+                : IconButton(
+                    icon: Icon(Icons.delete),
+                    color: Colors.red,
+                    onPressed: () => _deleteStage(context, cfg, i),
+                  ),
+          ),
+          Expanded(flex: 10, child: Container()),
+        ],
       ));
     }
 
-    list.add(Container(
-      padding: EdgeInsets.all(16),
-      child: CircleAvatar(
-        child: IconButton(
-          icon: Icon(Icons.add),
-          onPressed: () => _addStage(context, cfg),
-          tooltip: 'Add Stage',
-        ),
+    list.add(SizedBox(height: 20));
+    list.add(CircleAvatar(
+      child: IconButton(
+        icon: Icon(Icons.add),
+        onPressed: () => _addStage(context, cfg),
+        tooltip: 'Add Stage',
       ),
     ));
 

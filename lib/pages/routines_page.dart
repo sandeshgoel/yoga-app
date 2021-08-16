@@ -50,7 +50,9 @@ class _RoutinesPageState extends State<RoutinesPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          '${r.name}',
+                          r.name.length > 22
+                              ? '${r.name.substring(0, 20)}...'
+                              : '${r.name}',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),

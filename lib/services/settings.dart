@@ -29,19 +29,21 @@ class Stage {
 class ConfigParam {
   late String name;
   late int rounds;
+  bool altLeftRight = false;
   late List<Stage> stages;
 
-  ConfigParam(this.name, this.rounds, this.stages);
+  ConfigParam(this.name, this.rounds, this.stages, {this.altLeftRight = false});
 
   @override
   String toString() {
-    return '{$name, $rounds, stages: $stages}\n';
+    return '{$name, $rounds, $altLeftRight : $stages}\n';
   }
 
   Map<String, dynamic> toJson() {
     return {
       'name': this.name,
       'rounds': this.rounds,
+      'altLeftRight': this.altLeftRight,
       'stages': this.stages.map((x) => x.toJson()).toList()
     };
   }
@@ -49,6 +51,7 @@ class ConfigParam {
   ConfigParam.fromJson(Map<String, dynamic> json) {
     this.name = json['name'];
     this.rounds = json['rounds'];
+    this.altLeftRight = json['altLeftRight'];
     this.stages = json['stages'].map<Stage>((x) => Stage.fromJson(x)).toList();
   }
 }
@@ -108,6 +111,9 @@ const exChandraBhedi = 'Chandra Bhedi';
 const exKapaalBhaati = 'Kapaal Bhaati';
 const exBhastrika = 'Bhastrika';
 const exShavasana = 'Shava Aasanaa';
+const exSuryaNamaskara = 'Surya Namaskara';
+const exHandRotation = 'Hand Rotation';
+const exNeckExercise = 'Neck Exercise';
 
 class UserInfo {
   late String uid;
@@ -191,18 +197,17 @@ class YogaSettings with ChangeNotifier {
   // ----------------------------------------------------
 
   List<Routine> _routineLib = [
-    Routine('Daily 10', [
+    Routine('Breathing Routine', [
       Exercise(exDeepBreathing, 10),
       Exercise(exBhramari, 10),
       Exercise(exAnulomVilom, 10),
       Exercise(exSheetkari, 10),
       Exercise(exShavasana, 1)
     ]),
-    Routine('Routine 2', [
-      Exercise(exDeepBreathing, 10),
-      Exercise(exBhramari, 10),
-      Exercise(exChandraBhedi, 10),
-      Exercise(exSheetkari, 10),
+    Routine('Warm Up', [
+      Exercise(exHandRotation, 10),
+      Exercise(exNeckExercise, 10),
+      Exercise(exSuryaNamaskara, 4),
     ])
   ];
 
@@ -240,12 +245,44 @@ class YogaSettings with ChangeNotifier {
         [Stage('Inhale gently', 4), Stage('Exhale with force', 4)]),
     ConfigParam(exBhastrika, 10,
         [Stage('Hands up and Inhale', 4), Stage('Hands down and Exhale', 4)]),
-    ConfigParam(exShavasana, 1, [
-      Stage('Lie down still with eyes closed and relax', 60),
-      Stage('Stretch all your muscles', 10),
-      Stage('Sit up and chant om shanti shanti', 10),
-      Stage('Open your eyes with a smile', 10)
-    ])
+    ConfigParam(
+      exShavasana,
+      1,
+      [
+        Stage('Lie down still with eyes closed and relax', 60),
+        Stage('Stretch all your muscles', 10),
+        Stage('Sit back up', 10),
+        Stage('Chant om shanti shanti', 10),
+        Stage('Rub your palms and cup your eyes', 10),
+        Stage('Open your eyes with a smile', 6)
+      ],
+    ),
+    ConfigParam(
+        exSuryaNamaskara,
+        4,
+        [
+          Stage('Fold both hands', 4),
+          Stage('Hands above your head', 4),
+          Stage('Touch your feet', 4),
+          Stage('Right leg back', 4),
+          Stage('Mountain pose', 4),
+          Stage('Prone position', 4),
+          Stage('Cobra pose', 4),
+          Stage('Mountain pose', 4),
+          Stage('Left leg forward', 4),
+          Stage('Touch your feet', 4),
+          Stage('Hands above your head', 4),
+          Stage('Fold your hands', 4),
+          Stage('Hands down', 4)
+        ],
+        altLeftRight: true),
+    ConfigParam(exHandRotation, 10, [Stage('Rotate', 2)]),
+    ConfigParam(exNeckExercise, 10, [
+      Stage('Neck down', 2),
+      Stage('Neck up', 2),
+      Stage('Neck right', 2),
+      Stage('Neck left', 2)
+    ]),
   ];
 
   List<ConfigParam> getExerciseLib() {

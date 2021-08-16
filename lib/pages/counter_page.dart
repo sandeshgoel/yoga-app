@@ -243,8 +243,9 @@ class _CounterPageState extends State<CounterPage> {
                     decoration: new BoxDecoration(
                       color: Colors.white.withOpacity(0.6),
                     ),
-                    child: Text('Voice: ${settings.getVoice()}, ' +
-                        (settings.getMuteCounting() ? 'Count muted' : '')),
+                    child: Text('Voice: ${settings.getVoice()}' +
+                        (settings.getMuteCounting() ? ', Count muted' : '') +
+                        (_curExercise.altLeftRight ? ', Alt' : '')),
                   ),
                 ],
               ),
@@ -307,16 +308,24 @@ class _CounterPageState extends State<CounterPage> {
       }
       msg =
           "The next exercise has $_totRounds rounds of ${_curExercise.name}. ";
-      msg += "Each round has ${_curExercise.stages.length} stages. ";
-      for (var i = 0; i < _curExercise.stages.length; i++) {
-        msg += "${_curExercise.stages[i].name}";
-        if (i == (_curExercise.stages.length - 2))
-          msg += " and ";
-        else if (i == (_curExercise.stages.length - 1))
-          msg += ".";
-        else
-          msg += ", ";
+      msg += "Each round has ${_curExercise.stages.length} ";
+      if (_curExercise.stages.length == 1)
+        msg += "stage. ";
+      else
+        msg += "stages. ";
+
+      if (_curExercise.stages.length <= 4) {
+        for (var i = 0; i < _curExercise.stages.length; i++) {
+          msg += "${_curExercise.stages[i].name}";
+          if (i == (_curExercise.stages.length - 2))
+            msg += " and ";
+          else if (i == (_curExercise.stages.length - 1))
+            msg += ".";
+          else
+            msg += ", ";
+        }
       }
+
       msg += " Starting round 1 now ... ";
       await _tts.speak(context, msg);
       _reset = false;
@@ -417,7 +426,9 @@ class _CounterPageState extends State<CounterPage> {
               return;
             } else {
               if (_curRound == _totRounds)
-                msg = 'Last round ';
+                msg = 'Last round . ';
+              else if (_curRound == _totRounds - 2)
+                msg = '3 rounds left . ';
               else {
                 if (settings.getMuteCounting()) {
                   msg = '';
@@ -426,7 +437,19 @@ class _CounterPageState extends State<CounterPage> {
               }
             }
           }
-          msg += _curExercise.stages[_curStage].name;
+
+          String stagename = _curExercise.stages[_curStage].name;
+          if (_curExercise.altLeftRight & (_curRound % 2 == 0)) {
+            List<String> words = stagename.split(' ');
+            for (var i = 0; i < words.length; i++) {
+              if (words[i].toLowerCase() == 'left')
+                words[i] = 'right';
+              else if (words[i].toLowerCase() == 'right') words[i] = 'left';
+            }
+            stagename = words.join(' ');
+          }
+          print(stagename);
+          msg += stagename;
           _tts.speak(context, msg);
         } else {
           if (!settings.getMuteCounting() |

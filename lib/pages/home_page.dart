@@ -225,7 +225,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          '${cp.name}',
+                          cp.name.length > 22
+                              ? '${cp.name.substring(0, 20)}...'
+                              : '${cp.name}',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
@@ -272,7 +274,7 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: EdgeInsets.all(10),
           width: double.infinity,
           decoration: boxDeco,
-          child: Text(name)),
+          child: Text(name, style: TextStyle(fontSize: 12))),
     );
   }
 
@@ -287,15 +289,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: <Widget>[
+                      _createExerciseTile('Custom ...'),
+                      SizedBox(height: 10),
                       Column(
                           children: settings
                               .getExerciseLib()
                               .map((e) => _createExerciseTile(e.name))
                               .toList()),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      _createExerciseTile('Custom ...')
                     ],
                   ),
                 ),
@@ -391,7 +391,7 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: EdgeInsets.all(10),
           width: double.infinity,
           decoration: boxDeco,
-          child: Text(name)),
+          child: Text(name, style: TextStyle(fontSize: 12))),
     );
   }
 
@@ -402,23 +402,14 @@ class _MyHomePageState extends State<MyHomePage> {
         context: context,
         builder: (_) => AlertDialog(
               content: Column(
-                children: <Widget>[
-                      Text('Choose a routine from the library'),
-                      SizedBox(
-                        height: 20,
-                      ),
-                    ] +
-                    settings
-                        .getRoutineLib()
-                        .map((e) => _createRoutineTile(e.name))
-                        .toList() +
-                    [
-                      SizedBox(
-                        height: 20,
-                      ),
-                      _createRoutineTile('Custom ...')
-                    ],
-              ),
+                  children: [
+                        _createRoutineTile('Custom ...'),
+                        SizedBox(height: 10)
+                      ] +
+                      settings
+                          .getRoutineLib()
+                          .map((e) => _createRoutineTile(e.name))
+                          .toList()),
               title: Text('Add routine'),
               actions: [
                 ElevatedButton(
