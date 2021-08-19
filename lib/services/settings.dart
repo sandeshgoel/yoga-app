@@ -112,8 +112,9 @@ const exKapaalBhaati = 'Kapaal Bhaati';
 const exBhastrika = 'Bhastrika';
 const exShavasana = 'Shava Aasanaa';
 const exSuryaNamaskara = 'Surya Namaskara';
-const exHandRotation = 'Hand Rotation';
-const exNeckExercise = 'Neck Exercise';
+const exHandRotation = 'Arm Rotation';
+const exNeckUpDown = 'Neck Up-Down';
+const exNeckRightLeft = 'Neck Right-Left';
 
 class UserInfo {
   late String uid;
@@ -170,6 +171,7 @@ class YogaSettings with ChangeNotifier {
   late int _dailyTarget;
   late int _gapRoutine;
   late bool _muteCounting;
+  late bool _notify;
 
   late List<ConfigParam> cps;
   late List<Routine> routines;
@@ -189,6 +191,7 @@ class YogaSettings with ChangeNotifier {
     _dailyTarget = 10;
     _gapRoutine = 5;
     _muteCounting = false;
+    _notify = true;
 
     cps = [_exerciseLib[0]];
     routines = [];
@@ -206,7 +209,8 @@ class YogaSettings with ChangeNotifier {
     ]),
     Routine('Warm Up', [
       Exercise(exHandRotation, 10),
-      Exercise(exNeckExercise, 10),
+      Exercise(exNeckUpDown, 10),
+      Exercise(exNeckRightLeft, 10),
       Exercise(exSuryaNamaskara, 4),
     ])
   ];
@@ -277,12 +281,9 @@ class YogaSettings with ChangeNotifier {
         ],
         altLeftRight: true),
     ConfigParam(exHandRotation, 10, [Stage('Rotate', 2)]),
-    ConfigParam(exNeckExercise, 10, [
-      Stage('Neck down', 2),
-      Stage('Neck up', 2),
-      Stage('Neck right', 2),
-      Stage('Neck left', 2)
-    ]),
+    ConfigParam(exNeckUpDown, 10, [Stage('Neck down', 2), Stage('Neck up', 2)]),
+    ConfigParam(
+        exNeckRightLeft, 10, [Stage('Neck right', 2), Stage('Neck left', 2)]),
   ];
 
   List<ConfigParam> getExerciseLib() {
@@ -354,6 +355,7 @@ class YogaSettings with ChangeNotifier {
     this._dailyTarget = jval['dailyTarget'] ?? this._dailyTarget;
     this._gapRoutine = jval['gapRoutine'] ?? this._gapRoutine;
     this._muteCounting = jval['muteCounting'] ?? this._muteCounting;
+    this._notify = jval['notify'] ?? this._notify;
     this.cps = (jval['cps'] ?? (this.cps.map((x) => x.toJson()).toList()))
         .map<ConfigParam>((x) => ConfigParam.fromJson(x))
         .toList();
@@ -373,6 +375,7 @@ class YogaSettings with ChangeNotifier {
       'dailyTarget': this._dailyTarget,
       'gapRoutine': this._gapRoutine,
       'muteCounting': this._muteCounting,
+      'notify': this._notify,
       'cps': this.cps.map((x) => x.toJson()).toList(),
       'routines': this.routines.map((x) => x.toJson()).toList(),
     };
@@ -428,6 +431,16 @@ class YogaSettings with ChangeNotifier {
 
   bool getMuteCounting() {
     return this._muteCounting;
+  }
+
+  // ----------------------------------------------------
+
+  void setNotify(bool notify) {
+    this._notify = notify;
+  }
+
+  bool getNotify() {
+    return this._notify;
   }
 
   // ----------------------------------------------------

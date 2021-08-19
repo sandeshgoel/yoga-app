@@ -17,7 +17,7 @@ class NotificationService {
 
   Future<void> init() async {
     final AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('yoga');
+        AndroidInitializationSettings('ic_stat_yoga_transparent');
 
     final IOSInitializationSettings initializationSettingsIOS =
         IOSInitializationSettings(

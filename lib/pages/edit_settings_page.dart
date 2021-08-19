@@ -244,6 +244,27 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                   },
                 ),
 
+                // Notify
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Daily Notifications', style: settingsTextStyle),
+                    _infoIcon(topicNotify),
+                    Expanded(
+                      child: Container(),
+                    ),
+                    Switch(
+                      value: settings.getNotify(),
+                      onChanged: (val) {
+                        setState(() {
+                          settings.setNotify(val);
+                        });
+                      },
+                    ),
+                  ],
+                ),
+
                 // About
 
                 Row(
@@ -261,6 +282,8 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                         showAboutDialog(
                             context: context,
                             applicationVersion: 'Ver $version+$buildNumber',
+                            applicationLegalese:
+                                'https://sites.google.com/view/yoga-assistant/',
                             applicationIcon: Image.asset(
                               "assets/icon/yoga.png",
                               height: 40,
@@ -302,6 +325,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
   static const String topicSpeechRate = 'speech_rate';
   static const String topicDailyTarget = 'daily_target';
   static const String topicGapRoutine = 'gap_routine';
+  static const String topicNotify = 'notify';
 
   Widget _infoIcon(String topic) {
     String msg = '';
@@ -327,10 +351,13 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
         msg =
             'This is the gap between exercises during a routine consisting of multiple exercises';
         break;
+      case topicNotify:
+        msg = 'Enable or disable daily notifications';
+        break;
       default:
     }
     return IconButton(
-      icon: Icon(Icons.info_outline_rounded, size: 15),
+      icon: Icon(Icons.help_outline, size: 15),
       onPressed: () {
         showDialog(
           context: context,
