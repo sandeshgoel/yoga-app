@@ -1,8 +1,10 @@
 import 'dart:ui';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:yoga/pages/activity_page.dart';
 import 'package:yoga/pages/exercises_page.dart';
@@ -188,30 +190,14 @@ class _MyHomePageState extends State<MyHomePage> {
       onSelected: (item) async {
         switch (item) {
           case 0:
-            _editSettings(context);
+            _editSettings();
             break;
           case 1:
             await _auth.signOut();
             await _google.googleSignOut();
             break;
           case 2:
-            PackageInfo packageInfo = await PackageInfo.fromPlatform();
-
-            //String appName = packageInfo.appName;
-            //String packageName = packageInfo.packageName;
-            String version = packageInfo.version;
-            String buildNumber = packageInfo.buildNumber;
-
-            showAboutDialog(
-                context: context,
-                applicationVersion: 'Ver $version+$buildNumber',
-                applicationLegalese:
-                    'https://sites.google.com/view/yoga-assistant/',
-                applicationIcon: Image.asset(
-                  "assets/icon/yoga.png",
-                  height: 40,
-                  width: 40,
-                ));
+            await _about();
             break;
           default:
             print('invalid item $item');
@@ -220,7 +206,41 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _editSettings(context) {
+  Future _about() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    String version = packageInfo.version;
+    String buildNumber = packageInfo.buildNumber;
+
+    showAboutDialog(
+      context: context,
+      applicationVersion: 'Ver $version+$buildNumber',
+      applicationIcon: Image.asset(
+        "assets/icon/yoga.png",
+        height: 40,
+        width: 40,
+      ),
+      children: [
+        RichText(
+          text: TextSpan(
+            text: 'https://sites.google.com/view/yoga-assistant/',
+            style: TextStyle(color: Colors.blue),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () async {
+                final url = 'https://sites.google.com/view/yoga-assistant/';
+                if (await canLaunch(url)) {
+                  await launch(
+                    url,
+                    forceSafariVC: false,
+                  );
+                }
+              },
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _editSettings() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (BuildContext context) {
         return EditSettingsPage();

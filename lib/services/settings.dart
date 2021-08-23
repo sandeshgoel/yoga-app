@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yoga/services/database.dart';
@@ -26,33 +27,50 @@ class Stage {
 
 // ------------------------------------------------------
 
+enum ExCategory { breathing, standing, sitting }
+
 class ConfigParam {
   late String name;
+  late ExCategory category;
   late int rounds;
   bool altLeftRight = false;
   late List<Stage> stages;
+  bool sameCount = false;
 
-  ConfigParam(this.name, this.rounds, this.stages, {this.altLeftRight = false});
+  ConfigParam(this.name, this.category, this.rounds, this.stages,
+      {this.altLeftRight = false, this.sameCount = false});
 
   @override
   String toString() {
-    return '{$name, $rounds, $altLeftRight : $stages}\n';
+    return '{$name, $category, $rounds, $altLeftRight, $sameCount : $stages}\n';
   }
 
   Map<String, dynamic> toJson() {
     return {
       'name': this.name,
+      'category': describeEnum(this.category),
       'rounds': this.rounds,
       'altLeftRight': this.altLeftRight,
+      'sameCount': this.sameCount,
       'stages': this.stages.map((x) => x.toJson()).toList()
     };
   }
 
   ConfigParam.fromJson(Map<String, dynamic> json) {
     this.name = json['name'];
+    this.category =
+        strToCategory(json['category'] ?? describeEnum(ExCategory.breathing));
     this.rounds = json['rounds'];
     this.altLeftRight = json['altLeftRight'];
+    this.sameCount = json['sameCount'] ?? false;
     this.stages = json['stages'].map<Stage>((x) => Stage.fromJson(x)).toList();
+  }
+
+  static ExCategory strToCategory(String c) {
+    ExCategory res = ExCategory.values.firstWhere((e) => describeEnum(e) == c,
+        orElse: () => ExCategory.breathing);
+
+    return res;
   }
 }
 
@@ -230,27 +248,34 @@ class YogaSettings with ChangeNotifier {
   // ----------------------------------------------------
 
   List<ConfigParam> _exerciseLib = [
-    ConfigParam(exAnulomVilom, 10, [
-      Stage('Inhale Left', 4),
-      Stage('Exhale Right', 4),
-      Stage('Inhale Right', 4),
-      Stage('Exhale Left', 4),
-    ]),
-    ConfigParam(exDeepBreathing, 20, [Stage('Inhale', 4), Stage('Exhale', 4)]),
-    ConfigParam(exBhramari, 10,
-        [Stage('Inhale', 3), Stage('Exhale with humming sound', 6)]),
-    ConfigParam(exSheetkari, 10,
-        [Stage('Inhale from mouth', 4), Stage('Exhale from nose', 4)]),
     ConfigParam(
-        exSuryaBhedi, 10, [Stage('Inhale right', 4), Stage('Exhale left', 4)]),
-    ConfigParam(exChandraBhedi, 10,
+        exAnulomVilom,
+        ExCategory.breathing,
+        10,
+        [
+          Stage('Inhale Left', 4),
+          Stage('Exhale Right', 4),
+          Stage('Inhale Right', 4),
+          Stage('Exhale Left', 4),
+        ],
+        sameCount: true),
+    ConfigParam(exDeepBreathing, ExCategory.breathing, 20,
+        [Stage('Inhale', 4), Stage('Exhale', 4)]),
+    ConfigParam(exBhramari, ExCategory.breathing, 10,
+        [Stage('Inhale', 3), Stage('Exhale with humming sound', 6)]),
+    ConfigParam(exSheetkari, ExCategory.breathing, 10,
+        [Stage('Inhale from mouth', 4), Stage('Exhale from nose', 4)]),
+    ConfigParam(exSuryaBhedi, ExCategory.breathing, 10,
+        [Stage('Inhale right', 4), Stage('Exhale left', 4)]),
+    ConfigParam(exChandraBhedi, ExCategory.breathing, 10,
         [Stage('Inhale left', 4), Stage('Exhale right', 4)]),
-    ConfigParam(exKapaalBhaati, 10,
+    ConfigParam(exKapaalBhaati, ExCategory.breathing, 10,
         [Stage('Inhale gently', 4), Stage('Exhale with force', 4)]),
-    ConfigParam(exBhastrika, 10,
+    ConfigParam(exBhastrika, ExCategory.breathing, 10,
         [Stage('Hands up and Inhale', 4), Stage('Hands down and Exhale', 4)]),
     ConfigParam(
       exShavasana,
+      ExCategory.sitting,
       1,
       [
         Stage('Lie down still with eyes closed and relax', 60),
@@ -263,6 +288,7 @@ class YogaSettings with ChangeNotifier {
     ),
     ConfigParam(
         exSuryaNamaskara,
+        ExCategory.standing,
         4,
         [
           Stage('Fold both hands', 4),
@@ -279,11 +305,13 @@ class YogaSettings with ChangeNotifier {
           Stage('Fold your hands', 4),
           Stage('Hands down', 4)
         ],
+        sameCount: true,
         altLeftRight: true),
-    ConfigParam(exHandRotation, 10, [Stage('Rotate', 2)]),
-    ConfigParam(exNeckUpDown, 10, [Stage('Neck down', 2), Stage('Neck up', 2)]),
-    ConfigParam(
-        exNeckRightLeft, 10, [Stage('Neck right', 2), Stage('Neck left', 2)]),
+    ConfigParam(exHandRotation, ExCategory.standing, 10, [Stage('Rotate', 2)]),
+    ConfigParam(exNeckUpDown, ExCategory.sitting, 10,
+        [Stage('Neck down', 2), Stage('Neck up', 2)]),
+    ConfigParam(exNeckRightLeft, ExCategory.sitting, 10,
+        [Stage('Neck right', 2), Stage('Neck left', 2)]),
   ];
 
   List<ConfigParam> getExerciseLib() {

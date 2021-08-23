@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -262,39 +261,6 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                         });
                       },
                     ),
-                  ],
-                ),
-
-                // About
-
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () async {
-                        PackageInfo packageInfo =
-                            await PackageInfo.fromPlatform();
-
-                        //String appName = packageInfo.appName;
-                        //String packageName = packageInfo.packageName;
-                        String version = packageInfo.version;
-                        String buildNumber = packageInfo.buildNumber;
-
-                        showAboutDialog(
-                            context: context,
-                            applicationVersion: 'Ver $version+$buildNumber',
-                            applicationLegalese:
-                                'https://sites.google.com/view/yoga-assistant/',
-                            applicationIcon: Image.asset(
-                              "assets/icon/yoga.png",
-                              height: 40,
-                              width: 40,
-                            ));
-                      },
-                      child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 20),
-                          child: Text('About', style: settingsTextStyle)),
-                    ),
-                    Expanded(child: Container())
                   ],
                 ),
               ],

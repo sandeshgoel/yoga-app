@@ -33,3 +33,5 @@ var textInputDeco = InputDecoration(
 );
 
 var settingsTextStyle = TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
+var settingsTextStyleGrey =
+    TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey);

@@ -187,7 +187,8 @@ class _ExercisesPageState extends State<ExercisesPage> {
         cfgName = 'Custom exercise ' + i.toString();
         i++;
       } while (settings.findParamIndex(cfgName) != -1);
-      settings.addParam(new ConfigParam(cfgName, 10, [Stage('Stagename', 4)]));
+      settings.addParam(new ConfigParam(
+          cfgName, ExCategory.breathing, 10, [Stage('Stagename', 4)]));
     } else {
       settings.addParam(settings.getExerciseFromLib(cfgName)!);
     }

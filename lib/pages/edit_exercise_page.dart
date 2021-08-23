@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -54,7 +56,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
 
   Widget _editConfigPage(context, cfg) {
     var settings = Provider.of<YogaSettings>(context, listen: false);
-    print('**** _editConfigPage: ${settings.cps}');
+    //print('**** _editConfigPage: ${settings.cps}');
     var pindex = settings.findParamIndex(cfg);
     ConfigParam cp = settings.getParam(pindex);
 
@@ -74,18 +76,68 @@ class _EditConfigPageState extends State<EditConfigPage> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
 
+                  // Category
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text('Category:', style: settingsTextStyle),
+                      Expanded(child: Container()),
+                      DropdownButton<String>(
+                        value: describeEnum(cp.category),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            cp.category = ConfigParam.strToCategory(newValue!);
+                          });
+                        },
+                        items: ExCategory.values
+                            .map((e) => describeEnum(e))
+                            .toList()
+                            .asMap()
+                            .entries
+                            .map<DropdownMenuItem<String>>((entry) {
+                          return DropdownMenuItem<String>(
+                            value: entry.value,
+                            child: Row(
+                              children: [
+                                FaIcon(
+                                  FontAwesomeIcons.balanceScale,
+//                                  color: Colors.orange,
+                                  size: 15,
+                                ),
+                                SizedBox(width: 10),
+                                Text(
+                                  '${entry.value}',
+                                  style: settingsTextStyle,
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+
                   // Number of rounds
 
-                  FormBuilderSlider(
-                    name: 'rounds',
-                    initialValue: cp.rounds.toDouble(),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Text('Total Rounds', style: settingsTextStyle),
+                      Expanded(child: Container()),
+                      Text('${cp.rounds}'),
+                    ],
+                  ),
+                  Slider(
+                    value: cp.rounds.toDouble(),
                     min: 1,
                     max: 50,
                     divisions: 49,
-                    decoration: InputDecoration(
-                        labelText: 'Number of rounds',
-                        labelStyle: TextStyle(fontWeight: FontWeight.bold)),
-                    textStyle: TextStyle(fontWeight: FontWeight.bold),
+                    onChanged: (val) {
+                      setState(() {
+                        cp.rounds = val.toInt();
+                      });
+                    },
                   ),
 
                   // Alternate Left Right
@@ -94,9 +146,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text('Alternate Left/Right', style: settingsTextStyle),
-                      Expanded(
-                        child: Container(),
-                      ),
+                      Expanded(child: Container()),
                       Switch(
                         value: cp.altLeftRight,
                         onChanged: (val) {
@@ -107,7 +157,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20)
+                  SizedBox(height: 10)
                 ] +
                 _stageList(settings, cfg) +
                 [
@@ -118,6 +168,10 @@ class _EditConfigPageState extends State<EditConfigPage> {
                       ElevatedButton(
                           onPressed: () => _saveConfig(context, cfg),
                           child: Text('Save', style: settingsTextStyle)),
+                      ElevatedButton(
+                        onPressed: null,
+                        child: Text('Defaults', style: settingsTextStyle),
+                      ),
                       ElevatedButton(
                           style: ElevatedButton.styleFrom(primary: Colors.red),
                           onPressed: () => _deleteConfig(context, cfg),
@@ -166,10 +220,10 @@ class _EditConfigPageState extends State<EditConfigPage> {
     //print('_saveConfig: Before $pindex ${settings.cps}');
     ConfigParam cp = settings.getParam(pindex);
     cp.name = values['configName'];
-    cp.rounds = values['rounds'].toInt();
+    //cp.rounds = values['rounds'].toInt();
     for (var i = 0; i < cp.stages.length; i++) {
       cp.stages[i].name = values['stagename' + i.toString()];
-      cp.stages[i].count = int.parse(values['stagecount' + i.toString()]);
+      //cp.stages[i].count = int.parse(values['stagecount' + i.toString()]);
     }
     settings.setParam(pindex, cp);
     //print('_saveConfig: $pindex $cp');
@@ -214,7 +268,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
     setState(() {
       var pindex = settings.findParamIndex(cfg);
       ConfigParam cp = settings.getParam(pindex);
-      cp.stages.add(Stage('Stagename', 4));
+      cp.stages.add(Stage('Stagename', cp.sameCount ? cp.stages[0].count : 4));
       settings.setParam(pindex, cp);
     });
   }
@@ -231,16 +285,41 @@ class _EditConfigPageState extends State<EditConfigPage> {
 
   List<Widget> _stageList(settings, cfg) {
     List<Widget> list = [];
-    var pindex = settings.findParamIndex(cfg);
-    var stages = settings.getParam(pindex).stages;
+    int pindex = settings.findParamIndex(cfg);
+    ConfigParam cp = settings.getParam(pindex);
+    List<TextEditingController> _ctrlList = [];
 
     list.add(Center(
         child: Text(
-      'Stages: ${stages.length}',
+      'Stages: ${cp.stages.length}',
       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
     )));
 
-    for (var i = 0; i < stages.length; i++) {
+    list.add(
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('Same count in all stages', style: settingsTextStyle),
+          Expanded(child: Container()),
+          Switch(
+            value: cp.sameCount,
+            onChanged: (val) {
+              setState(() {
+                cp.sameCount = val;
+                if (cp.sameCount)
+                  for (var i = 0; i < cp.stages.length; i++)
+                    cp.stages[i].count = cp.stages[0].count;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+    for (var i = 0; i < cp.stages.length; i++)
+      _ctrlList.add(TextEditingController(text: cp.stages[i].count.toString()));
+
+    for (var i = 0; i < cp.stages.length; i++) {
+      bool disableCount = (cp.sameCount & (i > 0));
       list.add(Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -249,25 +328,37 @@ class _EditConfigPageState extends State<EditConfigPage> {
             flex: 45,
             child: FormBuilderTextField(
               name: 'stagename$i',
-              initialValue: stages[i].name,
+              initialValue: cp.stages[i].name,
               style: settingsTextStyle,
             ),
           ),
           Expanded(flex: 10, child: Container()),
           Expanded(
             flex: 10,
-            child: FormBuilderTextField(
-              name: 'stagecount$i',
-              initialValue: stages[i].count.toString(),
+            child: TextFormField(
+              controller: _ctrlList[i],
+              //..text = cp.stages[i].count.toString(),
+              //initialValue: disableCount ? '-' : cp.stages[i].count.toString(),
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
-              style: settingsTextStyle,
+              style: disableCount ? settingsTextStyleGrey : settingsTextStyle,
+              readOnly: disableCount ? true : false,
+
+              onChanged: (val) {
+                if (cp.sameCount & (i == 0)) {
+                  for (int j = 1; j < cp.stages.length; j++) {
+                    cp.stages[j].count = int.tryParse(val) ?? 0;
+                    _ctrlList[j].text = val;
+                  }
+                }
+                cp.stages[i].count = int.tryParse(val) ?? 0;
+              },
             ),
           ),
           Expanded(flex: 10, child: Container()),
           Expanded(
             flex: 5,
-            child: stages.length == 1
+            child: cp.stages.length == 1
                 ? Container()
                 : IconButton(
                     icon: Icon(Icons.delete),
