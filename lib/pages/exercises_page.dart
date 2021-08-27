@@ -55,15 +55,21 @@ class _ExercisesPageState extends State<ExercisesPage> {
       padding: const EdgeInsets.all(16),
       itemCount: settings.lengthParams(),
       itemBuilder: (BuildContext context, int index) {
-        ConfigParam cp = settings.getParam(index);
+        ConfigParam ex = settings.getParam(index);
+        int c = 0;
+        for (int j = 0; j < ex.stages.length; j++) {
+          c += ex.stages[j].count;
+        }
+        int totTime = c * ex.rounds * settings.getCountDuration() ~/ 1000;
+
         return Row(
           children: [
             Expanded(
-              flex: 85,
+              flex: 76,
               child: InkWell(
                 onTap: () {
-                  HapticFeedback.mediumImpact();
-                  _exerciseSelected(context, cp.name);
+                  HapticFeedback.heavyImpact();
+                  _exerciseSelected(context, ex.name);
                 },
                 child: Container(
                   height: 50,
@@ -73,35 +79,34 @@ class _ExercisesPageState extends State<ExercisesPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        cp.name.length > 22
-                            ? '${cp.name.substring(0, 20)}...'
-                            : '${cp.name}',
+                        ex.name.length > 22
+                            ? '${ex.name.substring(0, 20)}...'
+                            : '${ex.name}',
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
-                      Text('${cp.stages.length} stages, ${cp.rounds} rounds')
+                      Text(
+                          '${ex.stages.length} stages, ${ex.rounds} rounds, ${(totTime + 30) ~/ 60} minutes')
                     ],
                   )),
                 ),
               ),
             ),
+            Expanded(flex: 2, child: Container()),
             Expanded(
-              flex: 3,
-              child: Container(),
-            ),
-            Expanded(
-              flex: 12,
+              flex: 10,
               child: CircleAvatar(
-                radius: 25,
+                //radius: 25,
                 child: IconButton(
                   onPressed: () {
                     HapticFeedback.heavyImpact();
-                    _editExercise(context, cp.name);
+                    _editExercise(context, ex.name);
                   },
-                  icon: Icon(Icons.edit),
+                  icon: Icon(Icons.edit, size: 25),
                   tooltip: 'Edit exercise',
+                  padding: EdgeInsets.zero,
                 ),
-                backgroundColor: Colors.white.withOpacity(0.8),
+                backgroundColor: Colors.white.withOpacity(0.9),
               ),
             ),
           ],

@@ -57,7 +57,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     return FormBuilder(
       key: _formKey,
       child: ListView(
-        children: [
+        children: <Widget>[
               Container(
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: FormBuilderTextField(
@@ -154,19 +154,21 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     });
   }
 
-  void _deleteExercise(context, cfg, i) {
+  Exercise _deleteExercise(cfg, i) {
     var settings = Provider.of<YogaSettings>(context, listen: false);
+    var e;
 
     setState(() {
       var pindex = settings.findRoutineIndex(cfg);
       Routine cp = settings.getRoutine(pindex);
-      cp.exercises.removeAt(i);
+      e = cp.exercises.removeAt(i);
       settings.setRoutine(pindex, cp);
     });
+    return e;
   }
 
-  List<Container> _exerciseList(settings, cfg) {
-    List<Container> list = [];
+  List<Widget> _exerciseList(settings, cfg) {
+    List<Widget> list = [];
     var pindex = settings.findRoutineIndex(cfg);
     var exercises = settings.getRoutine(pindex).exercises;
 
@@ -178,14 +180,27 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ))));
 
+    print('_exerciseList: $exercises');
+    List<Widget> elist = [];
     for (var i = 0; i < exercises.length; i++) {
-      list.add(Container(
-        child: Row(
+      print('$i: ${exercises[i].name}');
+      elist.add(
+        Row(
+          key: Key('$i'),
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Expanded(flex: 10, child: Container()),
+            Expanded(flex: 5, child: Container()),
             Expanded(
-              flex: 45,
+              flex: 10,
+              child: IconButton(
+                icon: Icon(Icons.drag_handle),
+                onPressed: () => {},
+              ),
+            ),
+            Expanded(flex: 5, child: Container()),
+            //Expanded(flex: 5, child: Text('$i')),
+            Expanded(
+              flex: 50,
               child: FormBuilderDropdown(
                 name: 'name$i',
                 initialValue: exercises[i].name,
@@ -198,16 +213,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                     .toList(),
               ),
             ),
-            /*
-            Expanded(
-              flex: 20,
-              child: FormBuilderTextField(
-                name: 'name$i',
-                initialValue: exercises[i].name,
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),*/
-            Expanded(flex: 10, child: Container()),
+            Expanded(flex: 5, child: Container()),
             Expanded(
               flex: 10,
               child: FormBuilderTextField(
@@ -218,22 +224,33 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-            Expanded(flex: 10, child: Container()),
+            Expanded(flex: 5, child: Container()),
             Expanded(
-              flex: 5,
+              flex: 10,
               child: exercises.length == 1
                   ? Container()
                   : IconButton(
                       icon: Icon(Icons.delete),
                       color: Colors.red,
-                      onPressed: () => _deleteExercise(context, cfg, i),
+                      onPressed: () => _deleteExercise(cfg, i),
                     ),
             ),
-            Expanded(flex: 10, child: Container()),
+            Expanded(flex: 5, child: Container()),
           ],
         ),
-      ));
+      );
     }
+
+    list.add(ReorderableListView.builder(
+        itemBuilder: (_, i) {
+          return elist[i];
+        },
+        itemCount: elist.length,
+        //children: elist,
+        shrinkWrap: true,
+        onReorder: (int oldIndex, int newIndex) => {}
+//          _reorder(oldIndex, newIndex, cfg),
+        ));
 
     list.add(Container(
       padding: EdgeInsets.all(16),
@@ -247,5 +264,20 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     ));
 
     return list;
+  }
+
+  void _reorder(int oldIndex, int newIndex, String cfg) {
+    var settings = Provider.of<YogaSettings>(context, listen: false);
+
+    setState(() {
+      var pindex = settings.findRoutineIndex(cfg);
+      var routine = settings.getRoutine(pindex);
+      if (oldIndex < newIndex) {
+        newIndex -= 1;
+      }
+      var e = routine.exercises.removeAt(oldIndex);
+      routine.exercises.insert(newIndex, e);
+      settings.setRoutine(pindex, routine);
+    });
   }
 }

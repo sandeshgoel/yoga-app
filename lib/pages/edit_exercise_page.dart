@@ -67,6 +67,8 @@ class _EditConfigPageState extends State<EditConfigPage> {
           margin: EdgeInsets.symmetric(horizontal: 30),
           child: Column(
             children: [
+                  // Exercise name
+
                   FormBuilderTextField(
                     name: 'configName',
                     initialValue: cfg,
@@ -74,6 +76,17 @@ class _EditConfigPageState extends State<EditConfigPage> {
                       labelText: 'Exercise Name',
                     ),
                     style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+
+                  // Description
+
+                  FormBuilderTextField(
+                    name: 'desc',
+                    initialValue: cp.desc,
+                    decoration: InputDecoration(
+                      labelText: 'Exercise Description',
+                    ),
+                    //style: TextStyle(fontWeight: FontWeight.bold),
                   ),
 
                   // Category

@@ -5,11 +5,58 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:fl_chart/fl_chart.dart';
 
 import 'package:yoga/services/database.dart';
 import 'package:yoga/services/settings.dart';
 import 'package:yoga/services/user_activity.dart';
 import 'package:yoga/shared/constants.dart';
+
+class Indicator extends StatelessWidget {
+  final Color color;
+  final String text;
+  final bool isSquare;
+  final double size;
+  final Color textColor;
+
+  const Indicator({
+    Key? key,
+    required this.color,
+    required this.text,
+    required this.isSquare,
+    this.size = 12,
+    this.textColor = const Color(0xff505050),
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: <Widget>[
+            Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: isSquare ? BoxShape.rectangle : BoxShape.circle,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              text.length < 24 ? text : text.substring(0, 20) + '...',
+              style: TextStyle(
+                  fontSize: this.size,
+                  fontWeight: FontWeight.bold,
+                  color: textColor),
+            )
+          ],
+        ),
+        SizedBox(height: 4)
+      ],
+    );
+  }
+}
 
 class ActivityPage extends StatefulWidget {
   const ActivityPage({Key? key}) : super(key: key);
@@ -25,7 +72,9 @@ class _ActivityPageState extends State<ActivityPage> {
     var settings = Provider.of<YogaSettings>(context);
     QuerySnapshot queryRef = await DBService(uid: settings.getUser().uid)
         .getUserActivityDays(_totDays);
-    return queryRef.docs.map((doc) => UserActivity.fromJson(doc)).toList();
+    return queryRef.docs
+        .map((doc) => UserActivity.fromJson(doc.data()))
+        .toList();
   }
 
   @override
@@ -49,12 +98,47 @@ class _ActivityPageState extends State<ActivityPage> {
               days.add(lastMidnight.subtract(Duration(days: i)));
             }
 
+            Map<String, int> exMap = {};
             Map<DateTime, int> totMap = {};
             for (UserActivity act in actList) {
               var date =
                   DateTime(act.start.year, act.start.month, act.start.day);
               totMap[date] = (totMap[date] ?? 0) + act.duration;
+              exMap[act.actName] = (exMap[act.actName] ?? 0) + act.duration;
             }
+
+            int maxSlices = 5;
+            List<Color> colorList = [
+              Colors.green,
+              Colors.blue,
+              Colors.red,
+              Colors.orange,
+              Colors.yellow
+            ];
+            List<ExerciseData> exData = [];
+            int totMins = 0;
+            exMap.forEach((key, value) {
+              int mins = (value + 30) ~/ 60;
+              exData.add(ExerciseData(key, mins));
+              totMins += mins;
+            });
+            exData.sort((a, b) => a.minutes.compareTo(b.minutes));
+            exData = exData.reversed.toList();
+            if (exData.length > maxSlices) {
+              int otherMins = 0;
+              for (int i = maxSlices - 1; i < exData.length; i++)
+                otherMins += exData[i].minutes;
+              exData = exData.sublist(0, maxSlices - 1);
+              exData.add(ExerciseData('Others', otherMins));
+            }
+            // Now exData length is <= maxSlices
+            for (int i = 0; i < exData.length; i++) {
+              exData[i].color = colorList[i];
+              exData[i].percent = exData[i].minutes * 100 ~/ totMins;
+            }
+            exData.forEach((element) {
+              print(element);
+            });
 
             List<ActData> data = [];
             List<double> timeList = [];
@@ -184,6 +268,65 @@ class _ActivityPageState extends State<ActivityPage> {
                           child: Text(
                               'Daily Target: ${settings.getDailyTarget()} minutes',
                               style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Pie chart of exercises
+
+                  Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.only(top: 20, right: 20, left: 20),
+                    decoration: boxDeco,
+                    child: Column(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.all(10),
+                          child: Text('Last $_totDays days (exercises)',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                                height: 160,
+                                width: 160,
+                                child: PieChart(
+                                  PieChartData(
+                                    sections: exData
+                                        .map((e) => PieChartSectionData(
+                                              value: e.minutes.toDouble(),
+                                              title: e.percent.toString() + '%',
+                                              radius: 40,
+                                              color: e.color,
+                                              titleStyle: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold),
+                                            ))
+                                        .toList(),
+                                    centerSpaceRadius: 20,
+                                  ),
+                                  swapAnimationDuration:
+                                      Duration(seconds: 2), // Optional
+                                  swapAnimationCurve: Curves.linear, // Optional
+                                )),
+                            SizedBox(width: 20),
+                            Container(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: exData
+                                    .map((e) => Indicator(
+                                          text: e.exercise,
+                                          color: e.color,
+                                          isSquare: true,
+                                        ))
+                                    .toList(),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

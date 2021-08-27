@@ -36,9 +36,10 @@ class ConfigParam {
   bool altLeftRight = false;
   late List<Stage> stages;
   bool sameCount = false;
+  late String desc;
 
   ConfigParam(this.name, this.category, this.rounds, this.stages,
-      {this.altLeftRight = false, this.sameCount = false});
+      {this.altLeftRight = false, this.sameCount = false, this.desc = ''});
 
   @override
   String toString() {
@@ -52,6 +53,7 @@ class ConfigParam {
       'rounds': this.rounds,
       'altLeftRight': this.altLeftRight,
       'sameCount': this.sameCount,
+      'desc': this.desc,
       'stages': this.stages.map((x) => x.toJson()).toList()
     };
   }
@@ -63,6 +65,7 @@ class ConfigParam {
     this.rounds = json['rounds'];
     this.altLeftRight = json['altLeftRight'];
     this.sameCount = json['sameCount'] ?? false;
+    this.desc = json['desc'] ?? '';
     this.stages = json['stages'].map<Stage>((x) => Stage.fromJson(x)).toList();
   }
 
@@ -120,6 +123,7 @@ class Routine {
   }
 }
 
+// breathing exercises
 const exAnulomVilom = 'Anulom Vilom';
 const exDeepBreathing = 'Deep Breathing';
 const exBhramari = 'Bhramari';
@@ -129,10 +133,13 @@ const exChandraBhedi = 'Chandra Bhedi';
 const exKapaalBhaati = 'Kapaal Bhaati';
 const exBhastrika = 'Bhastrika';
 const exShavasana = 'Shava Aasanaa';
+// standing exercises
 const exSuryaNamaskara = 'Surya Namaskara';
 const exHandRotation = 'Arm Rotation';
+// sitting exercises
 const exNeckUpDown = 'Neck Up-Down';
 const exNeckRightLeft = 'Neck Right-Left';
+const exButterfly = 'Butterfly';
 
 class UserInfo {
   late String uid;
@@ -258,7 +265,9 @@ class YogaSettings with ChangeNotifier {
           Stage('Inhale Right', 4),
           Stage('Exhale Left', 4),
         ],
-        sameCount: true),
+        sameCount: true,
+        desc:
+            'Inhale and exhale from alternating nostrils, this balances our breathing'),
     ConfigParam(exDeepBreathing, ExCategory.breathing, 20,
         [Stage('Inhale', 4), Stage('Exhale', 4)]),
     ConfigParam(exBhramari, ExCategory.breathing, 10,
@@ -270,7 +279,7 @@ class YogaSettings with ChangeNotifier {
     ConfigParam(exChandraBhedi, ExCategory.breathing, 10,
         [Stage('Inhale left', 4), Stage('Exhale right', 4)]),
     ConfigParam(exKapaalBhaati, ExCategory.breathing, 10,
-        [Stage('Inhale gently', 4), Stage('Exhale with force', 4)]),
+        [Stage('Inhale gently', 4), Stage('Exhale with force', 2)]),
     ConfigParam(exBhastrika, ExCategory.breathing, 10,
         [Stage('Hands up and Inhale', 4), Stage('Hands down and Exhale', 4)]),
     ConfigParam(
@@ -286,6 +295,9 @@ class YogaSettings with ChangeNotifier {
         Stage('Open your eyes with a smile', 6)
       ],
     ),
+
+    // standing
+
     ConfigParam(
         exSuryaNamaskara,
         ExCategory.standing,
@@ -308,10 +320,15 @@ class YogaSettings with ChangeNotifier {
         sameCount: true,
         altLeftRight: true),
     ConfigParam(exHandRotation, ExCategory.standing, 10, [Stage('Rotate', 2)]),
+
+    // sitting
+
     ConfigParam(exNeckUpDown, ExCategory.sitting, 10,
         [Stage('Neck down', 2), Stage('Neck up', 2)]),
     ConfigParam(exNeckRightLeft, ExCategory.sitting, 10,
         [Stage('Neck right', 2), Stage('Neck left', 2)]),
+    ConfigParam(
+        exButterfly, ExCategory.sitting, 10, [Stage('Flap the knees', 2)]),
   ];
 
   List<ConfigParam> getExerciseLib() {
