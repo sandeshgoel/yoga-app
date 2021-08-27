@@ -108,6 +108,9 @@ class _CounterPageState extends State<CounterPage> {
               child: Column(
                 children: [
                   SizedBox(height: 20),
+
+                  // Exercise name
+
                   widget.routine == ''
                       ? Container()
                       : Container(
@@ -128,6 +131,17 @@ class _CounterPageState extends State<CounterPage> {
                             ],
                           ),
                         ),
+
+                  // info
+
+                  ElevatedButton(
+                      onPressed: () {
+                        _infoExercise(_curExerciseName);
+                      },
+                      child: Text('Know more about this exercise')),
+
+                  // Round number
+
                   Container(
                     height: 80,
                     child: Row(
@@ -154,6 +168,9 @@ class _CounterPageState extends State<CounterPage> {
                       ],
                     ),
                   ),
+
+                  // Stage number
+
                   Container(
                     padding: EdgeInsets.all(10),
                     child: Center(
@@ -162,6 +179,9 @@ class _CounterPageState extends State<CounterPage> {
                       style: TextStyle(fontSize: 12),
                     )),
                   ),
+
+                  // Stage name
+
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 20),
                     decoration: new BoxDecoration(
@@ -171,9 +191,12 @@ class _CounterPageState extends State<CounterPage> {
                     child: Center(
                         child: Text(
                       _curExercise.stages[_curStage].name,
-                      style: TextStyle(fontSize: 40),
+                      style: TextStyle(fontSize: 30),
                     )),
                   ),
+
+                  // Count
+
                   Container(
                     margin: EdgeInsets.symmetric(vertical: 40),
                     decoration: new BoxDecoration(
@@ -202,6 +225,9 @@ class _CounterPageState extends State<CounterPage> {
                       ],
                     )),
                   ),
+
+                  // Time elapsed
+
                   Container(
                     margin: EdgeInsets.all(20),
                     decoration: new BoxDecoration(
@@ -218,6 +244,9 @@ class _CounterPageState extends State<CounterPage> {
                     ),
                   ),
                   SizedBox(height: 20),
+
+                  // Buttons
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -237,6 +266,9 @@ class _CounterPageState extends State<CounterPage> {
                           child: Text('Reset')),
                     ],
                   ),
+
+                  // Voice and info
+
                   Container(
                     margin: EdgeInsets.only(top: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
@@ -256,8 +288,33 @@ class _CounterPageState extends State<CounterPage> {
     );
   }
 
+  void _infoExercise(String cfg) {
+    var settings = Provider.of<YogaSettings>(context, listen: false);
+    int index = settings.findParamIndex(cfg);
+    ConfigParam cp = settings.getParam(index);
+
+    showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+              title: Text('Info'),
+              content: Text(cp.desc),
+              actions: [
+                ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Web')),
+                ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Video')),
+                ElevatedButton(
+                    onPressed: () => Navigator.pop(context), child: Text('OK'))
+              ],
+            ),
+        barrierDismissible: false);
+  }
+
   void _resetCounter() async {
     int duration = _totSeconds.toInt();
+    int rounds = _curRound;
 
     setState(() {
       _curCount = 1;
@@ -271,11 +328,17 @@ class _CounterPageState extends State<CounterPage> {
       _reset = true;
     });
 
-    if (duration > 0) {
+    if (duration > 30) {
       var settings = Provider.of<YogaSettings>(context, listen: false);
 
-      Map<String, dynamic> act = UserActivity(settings.getUser().uid,
-              _curExercise.name, DateTime.now(), duration)
+      Map<String, dynamic> act = UserActivity(
+              settings.getUser().uid,
+              settings.getUser().email,
+              _curExercise.name,
+              DateTime.now(),
+              duration,
+              rounds,
+              widget.routine)
           .toJson();
       await DBService(uid: settings.getUser().uid).addUserActivity(act);
     }
@@ -367,10 +430,11 @@ class _CounterPageState extends State<CounterPage> {
             if (_curRound > _totRounds) {
               _pauseTimer(t);
 
+              int _totMinutes = (_totSecondsRoutine + 30) ~/ 60;
+              _resetCounter();
+
               if (widget.routine != '') {
                 if (_routine.exercises.length > _curExIndexInRoutine + 1) {
-                  _resetCounter();
-
                   _curExIndexInRoutine += 1;
                   _curExerciseName =
                       _routine.exercises[_curExIndexInRoutine].name;
@@ -383,7 +447,7 @@ class _CounterPageState extends State<CounterPage> {
                 } else {
                   msg = 'Your routine is complete!!\n' +
                       '${_routine.exercises.length} exercises in about ' +
-                      '${(_totSecondsRoutine + 30) ~/ 60} minutes.';
+                      '$_totMinutes minutes.';
                   showDialog(
                       context: context,
                       builder: (_) => AlertDialog(
@@ -392,8 +456,9 @@ class _CounterPageState extends State<CounterPage> {
                             actions: [
                               ElevatedButton(
                                   onPressed: () {
-                                    _resetCounter();
-                                    Navigator.pop(context);
+                                    int count = 0;
+                                    Navigator.of(context)
+                                        .popUntil((_) => count++ >= 2);
                                   },
                                   child: Text('OK'))
                             ],
@@ -404,7 +469,7 @@ class _CounterPageState extends State<CounterPage> {
               } else {
                 msg = 'Your exercise is complete!!\n' +
                     '$_totRounds rounds in about ' +
-                    '${(_totSeconds + 30) ~/ 60} minutes.';
+                    '$_totMinutes minutes.';
                 showDialog(
                     context: context,
                     builder: (_) => AlertDialog(
@@ -413,8 +478,9 @@ class _CounterPageState extends State<CounterPage> {
                           actions: [
                             ElevatedButton(
                                 onPressed: () {
-                                  _resetCounter();
-                                  Navigator.pop(context);
+                                  int count = 0;
+                                  Navigator.of(context)
+                                      .popUntil((_) => count++ >= 2);
                                 },
                                 child: Text('OK'))
                           ],
