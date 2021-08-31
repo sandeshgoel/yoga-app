@@ -2,7 +2,7 @@
     package="com.example.yoga">
     <uses-permission android:name="android.permission.VIBRATE" />
    <application
-        android:label="Yoga Assist"
+        android:label="Yoga Buddy"
         android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"

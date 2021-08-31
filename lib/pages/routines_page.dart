@@ -33,25 +33,23 @@ class _RoutinesPageState extends State<RoutinesPage> {
     });
   }
 
-  Widget _listRoutines(settings) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: settings.lengthRoutines(),
-      itemBuilder: (BuildContext context, int index) {
-        Routine r = settings.getRoutine(index);
-        int totTime = 0;
-        for (int i = 0; i < r.exercises.length; i++) {
-          int c = 0;
-          ConfigParam ex =
-              settings.getParam(settings.findParamIndex(r.exercises[i].name));
-          for (int j = 0; j < ex.stages.length; j++) {
-            c += ex.stages[j].count;
-          }
-          totTime +=
-              c * r.exercises[i].rounds * settings.getCountDuration() ~/ 1000;
-        }
+  Widget _routineTile(YogaSettings settings, int index) {
+    Routine r = settings.getRoutine(index);
+    int totTime = 0;
+    for (int i = 0; i < r.exercises.length; i++) {
+      int c = 0;
+      ConfigParam ex =
+          settings.getParam(settings.findParamIndex(r.exercises[i].name));
+      for (int j = 0; j < ex.stages.length; j++) {
+        c += ex.stages[j].count;
+      }
+      totTime +=
+          c * r.exercises[i].rounds * settings.getCountDuration() ~/ 1000;
+    }
 
-        return Row(
+    return Container(
+        padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
+        child: Row(
           children: [
             Expanded(
               flex: 85,
@@ -60,7 +58,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                   _routineSelected(context, r.name);
                 },
                 child: Container(
-                  height: 50,
+                  height: 40,
                   decoration: boxDeco,
                   child: Center(
                       child: Column(
@@ -71,10 +69,12 @@ class _RoutinesPageState extends State<RoutinesPage> {
                             ? '${r.name.substring(0, 20)}...'
                             : '${r.name}',
                         style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                            fontSize: 15, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                          '${r.exercises.length} exercises, ${totTime ~/ 60} minutes')
+                        '${r.exercises.length} exercises, ${totTime ~/ 60} minutes',
+                        style: TextStyle(fontSize: 10),
+                      )
                     ],
                   )),
                 ),
@@ -84,23 +84,42 @@ class _RoutinesPageState extends State<RoutinesPage> {
             Expanded(
               flex: 12,
               child: CircleAvatar(
-                radius: 25,
+                //radius: 25,
                 child: IconButton(
                   onPressed: () {
                     _editRoutine(context, r.name);
                   },
-                  icon: Icon(Icons.edit),
+                  icon: Icon(Icons.edit, size: 20),
                   tooltip: 'Edit config',
                 ),
                 backgroundColor: Colors.white.withOpacity(0.8),
               ),
             ),
           ],
-        );
-      },
+        ));
+  }
+
+  Widget _listRoutines(YogaSettings settings) {
+    List<Widget> rlist = [];
+
+    for (int i = 0; i < settings.routines.length; i++)
+      rlist.add(_routineTile(settings, i));
+
+    return SingleChildScrollView(
+      child: Column(
+        children: rlist + [SizedBox(height: 100)],
+      ),
+    );
+/*
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: settings.lengthRoutines(),
+      itemBuilder: (BuildContext context, int index) =>
+          _routineTile(settings, index),
       separatorBuilder: (BuildContext context, int index) =>
           Container(height: 20),
     );
+    */
   }
 
   void _routineSelected(context, String routine) {

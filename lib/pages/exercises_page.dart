@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -50,70 +51,130 @@ class _ExercisesPageState extends State<ExercisesPage> {
 
   // -----------------------------------------------------
 
-  Widget _listExercises(settings) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: settings.lengthParams(),
-      itemBuilder: (BuildContext context, int index) {
-        ConfigParam ex = settings.getParam(index);
-        int c = 0;
-        for (int j = 0; j < ex.stages.length; j++) {
-          c += ex.stages[j].count;
-        }
-        int totTime = c * ex.rounds * settings.getCountDuration() ~/ 1000;
+  Widget _exerciseTile(YogaSettings settings, ConfigParam ex) {
+    //ConfigParam ex = settings.getParam(index);
+    int c = 0;
+    for (int j = 0; j < ex.stages.length; j++) {
+      c += ex.stages[j].count;
+    }
+    int totTime = c * ex.rounds * settings.getCountDuration() ~/ 1000;
 
-        return Row(
-          children: [
-            Expanded(
-              flex: 76,
-              child: InkWell(
-                onTap: () {
+    return Container(
+      padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 80,
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.heavyImpact();
+                _exerciseSelected(context, ex.name);
+              },
+              child: Container(
+                height: 40,
+                decoration: boxDeco,
+                child: Center(
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      ex.name.length > 22
+                          ? '${ex.name.substring(0, 20)}...'
+                          : '${ex.name}',
+                      style:
+                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                        '${ex.stages.length} stages, ${ex.rounds} rounds, ' +
+                            (totTime > 59
+                                ? '${(totTime + 30) ~/ 60} minutes'
+                                : '$totTime seconds'),
+                        style: TextStyle(fontSize: 10)),
+                  ],
+                )),
+              ),
+            ),
+          ),
+          Expanded(flex: 4, child: Container()),
+          Expanded(
+            flex: 10,
+            child: CircleAvatar(
+              //radius: 25,
+              child: IconButton(
+                onPressed: () {
                   HapticFeedback.heavyImpact();
-                  _exerciseSelected(context, ex.name);
+                  _editExercise(context, ex.name);
                 },
-                child: Container(
-                  height: 50,
-                  decoration: boxDeco,
-                  child: Center(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        ex.name.length > 22
-                            ? '${ex.name.substring(0, 20)}...'
-                            : '${ex.name}',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                          '${ex.stages.length} stages, ${ex.rounds} rounds, ${(totTime + 30) ~/ 60} minutes')
-                    ],
-                  )),
-                ),
+                icon: Icon(Icons.edit, size: 20),
+                tooltip: 'Edit exercise',
+                padding: EdgeInsets.zero,
               ),
+              //backgroundColor: Colors.white.withOpacity(0.9),
             ),
-            Expanded(flex: 2, child: Container()),
-            Expanded(
-              flex: 10,
-              child: CircleAvatar(
-                //radius: 25,
-                child: IconButton(
-                  onPressed: () {
-                    HapticFeedback.heavyImpact();
-                    _editExercise(context, ex.name);
-                  },
-                  icon: Icon(Icons.edit, size: 25),
-                  tooltip: 'Edit exercise',
-                  padding: EdgeInsets.zero,
-                ),
-                backgroundColor: Colors.white.withOpacity(0.9),
-              ),
-            ),
-          ],
+          ),
+          Expanded(flex: 6, child: Container()),
+        ],
+      ),
+    );
+  }
+
+  // size should be same as number of categories
+  List<bool> expanded = [true, true, true];
+
+  Widget _buildPanel(YogaSettings settings, ExCategory cat, int index) {
+    List<Widget> exlist = [];
+    String catName = describeEnum(cat);
+    catName = catName[0].toUpperCase() + catName.substring(1);
+
+    List<ConfigParam> catlist =
+        settings.cps.where((e) => e.category == cat).toList();
+    for (int i = 0; i < catlist.length; i++)
+      exlist.add(_exerciseTile(settings, catlist[i]));
+
+    ExpansionPanel ep = ExpansionPanel(
+      canTapOnHeader: true,
+      headerBuilder: (BuildContext context, bool isExpanded) {
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Text(catName + ' Exercises (${catlist.length})',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
         );
       },
-      separatorBuilder: (BuildContext context, int index) => Container(
-        height: 20,
+      body: Column(
+        children: exlist,
+      ),
+      isExpanded: expanded[index],
+      //backgroundColor: Colors.white.withOpacity(1),
+    );
+
+    return Card(
+      margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      child: Container(
+        margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
+        child: ExpansionPanelList(
+            expandedHeaderPadding: EdgeInsets.all(0),
+            elevation: 0,
+            expansionCallback: (_, bool isExpanded) {
+              setState(() {
+                expanded[index] = !isExpanded;
+              });
+            },
+            children: [ep]),
+      ),
+    );
+  }
+
+  Widget _listExercises(YogaSettings settings) {
+    List<Widget> elist = [];
+
+    elist.add(_buildPanel(settings, ExCategory.breathing, 0));
+    elist.add(_buildPanel(settings, ExCategory.sitting, 1));
+    elist.add(_buildPanel(settings, ExCategory.standing, 2));
+
+    return SingleChildScrollView(
+      child: Column(
+        children: elist + [SizedBox(height: 100)],
       ),
     );
   }

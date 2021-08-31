@@ -4,6 +4,134 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yoga/services/database.dart';
 
+enum ExCategory { breathing, standing, sitting }
+
+// breathing exercises
+const exAnulomVilom = 'Anulom Vilom';
+const exDeepBreathing = 'Deep Breathing';
+const exBhramari = 'Bhramari';
+const exSheetkari = 'Sheetkari';
+const exSuryaBhedi = 'Surya Bhedi';
+const exChandraBhedi = 'Chandra Bhedi';
+const exKapaalBhaati = 'Kapaal Bhaati';
+const exBhastrika = 'Bhastrika';
+const exShavasana = 'Shava Aasanaa';
+// standing exercises
+const exSuryaNamaskara = 'Surya Namaskara';
+const exHandRotation = 'Arm Rotation';
+// sitting exercises
+const exNeckUpDown = 'Neck Up-Down';
+const exNeckRightLeft = 'Neck Right-Left';
+const exButterfly = 'Butterfly';
+const exPawanMukt = 'Pawan Mukt Aasanaa';
+const exMarkatasana = 'Markata Aasanaa';
+
+List<Routine> gRoutineLib = [
+  Routine('Breathing Routine', [
+    Exercise(exDeepBreathing, 15),
+    Exercise(exBhramari, 15),
+    Exercise(exAnulomVilom, 10),
+    Exercise(exSheetkari, 15),
+    Exercise(exShavasana, 1)
+  ]),
+  Routine('Standing Warm Up', [
+    Exercise(exHandRotation, 10),
+    Exercise(exNeckUpDown, 10),
+    Exercise(exNeckRightLeft, 10),
+    Exercise(exSuryaNamaskara, 6),
+  ]),
+  Routine('Sitting Warm Up', [
+    Exercise(exButterfly, 10),
+    Exercise(exPawanMukt, 4),
+    Exercise(exMarkatasana, 10),
+  ]),
+];
+
+List<ConfigParam> gExerciseLib = [
+  ConfigParam(
+      exAnulomVilom,
+      ExCategory.breathing,
+      10,
+      [
+        Stage('Inhale Left', 4),
+        Stage('Exhale Right', 4),
+        Stage('Inhale Right', 4),
+        Stage('Exhale Left', 4),
+      ],
+      sameCount: true,
+      desc:
+          'Inhale and exhale from alternating nostrils, this balances our breathing'),
+  ConfigParam(exDeepBreathing, ExCategory.breathing, 20,
+      [Stage('Inhale', 4), Stage('Exhale', 4)]),
+  ConfigParam(exBhramari, ExCategory.breathing, 10,
+      [Stage('Inhale', 3), Stage('Exhale with humming sound', 6)]),
+  ConfigParam(exSheetkari, ExCategory.breathing, 10,
+      [Stage('Inhale from mouth', 4), Stage('Exhale from nose', 4)]),
+  ConfigParam(exSuryaBhedi, ExCategory.breathing, 10,
+      [Stage('Inhale right', 4), Stage('Exhale left', 4)]),
+  ConfigParam(exChandraBhedi, ExCategory.breathing, 10,
+      [Stage('Inhale left', 4), Stage('Exhale right', 4)]),
+  ConfigParam(exKapaalBhaati, ExCategory.breathing, 10,
+      [Stage('Inhale gently', 4), Stage('Exhale with force', 2)]),
+  ConfigParam(exBhastrika, ExCategory.breathing, 10,
+      [Stage('Hands up and Inhale', 4), Stage('Hands down and Exhale', 4)]),
+  ConfigParam(
+    exShavasana,
+    ExCategory.sitting,
+    1,
+    [
+      Stage('Lie down still with eyes closed and relax', 60),
+      Stage('Stretch all your muscles', 10),
+      Stage('Sit back up', 10),
+      Stage('Chant om shanti shanti', 10),
+      Stage('Rub your palms and cup your eyes', 8),
+      Stage('Open your eyes with a smile', 4)
+    ],
+  ),
+
+  // standing
+
+  ConfigParam(
+      exSuryaNamaskara,
+      ExCategory.standing,
+      6,
+      [
+        Stage('Fold both hands', 3),
+        Stage('Hands above your head', 3),
+        Stage('Touch your feet', 3),
+        Stage('Right leg back', 3),
+        Stage('Mountain pose', 3),
+        Stage('Prone position', 3),
+        Stage('Cobra pose', 3),
+        Stage('Mountain pose', 3),
+        Stage('Left leg forward', 3),
+        Stage('Touch your feet', 3),
+        Stage('Hands above your head', 3),
+        Stage('Fold your hands', 3),
+        Stage('Hands down', 3)
+      ],
+      sameCount: true,
+      altLeftRight: true),
+  ConfigParam(exHandRotation, ExCategory.standing, 10, [Stage('Rotate', 2)]),
+  ConfigParam(exNeckUpDown, ExCategory.standing, 10,
+      [Stage('Neck down', 2), Stage('Neck up', 2)]),
+  ConfigParam(exNeckRightLeft, ExCategory.standing, 10,
+      [Stage('Neck right', 2), Stage('Neck left', 2)]),
+
+  // sitting
+
+  ConfigParam(
+      exButterfly, ExCategory.sitting, 10, [Stage('Flap the knees', 4)]),
+  ConfigParam(exPawanMukt, ExCategory.sitting, 4,
+      [Stage('Lie down and hold your knees', 10)]),
+  ConfigParam(exMarkatasana, ExCategory.sitting, 10,
+      [Stage('Bend knees to the right and turn head to the left', 10)],
+      altLeftRight: true,
+      desc: 'Lie down on your back, hands to the side and bend your knees'),
+];
+
+// ------------------------------------------------------
+
 class Stage {
   late String name;
   late int count;
@@ -26,8 +154,6 @@ class Stage {
 }
 
 // ------------------------------------------------------
-
-enum ExCategory { breathing, standing, sitting }
 
 class ConfigParam {
   late String name;
@@ -77,6 +203,8 @@ class ConfigParam {
   }
 }
 
+// ------------------------------------------------------
+
 class Exercise {
   late String name;
   late int rounds;
@@ -97,6 +225,8 @@ class Exercise {
     this.rounds = json['rounds'];
   }
 }
+
+// ------------------------------------------------------
 
 class Routine {
   late String name;
@@ -123,23 +253,7 @@ class Routine {
   }
 }
 
-// breathing exercises
-const exAnulomVilom = 'Anulom Vilom';
-const exDeepBreathing = 'Deep Breathing';
-const exBhramari = 'Bhramari';
-const exSheetkari = 'Sheetkari';
-const exSuryaBhedi = 'Surya Bhedi';
-const exChandraBhedi = 'Chandra Bhedi';
-const exKapaalBhaati = 'Kapaal Bhaati';
-const exBhastrika = 'Bhastrika';
-const exShavasana = 'Shava Aasanaa';
-// standing exercises
-const exSuryaNamaskara = 'Surya Namaskara';
-const exHandRotation = 'Arm Rotation';
-// sitting exercises
-const exNeckUpDown = 'Neck Up-Down';
-const exNeckRightLeft = 'Neck Right-Left';
-const exButterfly = 'Butterfly';
+// ------------------------------------------------------
 
 class UserInfo {
   late String uid;
@@ -224,21 +338,7 @@ class YogaSettings with ChangeNotifier {
 
   // ----------------------------------------------------
 
-  List<Routine> _routineLib = [
-    Routine('Breathing Routine', [
-      Exercise(exDeepBreathing, 10),
-      Exercise(exBhramari, 10),
-      Exercise(exAnulomVilom, 10),
-      Exercise(exSheetkari, 10),
-      Exercise(exShavasana, 1)
-    ]),
-    Routine('Warm Up', [
-      Exercise(exHandRotation, 10),
-      Exercise(exNeckUpDown, 10),
-      Exercise(exNeckRightLeft, 10),
-      Exercise(exSuryaNamaskara, 4),
-    ])
-  ];
+  List<Routine> _routineLib = gRoutineLib;
 
   List<Routine> getRoutineLib() {
     return _routineLib;
@@ -254,82 +354,7 @@ class YogaSettings with ChangeNotifier {
 
   // ----------------------------------------------------
 
-  List<ConfigParam> _exerciseLib = [
-    ConfigParam(
-        exAnulomVilom,
-        ExCategory.breathing,
-        10,
-        [
-          Stage('Inhale Left', 4),
-          Stage('Exhale Right', 4),
-          Stage('Inhale Right', 4),
-          Stage('Exhale Left', 4),
-        ],
-        sameCount: true,
-        desc:
-            'Inhale and exhale from alternating nostrils, this balances our breathing'),
-    ConfigParam(exDeepBreathing, ExCategory.breathing, 20,
-        [Stage('Inhale', 4), Stage('Exhale', 4)]),
-    ConfigParam(exBhramari, ExCategory.breathing, 10,
-        [Stage('Inhale', 3), Stage('Exhale with humming sound', 6)]),
-    ConfigParam(exSheetkari, ExCategory.breathing, 10,
-        [Stage('Inhale from mouth', 4), Stage('Exhale from nose', 4)]),
-    ConfigParam(exSuryaBhedi, ExCategory.breathing, 10,
-        [Stage('Inhale right', 4), Stage('Exhale left', 4)]),
-    ConfigParam(exChandraBhedi, ExCategory.breathing, 10,
-        [Stage('Inhale left', 4), Stage('Exhale right', 4)]),
-    ConfigParam(exKapaalBhaati, ExCategory.breathing, 10,
-        [Stage('Inhale gently', 4), Stage('Exhale with force', 2)]),
-    ConfigParam(exBhastrika, ExCategory.breathing, 10,
-        [Stage('Hands up and Inhale', 4), Stage('Hands down and Exhale', 4)]),
-    ConfigParam(
-      exShavasana,
-      ExCategory.sitting,
-      1,
-      [
-        Stage('Lie down still with eyes closed and relax', 60),
-        Stage('Stretch all your muscles', 10),
-        Stage('Sit back up', 10),
-        Stage('Chant om shanti shanti', 10),
-        Stage('Rub your palms and cup your eyes', 10),
-        Stage('Open your eyes with a smile', 6)
-      ],
-    ),
-
-    // standing
-
-    ConfigParam(
-        exSuryaNamaskara,
-        ExCategory.standing,
-        4,
-        [
-          Stage('Fold both hands', 4),
-          Stage('Hands above your head', 4),
-          Stage('Touch your feet', 4),
-          Stage('Right leg back', 4),
-          Stage('Mountain pose', 4),
-          Stage('Prone position', 4),
-          Stage('Cobra pose', 4),
-          Stage('Mountain pose', 4),
-          Stage('Left leg forward', 4),
-          Stage('Touch your feet', 4),
-          Stage('Hands above your head', 4),
-          Stage('Fold your hands', 4),
-          Stage('Hands down', 4)
-        ],
-        sameCount: true,
-        altLeftRight: true),
-    ConfigParam(exHandRotation, ExCategory.standing, 10, [Stage('Rotate', 2)]),
-
-    // sitting
-
-    ConfigParam(exNeckUpDown, ExCategory.sitting, 10,
-        [Stage('Neck down', 2), Stage('Neck up', 2)]),
-    ConfigParam(exNeckRightLeft, ExCategory.sitting, 10,
-        [Stage('Neck right', 2), Stage('Neck left', 2)]),
-    ConfigParam(
-        exButterfly, ExCategory.sitting, 10, [Stage('Flap the knees', 2)]),
-  ];
+  List<ConfigParam> _exerciseLib = gExerciseLib;
 
   List<ConfigParam> getExerciseLib() {
     return _exerciseLib;

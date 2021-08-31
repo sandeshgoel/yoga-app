@@ -107,13 +107,14 @@ class _ActivityPageState extends State<ActivityPage> {
               exMap[act.actName] = (exMap[act.actName] ?? 0) + act.duration;
             }
 
-            int maxSlices = 5;
+            int maxSlices = 6;
             List<Color> colorList = [
               Colors.green,
               Colors.blue,
               Colors.red,
               Colors.orange,
-              Colors.yellow
+              Colors.yellow,
+              Colors.deepPurple
             ];
             List<ExerciseData> exData = [];
             int totMins = 0;
@@ -311,7 +312,7 @@ class _ActivityPageState extends State<ActivityPage> {
                                       Duration(seconds: 2), // Optional
                                   swapAnimationCurve: Curves.linear, // Optional
                                 )),
-                            SizedBox(width: 20),
+                            SizedBox(width: 10),
                             Container(
                               child: Column(
                                 mainAxisSize: MainAxisSize.max,

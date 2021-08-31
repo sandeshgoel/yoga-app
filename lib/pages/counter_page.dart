@@ -114,7 +114,7 @@ class _CounterPageState extends State<CounterPage> {
                   widget.routine == ''
                       ? Container()
                       : Container(
-                          height: 60,
+                          height: 40,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -279,6 +279,7 @@ class _CounterPageState extends State<CounterPage> {
                         (settings.getMuteCounting() ? ', Count muted' : '') +
                         (_curExercise.altLeftRight ? ', Alt' : '')),
                   ),
+                  SizedBox(height: 20),
                 ],
               ),
             ),
@@ -297,14 +298,22 @@ class _CounterPageState extends State<CounterPage> {
         context: context,
         builder: (_) => AlertDialog(
               title: Text('Info'),
-              content: Text(cp.desc),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(cp.desc),
+                  SizedBox(height: 20),
+                  Icon(Icons.construction),
+                ],
+              ),
               actions: [
+                /*
                 ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text('Web')),
                 ElevatedButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text('Video')),
+                    child: Text('Video')), */
                 ElevatedButton(
                     onPressed: () => Navigator.pop(context), child: Text('OK'))
               ],
@@ -383,7 +392,7 @@ class _CounterPageState extends State<CounterPage> {
           if (i == (_curExercise.stages.length - 2))
             msg += " and ";
           else if (i == (_curExercise.stages.length - 1))
-            msg += ".";
+            msg += ". ";
           else
             msg += ", ";
         }
@@ -391,14 +400,23 @@ class _CounterPageState extends State<CounterPage> {
 
       msg += " Starting round 1 now ... ";
       await _tts.speak(context, msg);
-      _reset = false;
     }
 
     _timerClock = new Timer.periodic(
         Duration(milliseconds: settings.getCountDuration()), _handleTimeout);
     _paused = false;
 
-    await _tts.speak(context, _curExercise.stages[0].name);
+    if (_reset) {
+      String stagename = _curExercise.stages[_curStage].name;
+      // if count is muted and count>6, include total counts in stagename
+      if (settings.getMuteCounting() &
+          (_curExercise.stages[_curStage].count > 6)) {
+        stagename += ' for ${_curExercise.stages[_curStage].count} counts . ';
+      }
+
+      await _tts.speak(context, stagename);
+      _reset = false;
+    }
   }
 
   void _pauseTimer(Timer t) {
@@ -411,70 +429,53 @@ class _CounterPageState extends State<CounterPage> {
 
     if (_paused) {
       _pauseTimer(t);
-    } else {
-      setState(() {
-        Stage stage = _curExercise.stages[_curStage];
-        int _totStages = _curExercise.stages.length;
-        String msg = '';
+      return;
+    }
 
-        _totSeconds += settings.getCountDuration() / 1000;
-        _totSecondsRoutine += settings.getCountDuration() / 1000;
+    setState(() {
+      Stage stage = _curExercise.stages[_curStage];
+      int _totStages = _curExercise.stages.length;
+      String msg = '';
+      String postmsg = '';
 
-        _curCount = (_curCount + 1);
-        if (_curCount == stage.count + 1) _curCount = 1;
+      _totSeconds += settings.getCountDuration() / 1000;
+      _totSecondsRoutine += settings.getCountDuration() / 1000;
 
-        if (_curCount == 1) {
-          _curStage = (_curStage + 1) % _totStages;
-          if (_curStage == 0) {
-            _curRound++;
-            if (_curRound > _totRounds) {
-              _pauseTimer(t);
+      _curCount = (_curCount + 1);
+      if (_curCount == stage.count + 1) _curCount = 1;
 
-              int _totMinutes = (_totSecondsRoutine + 30) ~/ 60;
-              _resetCounter();
+      if (_curCount == 1) {
+        _curStage = (_curStage + 1) % _totStages;
+        if (_curStage == 0) {
+          _curRound++;
+          if (_curRound > _totRounds) {
+            // rounds are complete
 
-              if (widget.routine != '') {
-                if (_routine.exercises.length > _curExIndexInRoutine + 1) {
-                  _curExIndexInRoutine += 1;
-                  _curExerciseName =
-                      _routine.exercises[_curExIndexInRoutine].name;
-                  _curExerciseIndex = settings.findParamIndex(_curExerciseName);
-                  _curExercise = settings.getParam(_curExerciseIndex);
+            _pauseTimer(t);
 
-                  _totRounds = _routine.exercises[_curExIndexInRoutine].rounds;
+            int _totMinutes = (_totSecondsRoutine + 30) ~/ 60;
+            _resetCounter();
 
-                  _startTimer();
-                } else {
-                  msg = 'Your routine is complete!!\n' +
-                      '${_routine.exercises.length} exercises in about ' +
-                      '$_totMinutes minutes.';
-                  showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                            content: Text(msg),
-                            title: Text('Routine Complete'),
-                            actions: [
-                              ElevatedButton(
-                                  onPressed: () {
-                                    int count = 0;
-                                    Navigator.of(context)
-                                        .popUntil((_) => count++ >= 2);
-                                  },
-                                  child: Text('OK'))
-                            ],
-                          ),
-                      barrierDismissible: false);
-                  _tts.speak(context, msg);
-                }
+            if (widget.routine != '') {
+              if (_routine.exercises.length > _curExIndexInRoutine + 1) {
+                _curExIndexInRoutine += 1;
+                _curExerciseName =
+                    _routine.exercises[_curExIndexInRoutine].name;
+                _curExerciseIndex = settings.findParamIndex(_curExerciseName);
+                _curExercise = settings.getParam(_curExerciseIndex);
+
+                _totRounds = _routine.exercises[_curExIndexInRoutine].rounds;
+
+                _startTimer();
               } else {
-                msg = 'Your exercise is complete!!\n' +
-                    '$_totRounds rounds in about ' +
+                msg = 'Your routine is complete!!\n' +
+                    '${_routine.exercises.length} exercises in about ' +
                     '$_totMinutes minutes.';
                 showDialog(
                     context: context,
                     builder: (_) => AlertDialog(
                           content: Text(msg),
-                          title: Text('Exercise Complete'),
+                          title: Text('Routine Complete'),
                           actions: [
                             ElevatedButton(
                                 onPressed: () {
@@ -488,41 +489,73 @@ class _CounterPageState extends State<CounterPage> {
                     barrierDismissible: false);
                 _tts.speak(context, msg);
               }
-
-              return;
             } else {
-              if (_curRound == _totRounds)
-                msg = 'Last round . ';
-              else if (_curRound == _totRounds - 2)
-                msg = '3 rounds left . ';
-              else {
-                if (settings.getMuteCounting()) {
-                  msg = '';
-                } else
-                  msg = 'Round $_curRound ';
-              }
+              msg = 'Your exercise is complete!!\n' +
+                  '$_totRounds rounds in about ' +
+                  '$_totMinutes minutes.';
+              showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                        content: Text(msg),
+                        title: Text('Exercise Complete'),
+                        actions: [
+                          ElevatedButton(
+                              onPressed: () {
+                                int count = 0;
+                                Navigator.of(context)
+                                    .popUntil((_) => count++ >= 2);
+                              },
+                              child: Text('OK'))
+                        ],
+                      ),
+                  barrierDismissible: false);
+              _tts.speak(context, msg);
             }
-          }
 
-          String stagename = _curExercise.stages[_curStage].name;
-          if (_curExercise.altLeftRight & (_curRound % 2 == 0)) {
-            List<String> words = stagename.split(' ');
-            for (var i = 0; i < words.length; i++) {
-              if (words[i].toLowerCase() == 'left')
-                words[i] = 'right';
-              else if (words[i].toLowerCase() == 'right') words[i] = 'left';
+            return;
+          } else {
+            // rounds not complete yet
+            if (_curRound == _totRounds)
+              postmsg = 'Last round . ';
+            else if (_curRound == _totRounds - 2)
+              postmsg = '3 rounds left . ';
+            else if ((_totRounds > 10) & (_curRound == (_totRounds ~/ 2) + 1))
+              postmsg = '${_totRounds - _curRound + 1} rounds left . ';
+            else {
+              if (settings.getMuteCounting()) {
+                msg = '';
+              } else
+                msg = 'Round $_curRound ';
             }
-            stagename = words.join(' ');
           }
-          print(stagename);
-          msg += stagename;
-          _tts.speak(context, msg);
-        } else {
-          if (!settings.getMuteCounting() |
-              ((_curRound == 1) & (_totRounds > 1)))
-            _tts.speak(context, _curCount.toString());
         }
-      });
-    }
+
+        String stagename = _curExercise.stages[_curStage].name;
+        // if count is muted and count>6, include total counts in stagename
+        if (settings.getMuteCounting() &
+            (_curExercise.stages[_curStage].count > 6)) {
+          stagename += ' for ${_curExercise.stages[_curStage].count} counts . ';
+        }
+
+        // swap let and right, if needed
+        if (_curExercise.altLeftRight & (_curRound % 2 == 0)) {
+          List<String> words = stagename.split(' ');
+          for (var i = 0; i < words.length; i++) {
+            if (words[i].toLowerCase() == 'left')
+              words[i] = 'right';
+            else if (words[i].toLowerCase() == 'right') words[i] = 'left';
+          }
+          stagename = words.join(' ');
+        }
+
+        msg += stagename + ' ' + postmsg;
+        _tts.speak(context, msg);
+      } else {
+        if (!settings.getMuteCounting())
+          _tts.speak(context, _curCount.toString());
+      }
+    }); //setState
   }
+
+  // class end
 }
