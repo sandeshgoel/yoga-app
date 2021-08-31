@@ -131,7 +131,8 @@ class _MyHomePageState extends State<MyHomePage> {
           image: DecorationImage(
             fit: BoxFit.contain,
             image: (_photo == '')
-                ? AssetImage("assets/icon/yoga.png") as ImageProvider
+                ? AssetImage("assets/icon/yoga_icon_circular.png")
+                    as ImageProvider
                 : NetworkImage(_photo),
           ),
         ),
@@ -213,7 +214,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     showAboutDialog(
       context: context,
-      applicationVersion: 'Ver $version+$buildNumber',
+      applicationVersion: 'Ver $version +$buildNumber',
       applicationIcon: Image.asset(
         "assets/icon/yoga.png",
         height: 40,
@@ -222,11 +223,11 @@ class _MyHomePageState extends State<MyHomePage> {
       children: [
         RichText(
           text: TextSpan(
-            text: 'https://sites.google.com/view/yoga-assistant/',
+            text: 'https://sites.google.com/view/yogabuddy',
             style: TextStyle(color: Colors.blue),
             recognizer: TapGestureRecognizer()
               ..onTap = () async {
-                final url = 'https://sites.google.com/view/yoga-assistant/';
+                final url = 'https://sites.google.com/view/yogabuddy';
                 if (await canLaunch(url)) {
                   await launch(
                     url,

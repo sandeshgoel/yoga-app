@@ -7,7 +7,8 @@ import 'package:yoga/services/auth.dart';
 import 'package:yoga/shared/constants.dart';
 
 class AuthenticatePage extends StatefulWidget {
-  const AuthenticatePage({Key? key}) : super(key: key);
+  final String ver;
+  const AuthenticatePage({required this.ver, Key? key}) : super(key: key);
 
   @override
   _AuthenticatePageState createState() => _AuthenticatePageState();
@@ -28,7 +29,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
         ? Loading()
         : Scaffold(
             appBar: AppBar(
-              title: Text('Welcome to Yoga Assist'),
+              title: Text('Welcome to Yoga Buddy'),
             ),
             body: Stack(
               children: [
@@ -54,17 +55,23 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: 40,
-              ),
+              SizedBox(height: 40),
               Image.asset(
-                "assets/icon/yoga.png",
+                "assets/icon/yoga_icon_circular.png",
                 height: 80,
                 width: 80,
               ),
-              SizedBox(
-                height: 40,
+              SizedBox(height: 10),
+              Container(
+                child: Text(
+                  widget.ver,
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold),
+                ),
               ),
+              SizedBox(height: 40),
               SizedBox(
                 width: 300,
                 child: ElevatedButton.icon(
@@ -84,18 +91,14 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                           borderRadius: BorderRadius.circular(30))),
                 ),
               ),
-              SizedBox(
-                height: 30,
-              ),
+              SizedBox(height: 30),
               Container(
                 child: Text(
                   '------- OR -------',
                   style: TextStyle(fontSize: 14, color: Colors.white),
                 ),
               ),
-              SizedBox(
-                height: 30,
-              ),
+              SizedBox(height: 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextFormField(
@@ -112,9 +115,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextFormField(
@@ -145,9 +146,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                   ),
                 ),
               ),
-              SizedBox(
-                height: 10,
-              ),
+              SizedBox(height: 10),
               SizedBox(
                 width: 300,
                 child: ElevatedButton(
@@ -193,7 +192,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                 child: Center(
                   child: Text(
                     'Copyright 2021 Sandesh Goel',
-                    style: TextStyle(fontSize: 10),
+                    style: TextStyle(fontSize: 10, color: Colors.white),
                   ),
                 ),
               )
@@ -212,6 +211,12 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
       await google.googleLogin();
     } catch (e) {
       print(e);
+      showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+                content: Text(e.toString()),
+                title: Text('Error'),
+              ));
     }
   }
 

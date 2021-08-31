@@ -548,7 +548,7 @@ class _CounterPageState extends State<CounterPage> {
           stagename = words.join(' ');
         }
 
-        msg += stagename + ' ' + postmsg;
+        msg += stagename + ' . ' + postmsg;
         _tts.speak(context, msg);
       } else {
         if (!settings.getMuteCounting())

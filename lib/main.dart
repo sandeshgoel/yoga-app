@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:volume_control/volume_control.dart';
@@ -20,6 +21,7 @@ import 'services/settings.dart';
 import 'pages/home_page.dart';
 
 List<String> filterVoices = [];
+String appVersion = '';
 
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
@@ -79,6 +81,10 @@ void main() async {
 
   await NotificationService().init();
 
+  PackageInfo packageInfo = await PackageInfo.fromPlatform();
+  appVersion =
+      'Version ' + packageInfo.version + ' +' + packageInfo.buildNumber;
+
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((_) {
     runApp(
@@ -97,14 +103,11 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    //var settings = Provider.of<YogaSettings>(context, listen: false);
-    //settings.loadSettings();
-
     return StreamProvider<User?>.value(
       value: AuthService().user,
       initialData: null,
       child: MaterialApp(
-        title: 'Yoga Assist',
+        title: 'Yoga Buddy',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
@@ -134,7 +137,7 @@ class _WrapperState extends State<Wrapper> {
     return Consumer<YogaSettings>(builder: (context, settings, _) {
       return ((user != null)
           ? (settings.getUser().verified ? MyHomePage() : EmailVerifyPage())
-          : AuthenticatePage());
+          : AuthenticatePage(ver: appVersion));
     });
   }
 
