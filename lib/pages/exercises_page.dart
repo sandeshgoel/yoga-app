@@ -18,9 +18,14 @@ class ExercisesPage extends StatefulWidget {
 
 class _ExercisesPageState extends State<ExercisesPage> {
   final _skey1 = GlobalKey();
+  int countPlus = 0;
+  int countStar = 0;
 
   @override
   Widget build(BuildContext context) {
+    countPlus = 0;
+    countStar = 0;
+
     return Consumer<YogaSettings>(builder: (context, settings, _) {
       return Stack(
         children: [
@@ -58,6 +63,16 @@ class _ExercisesPageState extends State<ExercisesPage> {
     }
     int totTime = c * ex.rounds * settings.getCountDuration() ~/ 1000;
 
+    String annotation;
+    if (settings.getExerciseFromLib(ex.name) == null) {
+      annotation = '+ ';
+      countPlus += 1;
+    } else if (settings.exerciseDiffInLib(ex.name)) {
+      annotation = '* ';
+      countStar += 1;
+    } else
+      annotation = '';
+
     return Container(
       padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
       child: Row(
@@ -79,14 +94,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          settings.getExerciseFromLib(ex.name) == null
-                              ? '+ '
-                              : (settings.exerciseDiffInLib(ex.name)
-                                  ? '* '
-                                  : ''),
-                          style: starStyle,
-                        ),
+                        Text(annotation, style: starStyle),
                         Text(
                           ex.name.length > 22
                               ? '${ex.name.substring(0, 20)}...'
@@ -191,36 +199,45 @@ class _ExercisesPageState extends State<ExercisesPage> {
       child: Column(
         children: elist +
             [
-              Card(
-                margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0)),
-                child: Container(
-                  margin: EdgeInsets.all(10),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('+ ', style: starStyle),
-                          Text('indicates a custom exercise',
-                              style: TextStyle(
-                                  fontSize: 10, fontStyle: FontStyle.italic)),
-                        ],
+              (countPlus + countStar) == 0
+                  ? Container()
+                  : Card(
+                      margin: EdgeInsets.fromLTRB(10, 20, 10, 0),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0)),
+                      child: Container(
+                        margin: EdgeInsets.all(5),
+                        child: Column(
+                          children: [
+                            countPlus == 0
+                                ? Container()
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text('+ ', style: starStyle),
+                                      Text('indicates a custom exercise',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              fontStyle: FontStyle.italic)),
+                                    ],
+                                  ),
+                            countStar == 0
+                                ? Container()
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text('* ', style: starStyle),
+                                      Text(
+                                          'indicates exercise differs from lib',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              fontStyle: FontStyle.italic)),
+                                    ],
+                                  ),
+                          ],
+                        ),
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('* ', style: starStyle),
-                          Text('indicates exercise differs from lib',
-                              style: TextStyle(
-                                  fontSize: 10, fontStyle: FontStyle.italic)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
               SizedBox(height: 100)
             ],
       ),

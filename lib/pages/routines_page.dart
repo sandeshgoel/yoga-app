@@ -14,8 +14,14 @@ class RoutinesPage extends StatefulWidget {
 }
 
 class _RoutinesPageState extends State<RoutinesPage> {
+  int countPlus = 0;
+  int countStar = 0;
+
   @override
   Widget build(BuildContext context) {
+    countPlus = 0;
+    countStar = 0;
+
     return Consumer<YogaSettings>(builder: (context, settings, _) {
       return Stack(children: [
         _listRoutines(settings),
@@ -47,6 +53,16 @@ class _RoutinesPageState extends State<RoutinesPage> {
           c * r.exercises[i].rounds * settings.getCountDuration() ~/ 1000;
     }
 
+    String annotation;
+    if (settings.getRoutineFromLib(r.name) == null) {
+      annotation = '+ ';
+      countPlus += 1;
+    } else if (settings.routineDiffInLib(r.name)) {
+      annotation = '* ';
+      countStar += 1;
+    } else
+      annotation = '';
+
     return Container(
         padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
         child: Row(
@@ -67,14 +83,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            settings.getRoutineFromLib(r.name) == null
-                                ? '+ '
-                                : (settings.routineDiffInLib(r.name)
-                                    ? '* '
-                                    : ''),
-                            style: starStyle,
-                          ),
+                          Text(annotation, style: starStyle),
                           Text(
                             r.name.length > 22
                                 ? '${r.name.substring(0, 20)}...'
@@ -122,36 +131,40 @@ class _RoutinesPageState extends State<RoutinesPage> {
       child: Column(
         children: rlist +
             [
-              rlist.length == 0
+              (countStar + countPlus) == 0
                   ? Container()
                   : Card(
-                      margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                      margin: EdgeInsets.fromLTRB(10, 20, 10, 0),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0)),
                       child: Container(
-                        margin: EdgeInsets.all(10),
+                        margin: EdgeInsets.all(5),
                         child: Column(
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text('+ ', style: starStyle),
-                                Text('indicates a custom routine',
-                                    style: TextStyle(
-                                        fontSize: 10,
-                                        fontStyle: FontStyle.italic)),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text('* ', style: starStyle),
-                                Text('indicates routine differs from lib',
-                                    style: TextStyle(
-                                        fontSize: 10,
-                                        fontStyle: FontStyle.italic)),
-                              ],
-                            ),
+                            countPlus == 0
+                                ? Container()
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text('+ ', style: starStyle),
+                                      Text('indicates a custom routine',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              fontStyle: FontStyle.italic)),
+                                    ],
+                                  ),
+                            countStar == 0
+                                ? Container()
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text('* ', style: starStyle),
+                                      Text('indicates routine differs from lib',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              fontStyle: FontStyle.italic)),
+                                    ],
+                                  ),
                           ],
                         ),
                       ),
