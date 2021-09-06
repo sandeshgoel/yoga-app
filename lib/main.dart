@@ -54,7 +54,7 @@ void callbackDispatcher() {
         msg = '$timeLeft minutes to go today, let\'s go!!';
       } else {
         msg =
-            'You have completed $totTime minutes todat, way to nail the target. Yay!!';
+            'You have completed $totTime minutes today, way to nail the target. Yay!!';
       }
 
       // create notification and send
@@ -190,7 +190,7 @@ class _WrapperState extends State<Wrapper> {
     // save all settings back to DB
     settings.saveSettings();
 
-    await NotificationService().show('', 'User ${user.email} has logged in');
+    //await NotificationService().show('', 'User ${user.email} has logged in');
 
     // calculate initial delay
     int targetHour = 7;

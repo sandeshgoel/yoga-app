@@ -59,6 +59,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
     //print('**** _editConfigPage: ${settings.cps}');
     var pindex = settings.findParamIndex(cfg);
     ConfigParam cp = settings.getParam(pindex);
+    ConfigParam? exl = settings.getExerciseFromLib(cfg);
 
     return FormBuilder(
       key: _formKey,
@@ -94,7 +95,14 @@ class _EditConfigPageState extends State<EditConfigPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text('Category:', style: settingsTextStyle),
+                      Text('Category ', style: settingsTextStyle),
+                      Text(
+                          (exl == null)
+                              ? ''
+                              : (exl.category != cp.category)
+                                  ? '*'
+                                  : '',
+                          style: starStyle),
                       Expanded(child: Container()),
                       DropdownButton<String>(
                         value: describeEnum(cp.category),
@@ -113,12 +121,12 @@ class _EditConfigPageState extends State<EditConfigPage> {
                             value: entry.value,
                             child: Row(
                               children: [
-                                FaIcon(
+/*                                FaIcon(
                                   FontAwesomeIcons.balanceScale,
 //                                  color: Colors.orange,
                                   size: 15,
                                 ),
-                                SizedBox(width: 10),
+                                SizedBox(width: 10),*/
                                 Text(
                                   '${entry.value}',
                                   style: settingsTextStyle,
@@ -158,7 +166,14 @@ class _EditConfigPageState extends State<EditConfigPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Alternate Left/Right', style: settingsTextStyle),
+                      Text('Alternate Left/Right ', style: settingsTextStyle),
+                      Text(
+                          (exl == null)
+                              ? ''
+                              : (exl.altLeftRight != cp.altLeftRight)
+                                  ? '*'
+                                  : '',
+                          style: starStyle),
                       Expanded(child: Container()),
                       Switch(
                         value: cp.altLeftRight,
@@ -182,7 +197,11 @@ class _EditConfigPageState extends State<EditConfigPage> {
                           onPressed: () => _saveConfig(context, cfg),
                           child: Text('Save', style: settingsTextStyle)),
                       ElevatedButton(
-                        onPressed: null,
+                        onPressed: (exl == null)
+                            ? null
+                            : settings.exerciseDiffInLib(cfg) == false
+                                ? null
+                                : () => _loadDefault(cfg),
                         child: Text('Defaults', style: settingsTextStyle),
                       ),
                       ElevatedButton(
@@ -196,6 +215,23 @@ class _EditConfigPageState extends State<EditConfigPage> {
         ),
       ),
     );
+  }
+
+  void _loadDefault(String cfg) {
+    var settings = Provider.of<YogaSettings>(context, listen: false);
+    ConfigParam? exl = settings.getExerciseFromLib(cfg);
+
+    if (exl == null) {
+      showMsg(context, 'Exercise \'$cfg\' does not exist in library!');
+      return;
+    }
+
+    int pindex = settings.findParamIndex(cfg);
+
+    settings.cps.removeAt(pindex);
+    settings.cps.add(new ConfigParam.fromJson(exl.toJson()));
+    Navigator.pop(context);
+    showMsg(context, 'Exercise \'$cfg\' reset to defaults from library');
   }
 
   void _saveConfig(context, cfg) {
@@ -300,19 +336,40 @@ class _EditConfigPageState extends State<EditConfigPage> {
     List<Widget> list = [];
     int pindex = settings.findParamIndex(cfg);
     ConfigParam cp = settings.getParam(pindex);
+    ConfigParam? exl = settings.getExerciseFromLib(cfg);
     List<TextEditingController> _ctrlList = [];
-
-    list.add(Center(
-        child: Text(
-      'Stages: ${cp.stages.length}',
-      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-    )));
 
     list.add(
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('Same count in all stages', style: settingsTextStyle),
+          Text(
+            'Stages: ${cp.stages.length} ',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          Text(
+              (exl == null)
+                  ? ''
+                  : (exl.stages.length != cp.stages.length)
+                      ? '*'
+                      : '',
+              style: starStyle),
+        ],
+      ),
+    );
+
+    list.add(
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('Same count in all stages ', style: settingsTextStyle),
+          Text(
+              (exl == null)
+                  ? ''
+                  : (exl.sameCount != cp.sameCount)
+                      ? '*'
+                      : '',
+              style: starStyle),
           Expanded(child: Container()),
           Switch(
             value: cp.sameCount,
@@ -345,7 +402,18 @@ class _EditConfigPageState extends State<EditConfigPage> {
               style: settingsTextStyle,
             ),
           ),
-          Expanded(flex: 10, child: Container()),
+          Expanded(
+            flex: 10,
+            child: Text(
+                (exl == null)
+                    ? ''
+                    : (exl.stages.length <= i)
+                        ? '+'
+                        : (exl.stages[i].name != cp.stages[i].name)
+                            ? '*'
+                            : '',
+                style: starStyle),
+          ),
           Expanded(
             flex: 10,
             child: TextFormField(
@@ -368,7 +436,18 @@ class _EditConfigPageState extends State<EditConfigPage> {
               },
             ),
           ),
-          Expanded(flex: 10, child: Container()),
+          Expanded(
+            flex: 10,
+            child: Text(
+                (exl == null)
+                    ? ''
+                    : (exl.stages.length <= i)
+                        ? '+'
+                        : (exl.stages[i].count != cp.stages[i].count)
+                            ? '*'
+                            : '',
+                style: starStyle),
+          ),
           Expanded(
             flex: 5,
             child: cp.stages.length == 1

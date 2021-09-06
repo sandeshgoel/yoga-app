@@ -52,7 +52,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
   // -----------------------------------------------------
 
   Widget _exerciseTile(YogaSettings settings, ConfigParam ex) {
-    //ConfigParam ex = settings.getParam(index);
     int c = 0;
     for (int j = 0; j < ex.stages.length; j++) {
       c += ex.stages[j].count;
@@ -64,7 +63,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
       child: Row(
         children: [
           Expanded(
-            flex: 80,
+            flex: 82,
             child: InkWell(
               onTap: () {
                 HapticFeedback.heavyImpact();
@@ -77,12 +76,25 @@ class _ExercisesPageState extends State<ExercisesPage> {
                     child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      ex.name.length > 22
-                          ? '${ex.name.substring(0, 20)}...'
-                          : '${ex.name}',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          settings.getExerciseFromLib(ex.name) == null
+                              ? '+ '
+                              : (settings.exerciseDiffInLib(ex.name)
+                                  ? '* '
+                                  : ''),
+                          style: starStyle,
+                        ),
+                        Text(
+                          ex.name.length > 22
+                              ? '${ex.name.substring(0, 20)}...'
+                              : '${ex.name}',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                     Text(
                         '${ex.stages.length} stages, ${ex.rounds} rounds, ' +
@@ -112,14 +124,14 @@ class _ExercisesPageState extends State<ExercisesPage> {
               //backgroundColor: Colors.white.withOpacity(0.9),
             ),
           ),
-          Expanded(flex: 6, child: Container()),
+          Expanded(flex: 4, child: Container()),
         ],
       ),
     );
   }
 
   // size should be same as number of categories
-  List<bool> expanded = [true, true, true];
+  List<bool> expanded = [true, false, false];
 
   Widget _buildPanel(YogaSettings settings, ExCategory cat, int index) {
     List<Widget> exlist = [];
@@ -128,6 +140,9 @@ class _ExercisesPageState extends State<ExercisesPage> {
 
     List<ConfigParam> catlist =
         settings.cps.where((e) => e.category == cat).toList();
+
+    if (catlist.length == 0) return Container();
+
     for (int i = 0; i < catlist.length; i++)
       exlist.add(_exerciseTile(settings, catlist[i]));
 
@@ -151,7 +166,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
       margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
       child: Container(
-        margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
+        margin: EdgeInsets.fromLTRB(20, 0, 10, 0),
         child: ExpansionPanelList(
             expandedHeaderPadding: EdgeInsets.all(0),
             elevation: 0,
@@ -174,7 +189,40 @@ class _ExercisesPageState extends State<ExercisesPage> {
 
     return SingleChildScrollView(
       child: Column(
-        children: elist + [SizedBox(height: 100)],
+        children: elist +
+            [
+              Card(
+                margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0)),
+                child: Container(
+                  margin: EdgeInsets.all(10),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('+ ', style: starStyle),
+                          Text('indicates a custom exercise',
+                              style: TextStyle(
+                                  fontSize: 10, fontStyle: FontStyle.italic)),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('* ', style: starStyle),
+                          Text('indicates exercise differs from lib',
+                              style: TextStyle(
+                                  fontSize: 10, fontStyle: FontStyle.italic)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 100)
+            ],
       ),
     );
   }
@@ -209,7 +257,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                       SizedBox(height: 10),
                       Column(
                           children: settings
-                              .getExerciseLib()
+                              .getExerciseLibNotAdded()
                               .map((e) => _createExerciseTile(e.name))
                               .toList()),
                     ],

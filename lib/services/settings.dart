@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:collection/collection.dart';
+
 import 'package:yoga/services/database.dart';
 
 enum ExCategory { breathing, standing, sitting }
@@ -27,18 +29,25 @@ const exPawanMukt = 'Pawan Mukt Aasanaa';
 const exMarkatasana = 'Markata Aasanaa';
 
 List<Routine> gRoutineLib = [
+  Routine('10 Minute Breathing', [
+    Exercise(exDeepBreathing, 6),
+    Exercise(exBhramari, 6),
+    Exercise(exAnulomVilom, 5),
+    Exercise(exSheetkari, 6),
+    Exercise(exShavasana, 1),
+  ]),
   Routine('Breathing Routine', [
     Exercise(exDeepBreathing, 15),
     Exercise(exBhramari, 15),
     Exercise(exAnulomVilom, 10),
     Exercise(exSheetkari, 15),
-    Exercise(exShavasana, 1)
+    Exercise(exShavasana, 1),
   ]),
   Routine('Standing Warm Up', [
     Exercise(exHandRotation, 10),
     Exercise(exNeckUpDown, 10),
     Exercise(exNeckRightLeft, 10),
-    Exercise(exSuryaNamaskara, 6),
+    Exercise(exSuryaNamaskara, 10),
   ]),
   Routine('Sitting Warm Up', [
     Exercise(exButterfly, 10),
@@ -114,7 +123,7 @@ List<ConfigParam> gExerciseLib = [
       altLeftRight: true),
   ConfigParam(exHandRotation, ExCategory.standing, 10, [Stage('Rotate', 2)]),
   ConfigParam(exNeckUpDown, ExCategory.standing, 10,
-      [Stage('Neck down', 2), Stage('Neck up', 2)]),
+      [Stage('Neck up', 2), Stage('Neck down', 2)]),
   ConfigParam(exNeckRightLeft, ExCategory.standing, 10,
       [Stage('Neck right', 2), Stage('Neck left', 2)]),
 
@@ -123,7 +132,7 @@ List<ConfigParam> gExerciseLib = [
   ConfigParam(
       exButterfly, ExCategory.sitting, 10, [Stage('Flap the knees', 4)]),
   ConfigParam(exPawanMukt, ExCategory.sitting, 4,
-      [Stage('Lie down and hold your knees', 10)]),
+      [Stage('Lie down and hug your knees', 10)]),
   ConfigParam(exMarkatasana, ExCategory.sitting, 10,
       [Stage('Bend knees to the right and turn head to the left', 10)],
       altLeftRight: true,
@@ -344,12 +353,28 @@ class YogaSettings with ChangeNotifier {
     return _routineLib;
   }
 
+  List<Routine> getRoutineLibNotAdded() {
+    return _routineLib.where((e) => findRoutineIndex(e.name) == -1).toList();
+  }
+
   Routine? getRoutineFromLib(String name) {
     for (int i = 0; i < _routineLib.length; i++) {
       if (_routineLib[i].name == name) return _routineLib[i];
     }
     print('getRoutineFromLib: Routine $name not found!!');
     return null;
+  }
+
+  bool routineDiffInLib(String name) {
+    Routine? rl = getRoutineFromLib(name);
+
+    if (rl == null)
+      return true;
+    else {
+      Routine r = routines.firstWhere((element) => element.name == name);
+      return (!DeepCollectionEquality.unordered()
+          .equals(r.toJson(), rl.toJson()));
+    }
   }
 
   // ----------------------------------------------------
@@ -360,6 +385,10 @@ class YogaSettings with ChangeNotifier {
     return _exerciseLib;
   }
 
+  List<ConfigParam> getExerciseLibNotAdded() {
+    return _exerciseLib.where((e) => findParamIndex(e.name) == -1).toList();
+  }
+
   ConfigParam? getExerciseFromLib(String name) {
     for (int i = 0; i < _exerciseLib.length; i++) {
       if (_exerciseLib[i].name == name) return _exerciseLib[i];
@@ -367,6 +396,21 @@ class YogaSettings with ChangeNotifier {
     print('getExerciseFromLib: Exercise $name not found!!');
 
     return null;
+  }
+
+  bool exerciseDiffInLib(String name) {
+    ConfigParam? exl = getExerciseFromLib(name);
+
+    if (exl == null)
+      return true;
+    else {
+      ConfigParam ex = getParam(findParamIndex(name));
+      var exJson = ex.toJson();
+      var exlJson = exl.toJson();
+      exJson.remove('rounds');
+      exlJson.remove('rounds');
+      return (!DeepCollectionEquality.unordered().equals(exJson, exlJson));
+    }
   }
 
   // ----------------------------------------------------

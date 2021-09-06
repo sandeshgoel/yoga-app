@@ -64,12 +64,25 @@ class _RoutinesPageState extends State<RoutinesPage> {
                       child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        r.name.length > 22
-                            ? '${r.name.substring(0, 20)}...'
-                            : '${r.name}',
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.bold),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            settings.getRoutineFromLib(r.name) == null
+                                ? '+ '
+                                : (settings.routineDiffInLib(r.name)
+                                    ? '* '
+                                    : ''),
+                            style: starStyle,
+                          ),
+                          Text(
+                            r.name.length > 22
+                                ? '${r.name.substring(0, 20)}...'
+                                : '${r.name}',
+                            style: TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
                       Text(
                         '${r.exercises.length} exercises, ${totTime ~/ 60} minutes',
@@ -107,7 +120,44 @@ class _RoutinesPageState extends State<RoutinesPage> {
 
     return SingleChildScrollView(
       child: Column(
-        children: rlist + [SizedBox(height: 100)],
+        children: rlist +
+            [
+              rlist.length == 0
+                  ? Container()
+                  : Card(
+                      margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0)),
+                      child: Container(
+                        margin: EdgeInsets.all(10),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('+ ', style: starStyle),
+                                Text('indicates a custom routine',
+                                    style: TextStyle(
+                                        fontSize: 10,
+                                        fontStyle: FontStyle.italic)),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('* ', style: starStyle),
+                                Text('indicates routine differs from lib',
+                                    style: TextStyle(
+                                        fontSize: 10,
+                                        fontStyle: FontStyle.italic)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+              SizedBox(height: 100)
+            ],
       ),
     );
 /*
@@ -164,7 +214,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                         SizedBox(height: 10)
                       ] +
                       settings
-                          .getRoutineLib()
+                          .getRoutineLibNotAdded()
                           .map((e) => _createRoutineTile(e.name))
                           .toList()),
               title: Text('Add routine'),
@@ -217,7 +267,9 @@ class _RoutinesPageState extends State<RoutinesPage> {
             builder: (_) => AlertDialog(
                   title: Text('Adding exercises'),
                   content: Text(
-                      'The routine $cfgName includes some new exercises $npExercises.\n\nAdding these to your exercise list!!'),
+                      'The routine \'$cfgName\' includes some new exercises:\n\n- ' +
+                          npExercises.join('\n- ') +
+                          '\n\nAdding these to your exercise list!!'),
                 ));
         npExercises.forEach((ex) {
           settings.addParam(settings.getExerciseFromLib(ex)!);

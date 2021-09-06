@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:yoga/services/settings.dart';
+import 'package:yoga/shared/constants.dart';
 
 class EditRoutinePage extends StatefulWidget {
   final String cfg;
@@ -53,6 +54,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
   Widget _editRoutinePage(context, cfg) {
     var settings = Provider.of<YogaSettings>(context, listen: false);
+    Routine? rl = settings.getRoutineFromLib(cfg);
 
     return FormBuilder(
       key: _formKey,
@@ -80,6 +82,14 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                           onPressed: () => _saveRoutine(context, cfg),
                           child: Text('Save')),
                       ElevatedButton(
+                        onPressed: (rl == null)
+                            ? null
+                            : settings.routineDiffInLib(cfg) == false
+                                ? null
+                                : () => _loadDefault(cfg),
+                        child: Text('Defaults', style: settingsTextStyle),
+                      ),
+                      ElevatedButton(
                           style: ElevatedButton.styleFrom(primary: Colors.red),
                           onPressed: () => _deleteRoutine(context, cfg),
                           child: Text('Delete')),
@@ -88,6 +98,23 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             ],
       ),
     );
+  }
+
+  void _loadDefault(String cfg) {
+    var settings = Provider.of<YogaSettings>(context, listen: false);
+    Routine? rl = settings.getRoutineFromLib(cfg);
+
+    if (rl == null) {
+      showMsg(context, 'Routine \'$cfg\' does not exist in library!');
+      return;
+    }
+
+    int pindex = settings.findRoutineIndex(cfg);
+
+    settings.routines.removeAt(pindex);
+    settings.routines.add(new Routine.fromJson(rl.toJson()));
+    Navigator.pop(context);
+    showMsg(context, 'Routine \'$cfg\' reset to defaults from library');
   }
 
   void _saveRoutine(context, cfg) {
@@ -100,14 +127,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     String newName = values['routineName'];
     if (newName != settings.getRoutine(pindex).name) {
       if (settings.findRoutineIndex(newName) != -1) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            content: Text(
-                'The routine name \'$newName\' already exists, choose a different name!!'),
-            title: Text('ERROR'),
-          ),
-        );
+        showMsg(context,
+            'The routine name \'$newName\' already exists, choose a different name!!');
         return;
       }
     }
@@ -167,67 +188,99 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     return e;
   }
 
-  List<Widget> _exerciseList(settings, cfg) {
+  List<Widget> _exerciseList(YogaSettings settings, String cfg) {
     List<Widget> list = [];
-    var pindex = settings.findRoutineIndex(cfg);
-    var exercises = settings.getRoutine(pindex).exercises;
+    int pindex = settings.findRoutineIndex(cfg);
+    Routine r = settings.getRoutine(pindex);
+    Routine? rl = settings.getRoutineFromLib(cfg);
 
     list.add(Container(
         padding: EdgeInsets.all(16),
-        child: Center(
-            child: Text(
-          'Exercises: ${exercises.length}',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ))));
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Exercises: ${r.exercises.length} ',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+                (rl == null)
+                    ? ''
+                    : (rl.exercises.length != r.exercises.length)
+                        ? '*'
+                        : '',
+                style: starStyle),
+          ],
+        )));
 
-    print('_exerciseList: $exercises');
     List<Widget> elist = [];
-    for (var i = 0; i < exercises.length; i++) {
-      print('$i: ${exercises[i].name}');
+    for (var i = 0; i < r.exercises.length; i++) {
       elist.add(
         Row(
           key: Key('$i'),
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Expanded(flex: 5, child: Container()),
-            Expanded(
+/*            Expanded(
               flex: 10,
               child: IconButton(
                 icon: Icon(Icons.drag_handle),
                 onPressed: () => {},
               ),
-            ),
+            ),*/
             Expanded(flex: 5, child: Container()),
-            //Expanded(flex: 5, child: Text('$i')),
             Expanded(
               flex: 50,
               child: FormBuilderDropdown(
                 name: 'name$i',
-                initialValue: exercises[i].name,
+                initialValue: r.exercises[i].name,
                 items: settings.cps
-                    .map<DropdownMenuItem<String>>(
-                        (ex) => DropdownMenuItem<String>(
-                              value: ex.name,
-                              child: Text('${ex.name}'),
-                            ))
+                    .map<DropdownMenuItem<String>>((ex) =>
+                        DropdownMenuItem<String>(
+                          value: ex.name,
+                          child: Text(ex.name,
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ))
                     .toList(),
               ),
             ),
-            Expanded(flex: 5, child: Container()),
+            Expanded(
+              flex: 10,
+              child: Text(
+                  (rl == null)
+                      ? ''
+                      : (rl.exercises.length <= i)
+                          ? '+'
+                          : (rl.exercises[i].name != r.exercises[i].name)
+                              ? '*'
+                              : '',
+                  style: starStyle),
+            ),
             Expanded(
               flex: 10,
               child: FormBuilderTextField(
                 name: 'rounds$i',
-                initialValue: exercises[i].rounds.toString(),
+                initialValue: r.exercises[i].rounds.toString(),
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-            Expanded(flex: 5, child: Container()),
+            Expanded(
+              flex: 5,
+              child: Text(
+                  (rl == null)
+                      ? ''
+                      : (rl.exercises.length <= i)
+                          ? '+'
+                          : (rl.exercises[i].rounds != r.exercises[i].rounds)
+                              ? '*'
+                              : '',
+                  style: starStyle),
+            ),
             Expanded(
               flex: 10,
-              child: exercises.length == 1
+              child: r.exercises.length == 1
                   ? Container()
                   : IconButton(
                       icon: Icon(Icons.delete),
@@ -265,7 +318,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
     return list;
   }
-
+/*
   void _reorder(int oldIndex, int newIndex, String cfg) {
     var settings = Provider.of<YogaSettings>(context, listen: false);
 
@@ -279,5 +332,5 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
       routine.exercises.insert(newIndex, e);
       settings.setRoutine(pindex, routine);
     });
-  }
+  }*/
 }

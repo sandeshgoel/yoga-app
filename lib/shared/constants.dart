@@ -32,6 +32,19 @@ var textInputDeco = InputDecoration(
       OutlineInputBorder(borderSide: BorderSide(color: Colors.blue, width: 2)),
 );
 
+var starStyle =
+    TextStyle(fontSize: 20, color: Colors.red, fontWeight: FontWeight.bold);
+
 var settingsTextStyle = TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
 var settingsTextStyleGrey =
     TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey);
+
+void showMsg(context, String msg) {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      content: Text(msg),
+      title: Text('Message'),
+    ),
+  );
+}
