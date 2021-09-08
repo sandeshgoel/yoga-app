@@ -22,6 +22,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
 
   String email = '';
   String password = '';
+  bool _showPassword = false;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +72,9 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                       fontWeight: FontWeight.bold),
                 ),
               ),
+
+              // Google sign in button
+
               SizedBox(height: 40),
               SizedBox(
                 width: 300,
@@ -91,16 +95,24 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                           borderRadius: BorderRadius.circular(30))),
                 ),
               ),
-              SizedBox(height: 30),
+
+              // OR separator
+
               Container(
-                child: Text(
-                  '------- OR -------',
-                  style: TextStyle(fontSize: 14, color: Colors.white),
+                height: 100,
+                child: Center(
+                  child: Text(
+                    '------- OR -------',
+                    style: TextStyle(fontSize: 14, color: Colors.white),
+                  ),
                 ),
               ),
-              SizedBox(height: 30),
-              Padding(
+
+              // Email and password
+
+              Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
+                height: 40,
                 child: TextFormField(
                   initialValue: email,
                   validator: (val) => (val!.contains('@') &
@@ -118,24 +130,54 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
               SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: TextFormField(
-                  initialValue: password,
-                  obscureText: true,
-                  validator: (val) => val!.length < 6
-                      ? 'Password length must be at least 6'
-                      : null,
-                  onChanged: (val) {
-                    password = val;
-                  },
-                  decoration: textInputDeco.copyWith(hintText: 'Password'),
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                child: Container(
+                  height: 40,
+                  child: TextFormField(
+                    initialValue: password,
+                    obscureText: !_showPassword,
+                    validator: (val) => val!.length < 6
+                        ? 'Password length must be at least 6'
+                        : null,
+                    onChanged: (val) {
+                      password = val;
+                    },
+                    decoration: textInputDeco.copyWith(
+                      hintText: 'Password',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          // Based on passwordVisible state choose the icon
+                          _showPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Theme.of(context).primaryColorDark,
+                        ),
+                        onPressed: () {
+                          // Update the state i.e. toogle the state of passwordVisible variable
+                          setState(() {
+                            _showPassword = !_showPassword;
+                          });
+                        },
+                      ),
+                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
                 ),
               ),
+
+              // Forgot password link
+
               SizedBox(
                 height: 40,
                 child: Center(
                   child: GestureDetector(
-                    onTap: () {},
+                    onTap: () async {
+                      if ((email.length < 6) | !email.contains('@'))
+                        showMsg(context, 'Enter a valid email');
+                      else {
+                        await _auth.sendPasswordResetEmail(email);
+                        showMsg(context, 'Sent password reset email to $email');
+                      }
+                    },
                     child: Text(
                       'Forgot Password',
                       style: TextStyle(
@@ -146,6 +188,9 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                   ),
                 ),
               ),
+
+              // Sign in button
+
               SizedBox(height: 10),
               SizedBox(
                 width: 300,
@@ -160,6 +205,9 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                   },
                 ),
               ),
+
+              // Sign in/up toggle
+
               SizedBox(
                 height: 40,
                 child: Center(
@@ -187,6 +235,9 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                   ),
                 ),
               ),
+
+              // Copyright line
+
               SizedBox(
                 height: 80,
                 child: Center(

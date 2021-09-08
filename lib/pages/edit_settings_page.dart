@@ -159,6 +159,12 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
 
                 Row(
                   children: [
+                    Text(
+                      settings.getSpeechRate() == settings.defSpeechRate
+                          ? ''
+                          : '* ',
+                      style: starStyle,
+                    ),
                     Text('Speech Rate', style: settingsTextStyle),
                     _infoIcon(topicSpeechRate),
                     Expanded(child: Container()),
@@ -180,8 +186,13 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                 // Mute Counting
 
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Text(
+                      settings.getMuteCounting() == settings.defMuteCounting
+                          ? ''
+                          : '* ',
+                      style: starStyle,
+                    ),
                     Text('Mute Counting', style: settingsTextStyle),
                     _infoIcon(topicMuteCounting),
                     Expanded(
@@ -202,6 +213,12 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
 
                 Row(
                   children: [
+                    Text(
+                      settings.getCountDuration() == settings.defCountDuration
+                          ? ''
+                          : '* ',
+                      style: starStyle,
+                    ),
                     Text('Count Duration', style: settingsTextStyle),
                     _infoIcon(topicCountDur),
                     Expanded(child: Container()),
@@ -225,6 +242,12 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                 SizedBox(height: 10),
                 Row(
                   children: [
+                    Text(
+                      settings.getGapRoutine() == settings.defGapRoutine
+                          ? ''
+                          : '* ',
+                      style: starStyle,
+                    ),
                     Text('Gap between exercises', style: settingsTextStyle),
                     _infoIcon(topicGapRoutine),
                     Expanded(child: Container()),
@@ -246,8 +269,11 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                 // Notify
 
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Text(
+                      settings.getNotify() == settings.defNotify ? '' : '* ',
+                      style: starStyle,
+                    ),
                     Text('Daily Notifications', style: settingsTextStyle),
                     _infoIcon(topicNotify),
                     Expanded(
@@ -263,6 +289,24 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                     ),
                   ],
                 ),
+
+                // Reset to defaults
+
+                SizedBox(height: 10),
+                ElevatedButton(
+                    onPressed: settings.allDefaults()
+                        ? null
+                        : () {
+                            settings.setSpeechRate(settings.defSpeechRate);
+                            settings.setMuteCounting(settings.defMuteCounting);
+                            settings
+                                .setCountDuration(settings.defCountDuration);
+                            settings.setGapRoutine(settings.defGapRoutine);
+                            settings.setNotify(settings.defNotify);
+                            Navigator.pop(context);
+                          },
+                    child: Text('Defaults')),
+                SizedBox(height: 20),
               ],
             ),
           ),
@@ -301,7 +345,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
         break;
       case topicMuteCounting:
         msg =
-            'If this is turned off, then every count is spoken aloud during the exercises. If this is turned on, then the counts are spoken aloud only in the first round, and round numbers are also not announced';
+            'If this is turned off, then every count is spoken aloud during the exercises. If this is turned on, then the counts are muted, and round numbers are also not announced';
         break;
       case topicCountDur:
         msg = 'Count duration is the gap between each count during an exercise';

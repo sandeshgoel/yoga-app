@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:volume_control/volume_control.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:upgrader/upgrader.dart';
 
 import 'package:yoga/pages/email_verify_page.dart';
 import 'package:yoga/services/auth.dart';
@@ -34,13 +35,16 @@ void callbackDispatcher() {
     // Read daily target and notify from settings
     YogaSettings settings = YogaSettings();
     String uid = inputData!['uid'];
-    var doc = await DBService(uid: uid).getUserData();
+    String email = inputData['email'];
+
+    var doc = await DBService(uid: uid, email: email).getUserData();
     var cfg = doc.data();
     if (cfg != null) settings.settingsFromJson(cfg);
 
     if (settings.getNotify()) {
       // Read activity
-      QuerySnapshot queryRef = await DBService(uid: uid).getUserActivityToday();
+      QuerySnapshot queryRef =
+          await DBService(uid: uid, email: email).getUserActivityToday();
       List<UserActivity> actList =
           queryRef.docs.map((doc) => UserActivity.fromJson(doc)).toList();
 
@@ -111,7 +115,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: Wrapper(),
+        home: UpgradeAlert(child: Wrapper()),
         debugShowCheckedModeBanner: false,
       ),
     );
@@ -177,7 +181,7 @@ class _WrapperState extends State<Wrapper> {
         '_rightAfterSignIn: Signed in user ${settings.getUser()}, reading DB now ...');
 
     // read rest of the settings from DB
-    var doc = await DBService(uid: user.uid).getUserData();
+    var doc = await DBService(uid: user.uid, email: user.email).getUserData();
     var cfg = doc.data();
     if (cfg != null)
       settings.settingsFromJson(cfg);
@@ -208,7 +212,7 @@ class _WrapperState extends State<Wrapper> {
 
     Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
     Workmanager().registerPeriodicTask("1", "yogaReminderTask",
-        inputData: {'uid': user.uid, 'name': userName},
+        inputData: {'uid': user.uid, 'email': user.email, 'name': userName},
         frequency: Duration(hours: 12),
         initialDelay: delay,
         existingWorkPolicy: ExistingWorkPolicy.replace);

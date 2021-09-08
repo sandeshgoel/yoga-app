@@ -349,7 +349,9 @@ class _CounterPageState extends State<CounterPage> {
               rounds,
               widget.routine)
           .toJson();
-      await DBService(uid: settings.getUser().uid).addUserActivity(act);
+      await DBService(
+              uid: settings.getUser().uid, email: settings.getUser().email)
+          .addUserActivity(act);
     }
   }
 

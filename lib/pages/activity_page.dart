@@ -70,7 +70,8 @@ class _ActivityPageState extends State<ActivityPage> {
 
   Future<List<UserActivity>> _activity() async {
     var settings = Provider.of<YogaSettings>(context);
-    QuerySnapshot queryRef = await DBService(uid: settings.getUser().uid)
+    QuerySnapshot queryRef = await DBService(
+            uid: settings.getUser().uid, email: settings.getUser().email)
         .getUserActivityDays(_totDays);
     return queryRef.docs
         .map((doc) => UserActivity.fromJson(doc.data()))

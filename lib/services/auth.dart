@@ -91,4 +91,8 @@ class AuthService {
     List<String> res = await _auth.fetchSignInMethodsForEmail(email);
     return res;
   }
+
+  Future sendPasswordResetEmail(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
 }

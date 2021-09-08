@@ -5,9 +5,10 @@ import 'package:collection/collection.dart';
 
 class DBService {
   final String uid;
+  final String email;
   static Map<String, dynamic> _lastCfg = {};
 
-  DBService({required this.uid});
+  DBService({required this.uid, required this.email});
 
 // -------------------------------------------------
 
@@ -15,8 +16,6 @@ class DBService {
       FirebaseFirestore.instance.collection('configs');
 
   Future updateUserData(cfg) async {
-    //print('NEW: $cfg');
-    //print('OLD: $_lastCfg');
     if (DeepCollectionEquality.unordered().equals(cfg, _lastCfg)) {
       print('updateUserData: config unchanged, skipping write to DB');
     } else {
@@ -78,7 +77,7 @@ class DBService {
     var startDateMidnight = lastMidnight.subtract(Duration(days: days));
     print('Reading from DB activity ...');
     return await actCollection
-        .where('uid', isEqualTo: uid)
+        .where('email', isEqualTo: email)
         .where('start', isGreaterThanOrEqualTo: startDateMidnight)
         .orderBy('start', descending: true)
         .get();

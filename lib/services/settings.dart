@@ -18,16 +18,21 @@ const exChandraBhedi = 'Chandra Bhedi';
 const exKapaalBhaati = 'Kapaal Bhaati';
 const exBhastrika = 'Bhastrika';
 const exShavasana = 'Shava Aasanaa';
+
 // standing exercises
 const exSuryaNamaskara = 'Surya Namaskara';
+const exSuryaNamaskaraFast = 'Surya Namaskara Fast';
 const exHandRotation = 'Arm Rotation';
+
 // sitting exercises
 const exNeckUpDown = 'Neck Up-Down';
 const exNeckRightLeft = 'Neck Right-Left';
 const exButterfly = 'Butterfly';
+const exSquat = 'Squat';
 const exPawanMukt = 'Pawan Mukt Aasanaa';
 const exMarkatasana = 'Markata Aasanaa';
 
+// Routine library
 List<Routine> gRoutineLib = [
   Routine('10 Minute Breathing', [
     Exercise(exDeepBreathing, 6),
@@ -56,7 +61,10 @@ List<Routine> gRoutineLib = [
   ]),
 ];
 
+// Exercise Library
 List<ConfigParam> gExerciseLib = [
+  // breathing
+
   ConfigParam(
       exAnulomVilom,
       ExCategory.breathing,
@@ -121,6 +129,25 @@ List<ConfigParam> gExerciseLib = [
       ],
       sameCount: true,
       altLeftRight: true),
+  ConfigParam(
+      exSuryaNamaskaraFast,
+      ExCategory.standing,
+      6,
+      [
+        Stage('Fold both hands', 2),
+        Stage('Hands above your head', 2),
+        Stage('Touch your feet', 2),
+        Stage('Right leg back', 2),
+        Stage('Mountain pose', 2),
+        Stage('Prone position', 2),
+        Stage('Cobra pose', 2),
+        Stage('Mountain pose', 2),
+        Stage('Left leg forward', 2),
+        Stage('Touch your feet', 2),
+        Stage('Hands above your head', 2),
+      ],
+      sameCount: true,
+      altLeftRight: true),
   ConfigParam(exHandRotation, ExCategory.standing, 10, [Stage('Rotate', 2)]),
   ConfigParam(exNeckUpDown, ExCategory.standing, 10,
       [Stage('Neck up', 2), Stage('Neck down', 2)]),
@@ -131,6 +158,7 @@ List<ConfigParam> gExerciseLib = [
 
   ConfigParam(
       exButterfly, ExCategory.sitting, 10, [Stage('Flap the knees', 4)]),
+  ConfigParam(exSquat, ExCategory.sitting, 4, [Stage('Squat', 10)]),
   ConfigParam(exPawanMukt, ExCategory.sitting, 4,
       [Stage('Lie down and hug your knees', 10)]),
   ConfigParam(exMarkatasana, ExCategory.sitting, 10,
@@ -328,21 +356,40 @@ class YogaSettings with ChangeNotifier {
     initSettings();
   }
 
+  // defaults
+  double defSpeechRate = 0.3;
+  int defCountDuration = 1800;
+  int defGapRoutine = 10;
+  bool defMuteCounting = true;
+  bool defNotify = true;
+
   void initSettings() {
     _user = UserInfo();
     _user.initUser();
 
     _voices = [];
     _speechVoice = '';
-    _speechRate = 0.3;
-    _countDuration = 1800;
     _dailyTarget = 10;
-    _gapRoutine = 5;
-    _muteCounting = false;
-    _notify = true;
+
+    _speechRate = defSpeechRate;
+    _countDuration = defCountDuration;
+    _gapRoutine = defGapRoutine;
+    _muteCounting = defMuteCounting;
+    _notify = defNotify;
 
     cps = [_exerciseLib[0]];
     routines = [];
+  }
+
+  bool allDefaults() {
+    if ((_speechRate == defSpeechRate) &
+        (_countDuration == defCountDuration) &
+        (_gapRoutine == defGapRoutine) &
+        (_muteCounting == defMuteCounting) &
+        (_notify = defNotify))
+      return true;
+    else
+      return false;
   }
 
   // ----------------------------------------------------
@@ -503,7 +550,7 @@ class YogaSettings with ChangeNotifier {
     print('**** Saving settings');
     prefs.setString('settings', value);
 
-    await DBService(uid: _user.uid).updateUserData(jval);
+    await DBService(uid: _user.uid, email: _user.email).updateUserData(jval);
   }
 
   void loadSettings() async {
