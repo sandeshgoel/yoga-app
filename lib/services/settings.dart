@@ -31,6 +31,7 @@ const exButterfly = 'Butterfly';
 const exSquat = 'Squat';
 const exPawanMukt = 'Pawan Mukt Aasanaa';
 const exMarkatasana = 'Markata Aasanaa';
+const exChakrasana = 'Chakra Aasanaa';
 
 // Routine library
 List<Routine> gRoutineLib = [
@@ -55,9 +56,10 @@ List<Routine> gRoutineLib = [
     Exercise(exSuryaNamaskara, 10),
   ]),
   Routine('Sitting Warm Up', [
+    Exercise(exSquat, 10),
     Exercise(exButterfly, 10),
     Exercise(exPawanMukt, 4),
-    Exercise(exMarkatasana, 10),
+    Exercise(exMarkatasana, 6),
   ]),
 ];
 
@@ -165,6 +167,8 @@ List<ConfigParam> gExerciseLib = [
       [Stage('Bend knees to the right and turn head to the left', 10)],
       altLeftRight: true,
       desc: 'Lie down on your back, hands to the side and bend your knees'),
+  ConfigParam(exChakrasana, ExCategory.sitting, 2,
+      [Stage('Lift your stomach in chakra aasanaa', 20), Stage('Release', 2)]),
 ];
 
 // ------------------------------------------------------

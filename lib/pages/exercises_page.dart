@@ -85,7 +85,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                 _exerciseSelected(context, ex.name);
               },
               child: Container(
-                height: 40,
+                padding: EdgeInsets.symmetric(vertical: 5),
                 decoration: boxDeco,
                 child: Center(
                     child: Column(

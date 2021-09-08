@@ -74,7 +74,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                   _routineSelected(context, r.name);
                 },
                 child: Container(
-                  height: 40,
+                  padding: EdgeInsets.symmetric(vertical: 5),
                   decoration: boxDeco,
                   child: Center(
                       child: Column(
