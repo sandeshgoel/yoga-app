@@ -42,10 +42,18 @@ class _RoutinesPageState extends State<RoutinesPage> {
   Widget _routineTile(YogaSettings settings, int index) {
     Routine r = settings.getRoutine(index);
     int totTime = 0;
+    bool error = false;
+
     for (int i = 0; i < r.exercises.length; i++) {
       int c = 0;
-      ConfigParam ex =
-          settings.getParam(settings.findParamIndex(r.exercises[i].name));
+      int exindex = settings.findParamIndex(r.exercises[i].name);
+      if (exindex == -1) {
+        //showMsg(context,
+        //    'Exercise ${r.exercises[i].name} not present, please add it');
+        error = true;
+        continue;
+      }
+      ConfigParam ex = settings.getParam(exindex);
       for (int j = 0; j < ex.stages.length; j++) {
         c += ex.stages[j].count;
       }
@@ -62,6 +70,8 @@ class _RoutinesPageState extends State<RoutinesPage> {
       countStar += 1;
     } else
       annotation = '';
+
+    if (error) annotation = 'E ';
 
     return Container(
         padding: EdgeInsets.fromLTRB(10, 10, 10, 0),

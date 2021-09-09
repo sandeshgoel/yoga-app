@@ -109,12 +109,25 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
       return;
     }
 
+    List<String> addedEx = [];
+    for (int i = 0; i < rl.exercises.length; i++) {
+      int index = settings.findParamIndex(rl.exercises[i].name);
+      if (index == -1) {
+        ConfigParam? ex = settings.getExerciseFromLib(rl.exercises[i].name);
+        settings.cps.add(ex!);
+        addedEx.add(ex.name);
+      }
+    }
+
     int pindex = settings.findRoutineIndex(cfg);
 
     settings.routines.removeAt(pindex);
     settings.routines.add(new Routine.fromJson(rl.toJson()));
     Navigator.pop(context);
-    showMsg(context, 'Routine \'$cfg\' reset to defaults from library');
+    showMsg(
+        context,
+        'Routine \'$cfg\' reset to defaults from library.\n\n' +
+            (addedEx.length > 0 ? 'Added exercises: $addedEx' : ''));
   }
 
   void _saveRoutine(context, cfg) {
@@ -133,27 +146,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
       }
     }
 
-    Routine cp = settings.getRoutine(pindex);
-    cp.name = values['routineName'];
-    for (var i = 0; i < cp.exercises.length; i++) {
-      String exName = values['name' + i.toString()];
-      int exIndex = settings.findParamIndex(exName);
-      if (exIndex == -1) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            content: Text(
-                'The exercise \'$exName\' doesn\'t exist, you can choose from existing exercises only!!'),
-            title: Text('ERROR'),
-          ),
-        );
-        return;
-      }
-      cp.exercises[i].name = exName;
-      cp.exercises[i].rounds = int.parse(values['rounds' + i.toString()]);
-    }
-    settings.setRoutine(pindex, cp);
-
+    Routine r = settings.getRoutine(pindex);
+    r.name = values['routineName'];
     Navigator.pop(context);
   }
 
@@ -175,17 +169,14 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     });
   }
 
-  Exercise _deleteExercise(cfg, i) {
-    var settings = Provider.of<YogaSettings>(context, listen: false);
-    var e;
+  void _deleteExercise(cfg, i) {
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
 
     setState(() {
-      var pindex = settings.findRoutineIndex(cfg);
-      Routine cp = settings.getRoutine(pindex);
-      e = cp.exercises.removeAt(i);
-      settings.setRoutine(pindex, cp);
+      int pindex = settings.findRoutineIndex(cfg);
+      Routine r = settings.getRoutine(pindex);
+      r.exercises.removeAt(i);
     });
-    return e;
   }
 
   List<Widget> _exerciseList(YogaSettings settings, String cfg) {
@@ -231,18 +222,22 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             Expanded(flex: 5, child: Container()),
             Expanded(
               flex: 50,
-              child: FormBuilderDropdown(
-                name: 'name$i',
-                initialValue: r.exercises[i].name,
-                items: settings.cps
-                    .map<DropdownMenuItem<String>>((ex) =>
-                        DropdownMenuItem<String>(
-                          value: ex.name,
-                          child: Text(ex.name,
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ))
-                    .toList(),
-              ),
+              child: DropdownButton<String>(
+                  value: r.exercises[i].name,
+                  //isExpanded: true,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      r.exercises[i].name = newValue!;
+                    });
+                  },
+                  items: settings.cps
+                      .map<DropdownMenuItem<String>>((ex) =>
+                          DropdownMenuItem<String>(
+                            value: ex.name,
+                            child: Text(ex.name,
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ))
+                      .toList()),
             ),
             Expanded(
               flex: 10,
@@ -258,12 +253,16 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             ),
             Expanded(
               flex: 10,
-              child: FormBuilderTextField(
-                name: 'rounds$i',
+              child: TextFormField(
                 initialValue: r.exercises[i].rounds.toString(),
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontWeight: FontWeight.bold),
+                onChanged: (val) {
+                  setState(() {
+                    r.exercises[i].rounds = int.parse(val);
+                  });
+                },
               ),
             ),
             Expanded(
@@ -294,6 +293,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
       );
     }
 
+    list += elist;
+    /*
     list.add(ReorderableListView.builder(
         itemBuilder: (_, i) {
           return elist[i];
@@ -302,9 +303,9 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
         //children: elist,
         shrinkWrap: true,
         onReorder: (int oldIndex, int newIndex) => {}
-//          _reorder(oldIndex, newIndex, cfg),
+          _reorder(oldIndex, newIndex, cfg),
         ));
-
+*/
     list.add(Container(
       padding: EdgeInsets.all(16),
       child: CircleAvatar(

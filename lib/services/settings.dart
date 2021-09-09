@@ -646,7 +646,6 @@ class YogaSettings with ChangeNotifier {
       if (cps[pindex].name == cfg) return pindex;
     }
     print('**** findParamIndex: $cfg not found');
-    print(cps);
     return -1;
   }
 
