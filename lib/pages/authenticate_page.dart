@@ -171,12 +171,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                 child: Center(
                   child: GestureDetector(
                     onTap: () async {
-                      if ((email.length < 6) | !email.contains('@'))
-                        showMsg(context, 'Enter a valid email');
-                      else {
-                        await _auth.sendPasswordResetEmail(email);
-                        showMsg(context, 'Sent password reset email to $email');
-                      }
+                      await _forgotHandler();
                     },
                     child: Text(
                       'Forgot Password',
@@ -252,6 +247,20 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
         ),
       ),
     );
+  }
+
+  Future _forgotHandler() async {
+    if ((email.length < 6) | !email.contains('@') | !email.contains('.'))
+      showMsg(context, '\'$email\' is not a valid email!!');
+    else {
+      List userAuthList = await _auth.checkEmail(email);
+      if (userAuthList.length == 0) {
+        showMsg(context, '\'$email\' is not registered, please sign up!!');
+      } else {
+        await _auth.sendPasswordResetEmail(email);
+        showMsg(context, 'Sent password reset email to $email');
+      }
+    }
   }
 
   Future _googleSignInHandler() async {
