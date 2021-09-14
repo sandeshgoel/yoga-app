@@ -178,7 +178,7 @@ class _WrapperState extends State<Wrapper> {
         user.emailVerified);
 
     print(
-        '_rightAfterSignIn: Signed in user ${settings.getUser()}, reading DB now ..');
+        '_rightAfterSignIn: Signed in user ${settings.getUser()}, reading DB now ...');
 
     // read rest of the settings from DB
     var doc = await DBService(uid: user.uid, email: user.email).getUserData();
