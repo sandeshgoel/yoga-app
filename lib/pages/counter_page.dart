@@ -42,9 +42,15 @@ class _CounterPageState extends State<CounterPage> {
   late Routine _routine;
   int _curExIndexInRoutine = 0;
 
+  late String _uid;
+  late String _email;
+
   @override
   void didChangeDependencies() {
-    var settings = Provider.of<YogaSettings>(context);
+    YogaSettings settings = Provider.of<YogaSettings>(context);
+    _uid = settings.getUser().uid;
+    _email = settings.getUser().email;
+
     if (widget.routine == '') {
       _curExerciseName = widget.exercise;
     } else {
@@ -64,17 +70,23 @@ class _CounterPageState extends State<CounterPage> {
   }
 
   @override
-  void dispose() {
+  Future dispose() async {
+    int duration = _totSeconds.toInt();
+    int rounds = _curRound;
+
     _timerClock.cancel();
     _am.pauseMusic();
     _tts.stop();
     Wakelock.disable();
+
     super.dispose();
+
+    await _saveActivity(duration, rounds, _uid, _email);
   }
 
   @override
   Widget build(BuildContext context) {
-    var settings = Provider.of<YogaSettings>(context);
+    YogaSettings settings = Provider.of<YogaSettings>(context);
 
     _tts.setSpeechRate(settings.getSpeechRate());
     _tts.setSpeechVoice(settings.getVoice());
@@ -114,20 +126,61 @@ class _CounterPageState extends State<CounterPage> {
                   widget.routine == ''
                       ? Container()
                       : Container(
-                          height: 40,
+                          height: 60,
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              Text(
-                                '$_curExerciseName',
-                                style: TextStyle(
-                                    fontSize: 24, fontWeight: FontWeight.bold),
+                              // Skip button
+
+                              CircleAvatar(
+                                child: IconButton(
+                                  onPressed: (_curExIndexInRoutine == 0)
+                                      ? null
+                                      : () {
+                                          setState(() {
+                                            _resetCounter();
+                                            _moveExerciseInRoutine(
+                                                settings, -1);
+                                          });
+                                        },
+                                  icon: Icon(Icons.skip_previous),
+                                ),
+                                backgroundColor: Colors.white,
                               ),
-                              Text(
-                                '  Exercise ${_curExIndexInRoutine + 1}/' +
-                                    '${_routine.exercises.length}',
-                                style: TextStyle(fontSize: 12),
-                              )
+
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '  Exercise ${_curExIndexInRoutine + 1}/' +
+                                        '${_routine.exercises.length}',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                  Text(
+                                    '$_curExerciseName',
+                                    style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              // Skip button
+
+                              CircleAvatar(
+                                child: IconButton(
+                                  onPressed: (_routine.exercises.length ==
+                                          _curExIndexInRoutine + 1)
+                                      ? null
+                                      : () {
+                                          setState(() {
+                                            _resetCounter();
+                                            _moveExerciseInRoutine(settings, 1);
+                                          });
+                                        },
+                                  icon: Icon(Icons.skip_next),
+                                ),
+                                backgroundColor: Colors.white,
+                              ),
                             ],
                           ),
                         ),
@@ -250,20 +303,53 @@ class _CounterPageState extends State<CounterPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      ElevatedButton(
-                          onPressed: () => _startTimer(), child: Text('Start')),
-                      ElevatedButton(
-                          onPressed: () {
-                            _paused = true;
-                          },
-                          child: Text('Pause')),
-                      ElevatedButton(
+                      // Reset button
+
+                      CircleAvatar(
+                        child: IconButton(
                           onPressed: () {
                             setState(() {
                               _resetCounter();
                             });
                           },
-                          child: Text('Reset')),
+                          icon: Icon(Icons.restart_alt),
+                        ),
+                        backgroundColor: Colors.white,
+                      ),
+
+                      // Play button
+
+                      CircleAvatar(
+                        child: IconButton(
+                          onPressed: !_paused ? null : () => _startTimer(),
+                          icon: Icon(Icons.play_arrow),
+                          iconSize: 40,
+                        ),
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.green,
+                        radius: 30,
+                      ),
+
+                      // Pause button
+
+                      CircleAvatar(
+                        child: IconButton(
+                          onPressed: _paused
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _paused = true;
+                                    _tts.stop();
+                                    _am.pauseMusic();
+                                  });
+                                },
+                          icon: Icon(Icons.pause),
+                          //iconSize: 40,
+                        ),
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.red,
+                        //radius: 30,
+                      ),
                     ],
                   ),
 
@@ -321,6 +407,17 @@ class _CounterPageState extends State<CounterPage> {
         barrierDismissible: false);
   }
 
+  Future _saveActivity(
+      int duration, int rounds, String uid, String email) async {
+    if (duration > 30) {
+      Map<String, dynamic> act = UserActivity(uid, email, _curExercise.name,
+              DateTime.now(), duration, rounds, widget.routine)
+          .toJson();
+      await DBService(uid: uid, email: email).addUserActivity(act);
+      print('Saved activity $email: ${_curExercise.name} $duration');
+    }
+  }
+
   void _resetCounter() async {
     int duration = _totSeconds.toInt();
     int rounds = _curRound;
@@ -330,33 +427,22 @@ class _CounterPageState extends State<CounterPage> {
       _curStage = 0;
       _curRound = 1;
       _totSeconds = 0;
-      if (widget.routine == '')
-        _totSecondsRoutine = 0;
-      else if (_curExIndexInRoutine + 1 == _routine.exercises.length)
-        _totSecondsRoutine = 0;
+      if (widget.routine == '') _totSecondsRoutine = 0;
+//      else if (_curExIndexInRoutine + 1 == _routine.exercises.length)
+//        _totSecondsRoutine = 0;
       _reset = true;
     });
 
-    if (duration > 30) {
-      var settings = Provider.of<YogaSettings>(context, listen: false);
-
-      Map<String, dynamic> act = UserActivity(
-              settings.getUser().uid,
-              settings.getUser().email,
-              _curExercise.name,
-              DateTime.now(),
-              duration,
-              rounds,
-              widget.routine)
-          .toJson();
-      await DBService(
-              uid: settings.getUser().uid, email: settings.getUser().email)
-          .addUserActivity(act);
-    }
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
+    await _saveActivity(
+        duration, rounds, settings.getUser().uid, settings.getUser().email);
   }
 
   void _startTimer() async {
     var settings = Provider.of<YogaSettings>(context, listen: false);
+    setState(() {
+      _paused = false;
+    });
 
     _am.startMusic();
     if (_reset) {
@@ -378,6 +464,7 @@ class _CounterPageState extends State<CounterPage> {
 
           await _tts.speak(context, msg);
           await Future.delayed(Duration(seconds: gap), () {});
+          if (_paused) return;
         }
       }
       msg =
@@ -406,7 +493,6 @@ class _CounterPageState extends State<CounterPage> {
 
     _timerClock = new Timer.periodic(
         Duration(milliseconds: settings.getCountDuration()), _handleTimeout);
-    _paused = false;
 
     if (_reset) {
       String stagename = _curExercise.stages[_curStage].name;
@@ -424,6 +510,15 @@ class _CounterPageState extends State<CounterPage> {
   void _pauseTimer(Timer t) {
     t.cancel();
     _am.pauseMusic();
+  }
+
+  void _moveExerciseInRoutine(YogaSettings settings, int step) {
+    _curExIndexInRoutine += step;
+    _curExerciseName = _routine.exercises[_curExIndexInRoutine].name;
+    _curExerciseIndex = settings.findParamIndex(_curExerciseName);
+    _curExercise = settings.getParam(_curExerciseIndex);
+
+    _totRounds = _routine.exercises[_curExIndexInRoutine].rounds;
   }
 
   void _handleTimeout(Timer t) {
@@ -460,14 +555,7 @@ class _CounterPageState extends State<CounterPage> {
 
             if (widget.routine != '') {
               if (_routine.exercises.length > _curExIndexInRoutine + 1) {
-                _curExIndexInRoutine += 1;
-                _curExerciseName =
-                    _routine.exercises[_curExIndexInRoutine].name;
-                _curExerciseIndex = settings.findParamIndex(_curExerciseName);
-                _curExercise = settings.getParam(_curExerciseIndex);
-
-                _totRounds = _routine.exercises[_curExIndexInRoutine].rounds;
-
+                _moveExerciseInRoutine(settings, 1);
                 _startTimer();
               } else {
                 msg = 'Your routine is complete!!\n' +

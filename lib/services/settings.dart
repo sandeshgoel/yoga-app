@@ -192,6 +192,13 @@ class Stage {
     this.name = json['name'];
     this.count = json['count'];
   }
+
+  bool equals(Stage s) {
+    if ((this.name == s.name) & (this.count == s.count))
+      return true;
+    else
+      return false;
+  }
 }
 
 // ------------------------------------------------------
@@ -242,6 +249,32 @@ class ConfigParam {
 
     return res;
   }
+
+  bool stagesEquals(List<Stage> stages) {
+    if (this.stages.length != stages.length) return false;
+    for (int i = 0; i < stages.length; i++) {
+      if (!this.stages[i].equals(stages[i])) return false;
+    }
+    return true;
+  }
+
+  bool equals(ConfigParam ex) {
+    if ((this.category == ex.category) &
+        (this.altLeftRight == ex.altLeftRight) &
+        (this.sameCount == ex.sameCount) &
+        (this.desc == ex.desc) &
+        this.stagesEquals(ex.stages))
+      return true;
+    else
+      return false;
+  }
+
+  bool equalsAll(ConfigParam ex) {
+    if (this.equals(ex) & (this.rounds == ex.rounds))
+      return true;
+    else
+      return false;
+  }
 }
 
 // ------------------------------------------------------
@@ -264,6 +297,13 @@ class Exercise {
   Exercise.fromJson(Map<String, dynamic> json) {
     this.name = json['name'];
     this.rounds = json['rounds'];
+  }
+
+  bool equals(Exercise ex) {
+    if ((this.name == ex.name) & (this.rounds == ex.rounds))
+      return true;
+    else
+      return false;
   }
 }
 
@@ -291,6 +331,14 @@ class Routine {
     this.name = json['name'];
     this.exercises =
         json['exercises'].map<Exercise>((x) => Exercise.fromJson(x)).toList();
+  }
+
+  bool equals(Routine r) {
+    if (this.exercises.length != r.exercises.length) return false;
+    for (int i = 0; i < r.exercises.length; i++) {
+      if (!this.exercises[i].equals(r.exercises[i])) return false;
+    }
+    return true;
   }
 }
 
@@ -336,6 +384,17 @@ class UserInfo {
     this.uid = json['uid'];
     this.photo = json['photo'];
     this.verified = json['verified'];
+  }
+
+  bool equals(UserInfo user) {
+    if ((this.name == user.name) &
+        (this.email == user.email) &
+        (this.uid == user.uid) &
+        (this.photo == user.photo) &
+        (this.verified == user.verified))
+      return true;
+    else
+      return false;
   }
 }
 
@@ -416,7 +475,7 @@ class YogaSettings with ChangeNotifier {
     return null;
   }
 
-  bool routineDiffInLib(String name) {
+  bool routineDiffInLibOld(String name) {
     Routine? rl = getRoutineFromLib(name);
 
     if (rl == null)
@@ -425,6 +484,17 @@ class YogaSettings with ChangeNotifier {
       Routine r = routines.firstWhere((element) => element.name == name);
       return (!DeepCollectionEquality.unordered()
           .equals(r.toJson(), rl.toJson()));
+    }
+  }
+
+  bool routineDiffInLib(String name) {
+    Routine? rl = getRoutineFromLib(name);
+
+    if (rl == null)
+      return true;
+    else {
+      Routine r = routines.firstWhere((element) => element.name == name);
+      return !r.equals(rl);
     }
   }
 
@@ -449,7 +519,7 @@ class YogaSettings with ChangeNotifier {
     return null;
   }
 
-  bool exerciseDiffInLib(String name) {
+  bool exerciseDiffInLibOld(String name) {
     ConfigParam? exl = getExerciseFromLib(name);
 
     if (exl == null)
@@ -461,6 +531,17 @@ class YogaSettings with ChangeNotifier {
       exJson.remove('rounds');
       exlJson.remove('rounds');
       return (!DeepCollectionEquality.unordered().equals(exJson, exlJson));
+    }
+  }
+
+  bool exerciseDiffInLib(String name) {
+    ConfigParam? exl = getExerciseFromLib(name);
+
+    if (exl == null)
+      return true;
+    else {
+      ConfigParam ex = getParam(findParamIndex(name));
+      return !ex.equals(exl);
     }
   }
 
@@ -554,7 +635,7 @@ class YogaSettings with ChangeNotifier {
     print('**** Saving settings');
     prefs.setString('settings', value);
 
-    await DBService(uid: _user.uid, email: _user.email).updateUserData(jval);
+    await DBService(uid: _user.uid, email: _user.email).updateUserData(this);
   }
 
   void loadSettings() async {
@@ -566,6 +647,38 @@ class YogaSettings with ChangeNotifier {
       Map<String, dynamic> jval = jsonDecode(value);
       if (jval['email'] == this._user.email) settingsFromJson(jval);
     }
+  }
+
+  bool cpsEquals(List<ConfigParam> cps) {
+    if (this.cps.length != cps.length) return false;
+    for (int i = 0; i < cps.length; i++) {
+      if (!this.cps[i].equalsAll(cps[i])) return false;
+    }
+    return true;
+  }
+
+  bool routinesEquals(List<Routine> routines) {
+    if (this.routines.length != routines.length) return false;
+    for (int i = 0; i < routines.length; i++) {
+      if (!this.routines[i].equals(routines[i])) return false;
+    }
+    return true;
+  }
+
+  bool equals(YogaSettings cfg) {
+    if (this._user.equals(cfg._user) &
+        (this._speechRate == cfg._speechRate) &
+        (this._speechVoice == cfg._speechVoice) &
+        (this._countDuration == cfg._countDuration) &
+        (this._dailyTarget == cfg._dailyTarget) &
+        (this._gapRoutine == cfg._gapRoutine) &
+        (this._muteCounting == cfg._muteCounting) &
+        (this._notify == cfg._notify) &
+        this.cpsEquals(cfg.cps) &
+        this.routinesEquals(cfg.routines))
+      return true;
+    else
+      return false;
   }
 
   // ----------------------------------------------------

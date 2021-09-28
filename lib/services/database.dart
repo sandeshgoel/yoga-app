@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
+import 'package:yoga/services/settings.dart';
 
 class DBService {
   final String uid;
@@ -15,13 +15,17 @@ class DBService {
   final CollectionReference cfgCollection =
       FirebaseFirestore.instance.collection('configs');
 
-  Future updateUserData(cfg) async {
-    if (DeepCollectionEquality.unordered().equals(cfg, _lastCfg)) {
+  Future updateUserData(YogaSettings cfg) async {
+    YogaSettings lastCfg = YogaSettings();
+    lastCfg.settingsFromJson(_lastCfg);
+
+    if (cfg.equals(lastCfg)) {
       print('updateUserData: config unchanged, skipping write to DB');
     } else {
       print('updateUserData: config changed, writing to DB ...');
-      _lastCfg = jsonDecode(jsonEncode(cfg));
-      return await cfgCollection.doc(uid).set(cfg);
+      Map<String, dynamic> jval = cfg.settingsToJson();
+      _lastCfg = jsonDecode(jsonEncode(jval)); // make a copy
+      await cfgCollection.doc(uid).set(jval);
     }
   }
 
