@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:collection/collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:yoga/services/settings.dart';
 
@@ -7,8 +7,33 @@ class DBService {
   final String uid;
   final String email;
   static Map<String, dynamic> _lastCfg = {};
+  static Map<String, dynamic> _lastShared = {};
 
   DBService({required this.uid, required this.email});
+
+// -------------------------------------------------
+
+  final CollectionReference sharedCollection =
+      FirebaseFirestore.instance.collection('shared');
+
+  Future updateShared(YogaSettings cfg) async {
+    Map<String, dynamic> shared = {'uid': cfg.getUser().uid, 'routines': []};
+
+    for (int i = 0; i < cfg.routines.length; i++) {
+      if (cfg.routines[i].shared) shared['routines'].add(cfg.routines[i].name);
+    }
+    if (DeepCollectionEquality.unordered().equals(shared, _lastShared)) {
+      print('updateShared: shared unchanged, skipping write to DB');
+    } else {
+      print('updateShared: shared changed, writing to DB ...');
+      _lastShared = jsonDecode(jsonEncode(shared));
+      await sharedCollection.doc(email).set(shared);
+    }
+  }
+
+  Future getShared() async {
+    return await sharedCollection.get();
+  }
 
 // -------------------------------------------------
 
@@ -32,6 +57,11 @@ class DBService {
   Future getUserData() async {
     print('Reading from DB configs ...');
     return await cfgCollection.doc(uid).get();
+  }
+
+  Future getOtherUserData(String otherUid) async {
+    print('Reading from DB configs ...');
+    return await cfgCollection.doc(otherUid).get();
   }
 
 // -------------------------------------------------

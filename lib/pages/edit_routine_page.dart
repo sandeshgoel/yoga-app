@@ -55,47 +55,89 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   Widget _editRoutinePage(context, cfg) {
     var settings = Provider.of<YogaSettings>(context, listen: false);
     Routine? rl = settings.getRoutineFromLib(cfg);
+    int rindex = settings.findRoutineIndex(cfg);
+    Routine r = settings.getRoutine(rindex);
 
     return FormBuilder(
       key: _formKey,
-      child: ListView(
-        children: <Widget>[
-              Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: FormBuilderTextField(
-                    name: 'routineName',
-                    initialValue: cfg,
-                    decoration: InputDecoration(
-                      labelText: 'Routine Name',
-                    ),
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  )),
-            ] +
-            _exerciseList(settings, cfg) +
-            [
-              Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                          onPressed: () => _saveRoutine(context, cfg),
-                          child: Text('Save')),
-                      ElevatedButton(
-                        onPressed: (rl == null)
-                            ? null
-                            : settings.routineDiffInLib(cfg) == false
-                                ? null
-                                : () => _loadDefault(cfg),
-                        child: Text('Defaults', style: settingsTextStyle),
+      child: SingleChildScrollView(
+        child: Container(
+          margin: EdgeInsets.symmetric(horizontal: 30),
+          child: Column(
+            children: <Widget>[
+                  // Routine name
+
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: FormBuilderTextField(
+                      name: 'routineName',
+                      initialValue: cfg,
+                      decoration: InputDecoration(
+                        labelText: 'Routine Name',
                       ),
-                      ElevatedButton(
-                          style: ElevatedButton.styleFrom(primary: Colors.red),
-                          onPressed: () => _deleteRoutine(context, cfg),
-                          child: Text('Delete')),
-                    ],
-                  )),
-            ],
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+
+                  // Shared
+
+                  settings.getRoutineFromLib(cfg) == null
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('Shared ', style: settingsTextStyle),
+                            Expanded(child: Container()),
+                            Switch(
+                              value: r.shared,
+                              onChanged: (val) {
+                                setState(() {
+                                  r.shared = val;
+                                });
+                              },
+                            ),
+                          ],
+                        )
+                      : Container(
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                          alignment: Alignment.centerLeft,
+                          child: Text('Library Routine, can\'t be shared',
+                              style: settingsTextStyle),
+                        )
+                ] +
+
+                // Exercise List
+
+                _exerciseList(settings, cfg) +
+                [
+                  // Buttons
+
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                            onPressed: () => _saveRoutine(context, cfg),
+                            child: Text('Save')),
+                        ElevatedButton(
+                          onPressed: (rl == null)
+                              ? null
+                              : settings.routineDiffInLib(cfg) == false
+                                  ? null
+                                  : () => _loadDefault(cfg),
+                          child: Text('Defaults', style: settingsTextStyle),
+                        ),
+                        ElevatedButton(
+                            style:
+                                ElevatedButton.styleFrom(primary: Colors.red),
+                            onPressed: () => _deleteRoutine(context, cfg),
+                            child: Text('Delete')),
+                      ],
+                    ),
+                  ),
+                ],
+          ),
+        ),
       ),
     );
   }
@@ -181,11 +223,12 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
   List<Widget> _exerciseList(YogaSettings settings, String cfg) {
     List<Widget> list = [];
-    int pindex = settings.findRoutineIndex(cfg);
-    Routine r = settings.getRoutine(pindex);
+    int rindex = settings.findRoutineIndex(cfg);
+    Routine r = settings.getRoutine(rindex);
     Routine? rl = settings.getRoutineFromLib(cfg);
 
-    list.add(Container(
+    list.add(
+      Container(
         padding: EdgeInsets.all(16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -202,7 +245,9 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                         : '',
                 style: starStyle),
           ],
-        )));
+        ),
+      ),
+    );
 
     List<Widget> elist = [];
     for (var i = 0; i < r.exercises.length; i++) {
@@ -211,7 +256,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
           key: Key('$i'),
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Expanded(flex: 3, child: Container()),
+            //Expanded(flex: 3, child: Container()),
             Expanded(
               flex: 10,
               child: IconButton(
@@ -219,24 +264,23 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                 onPressed: () => {},
               ),
             ),
-            Expanded(flex: 4, child: Container()),
+            Expanded(flex: 5, child: Container()),
             Expanded(
-              flex: 50,
+              flex: 55,
               child: DropdownButton<String>(
                   value: r.exercises[i].name,
-                  //isExpanded: true,
+                  isExpanded: true,
                   onChanged: (String? newValue) {
                     setState(() {
                       r.exercises[i].name = newValue!;
                     });
                   },
                   items: settings.cps
-                      .map<DropdownMenuItem<String>>((ex) =>
-                          DropdownMenuItem<String>(
-                            value: ex.name,
-                            child: Text(ex.name,
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                          ))
+                      .map<DropdownMenuItem<String>>(
+                          (ex) => DropdownMenuItem<String>(
+                                value: ex.name,
+                                child: Text(ex.name, style: settingsTextStyle),
+                              ))
                       .toList()),
             ),
             Expanded(
@@ -257,7 +301,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                 initialValue: r.exercises[i].rounds.toString(),
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: settingsTextStyle,
                 onChanged: (val) {
                   setState(() {
                     r.exercises[i].rounds = int.parse(val);
@@ -287,35 +331,33 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                       onPressed: () => _deleteExercise(cfg, i),
                     ),
             ),
-            Expanded(flex: 3, child: Container()),
+            //Expanded(flex: 3, child: Container()),
           ],
         ),
       );
     }
 
-    //list += elist;
+    list.add(
+      ReorderableListView(
+        children: elist,
+        shrinkWrap: true,
+        onReorder: (int oldIndex, int newIndex) =>
+            _reorder(oldIndex, newIndex, cfg),
+      ),
+    );
 
-    list.add(ReorderableListView.builder(
-      itemBuilder: (_, i) {
-        return elist[i];
-      },
-      itemCount: elist.length,
-      //children: elist,
-      shrinkWrap: true,
-      onReorder: (int oldIndex, int newIndex) =>
-          _reorder(oldIndex, newIndex, cfg),
-    ));
-
-    list.add(Container(
-      padding: EdgeInsets.all(16),
-      child: CircleAvatar(
-        child: IconButton(
-          icon: Icon(Icons.add),
-          onPressed: () => _addExercise(context, cfg),
-          tooltip: 'Add Exercise',
+    list.add(
+      Container(
+        padding: EdgeInsets.all(16),
+        child: CircleAvatar(
+          child: IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () => _addExercise(context, cfg),
+            tooltip: 'Add Exercise',
+          ),
         ),
       ),
-    ));
+    );
 
     return list;
   }

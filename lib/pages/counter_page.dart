@@ -119,74 +119,13 @@ class _CounterPageState extends State<CounterPage> {
             SingleChildScrollView(
               child: Column(
                 children: [
-                  SizedBox(height: 20),
-
                   // Exercise name
-
-                  widget.routine == ''
-                      ? Container()
-                      : Container(
-                          height: 60,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              // Skip button
-
-                              CircleAvatar(
-                                child: IconButton(
-                                  onPressed: (_curExIndexInRoutine == 0)
-                                      ? null
-                                      : () {
-                                          setState(() {
-                                            _resetCounter();
-                                            _moveExerciseInRoutine(
-                                                settings, -1);
-                                          });
-                                        },
-                                  icon: Icon(Icons.skip_previous),
-                                ),
-                                backgroundColor: Colors.white,
-                              ),
-
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    '  Exercise ${_curExIndexInRoutine + 1}/' +
-                                        '${_routine.exercises.length}',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                  Text(
-                                    '$_curExerciseName',
-                                    style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                              // Skip button
-
-                              CircleAvatar(
-                                child: IconButton(
-                                  onPressed: (_routine.exercises.length ==
-                                          _curExIndexInRoutine + 1)
-                                      ? null
-                                      : () {
-                                          setState(() {
-                                            _resetCounter();
-                                            _moveExerciseInRoutine(settings, 1);
-                                          });
-                                        },
-                                  icon: Icon(Icons.skip_next),
-                                ),
-                                backgroundColor: Colors.white,
-                              ),
-                            ],
-                          ),
-                        ),
+                  SizedBox(height: 20),
+                  widget.routine == '' ? Container() : _exerciseName(settings),
 
                   // info
 
+                  SizedBox(height: 20),
                   ElevatedButton(
                       onPressed: () {
                         _infoExercise(_curExerciseName);
@@ -371,6 +310,77 @@ class _CounterPageState extends State<CounterPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _exerciseName(YogaSettings settings) {
+    return Container(
+      //height: 60,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // Skip previous button
+
+          Flexible(
+            flex: 20,
+            child: CircleAvatar(
+              child: IconButton(
+                onPressed: (_curExIndexInRoutine == 0)
+                    ? null
+                    : () {
+                        setState(() {
+                          _resetCounter();
+                          _moveExerciseInRoutine(settings, -1);
+                        });
+                      },
+                icon: Icon(Icons.skip_previous),
+              ),
+              backgroundColor: Colors.white,
+            ),
+          ),
+
+          // Exercise name
+
+          Flexible(
+            flex: 60,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '  Exercise ${_curExIndexInRoutine + 1}/' +
+                      '${_routine.exercises.length}',
+                  style: TextStyle(fontSize: 12),
+                ),
+                Text(
+                  '$_curExerciseName',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+
+          // Skip next button
+
+          Flexible(
+            flex: 20,
+            child: CircleAvatar(
+              child: IconButton(
+                onPressed:
+                    (_routine.exercises.length == _curExIndexInRoutine + 1)
+                        ? null
+                        : () {
+                            setState(() {
+                              _resetCounter();
+                              _moveExerciseInRoutine(settings, 1);
+                            });
+                          },
+                icon: Icon(Icons.skip_next),
+              ),
+              backgroundColor: Colors.white,
+            ),
+          ),
+        ],
       ),
     );
   }

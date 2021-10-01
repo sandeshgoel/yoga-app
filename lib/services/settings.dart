@@ -312,18 +312,20 @@ class Exercise {
 class Routine {
   late String name;
   late List<Exercise> exercises;
+  bool shared = false;
 
   Routine(this.name, this.exercises);
 
   @override
   String toString() {
-    return '{$name, exercises: $exercises}\n';
+    return '{$name, $shared, exercises: $exercises}\n';
   }
 
   Map<String, dynamic> toJson() {
     return {
       'name': this.name,
-      'exercises': this.exercises.map((x) => x.toJson()).toList()
+      'exercises': this.exercises.map((x) => x.toJson()).toList(),
+      'shared': this.shared,
     };
   }
 
@@ -331,6 +333,7 @@ class Routine {
     this.name = json['name'];
     this.exercises =
         json['exercises'].map<Exercise>((x) => Exercise.fromJson(x)).toList();
+    this.shared = json['shared'] ?? false;
   }
 
   bool equals(Routine r) {
@@ -636,6 +639,7 @@ class YogaSettings with ChangeNotifier {
     prefs.setString('settings', value);
 
     await DBService(uid: _user.uid, email: _user.email).updateUserData(this);
+    await DBService(uid: _user.uid, email: _user.email).updateShared(this);
   }
 
   void loadSettings() async {

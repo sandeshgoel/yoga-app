@@ -14,11 +14,13 @@ class RoutinesPage extends StatefulWidget {
 }
 
 class _RoutinesPageState extends State<RoutinesPage> {
+  int countPlusPlus = 0;
   int countPlus = 0;
   int countStar = 0;
 
   @override
   Widget build(BuildContext context) {
+    countPlusPlus = 0;
     countPlus = 0;
     countStar = 0;
 
@@ -63,8 +65,13 @@ class _RoutinesPageState extends State<RoutinesPage> {
 
     String annotation;
     if (settings.getRoutineFromLib(r.name) == null) {
-      annotation = '+ ';
-      countPlus += 1;
+      if (r.shared) {
+        annotation = '++ ';
+        countPlusPlus += 1;
+      } else {
+        annotation = '+ ';
+        countPlus += 1;
+      }
     } else if (settings.routineDiffInLib(r.name)) {
       annotation = '* ';
       countStar += 1;
@@ -141,7 +148,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
       child: Column(
         children: rlist +
             [
-              (countStar + countPlus) == 0
+              (countStar + countPlus + countPlusPlus) == 0
                   ? Container()
                   : Card(
                       margin: EdgeInsets.fromLTRB(10, 20, 10, 0),
@@ -151,6 +158,18 @@ class _RoutinesPageState extends State<RoutinesPage> {
                         margin: EdgeInsets.all(5),
                         child: Column(
                           children: [
+                            countPlusPlus == 0
+                                ? Container()
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text('++ ', style: starStyle),
+                                      Text('indicates a shared custom routine',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              fontStyle: FontStyle.italic)),
+                                    ],
+                                  ),
                             countPlus == 0
                                 ? Container()
                                 : Row(

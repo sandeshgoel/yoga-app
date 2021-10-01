@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:yoga/pages/activity_page.dart';
 import 'package:yoga/pages/exercises_page.dart';
 import 'package:yoga/pages/routines_page.dart';
+import 'package:yoga/pages/social_page.dart';
 
 import 'package:yoga/services/auth.dart';
 import 'package:yoga/services/settings.dart';
@@ -29,13 +30,14 @@ class _MyHomePageState extends State<MyHomePage> {
   final _skey1 = GlobalKey();
   final _skey2 = GlobalKey();
   final _skey3 = GlobalKey();
+  final _skey4 = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
     return Consumer<YogaSettings>(builder: (context, settings, _) {
       return DefaultTabController(
         initialIndex: 0,
-        length: 3,
+        length: 4,
         child: ShowCaseWidget(
           builder: Builder(builder: (context) {
             return Scaffold(
@@ -45,8 +47,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     icon: Icon(Icons.help_rounded),
                     onPressed: () {
                       setState(() {
-                        ShowCaseWidget.of(context)!
-                            .startShowCase([_skey0, _skey1, _skey2, _skey3]);
+                        ShowCaseWidget.of(context)!.startShowCase(
+                            [_skey0, _skey1, _skey2, _skey3, _skey4]);
                       });
                     },
                   ),
@@ -54,10 +56,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 title: Text('Welcome: ${settings.getUser().name}',
                     style: TextStyle(fontSize: 18)),
                 leading: Showcase(
-                  key: _skey3,
+                  key: _skey4,
                   description:
                       'Click here to access the settings menu, or logout from the application',
-                  //overlayPadding: EdgeInsets.all(2),
+                  overlayPadding: EdgeInsets.fromLTRB(-5, 0, 5, 0),
                   contentPadding: EdgeInsets.all(20),
                   shapeBorder: CircleBorder(),
                   child: _popupMenu(settings),
@@ -70,7 +72,12 @@ class _MyHomePageState extends State<MyHomePage> {
                           'First tab lists exercises.\n\nYou can add new exercises using the add button at the bottom. Choose from a library of predefined exercises, or create your own custom exercise',
                       overlayPadding: EdgeInsets.symmetric(horizontal: 15),
                       contentPadding: EdgeInsets.all(20),
-                      child: Tab(text: 'Exercises'),
+                      child: Tab(
+                        child: Text(
+                          'Exercises',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
                     ),
                     Showcase(
                       key: _skey1,
@@ -78,15 +85,38 @@ class _MyHomePageState extends State<MyHomePage> {
                           'Second tab lists routines, a routine is a sequence of exercises.\n\nYou can add new routines using the add button at the bottom. Choose from a library of predefined routines, or create your own custom routine',
                       overlayPadding: EdgeInsets.symmetric(horizontal: 15),
                       contentPadding: EdgeInsets.all(20),
-                      child: Tab(text: 'Routines'),
+                      child: Tab(
+                        child: Text(
+                          'Routines',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
                     ),
                     Showcase(
                       key: _skey2,
                       description:
-                          'The last tab shows your activity and your progress relative to the target you have set',
+                          'Third tab shows your activity and your progress relative to the target you have set',
                       overlayPadding: EdgeInsets.symmetric(horizontal: 15),
                       contentPadding: EdgeInsets.all(20),
-                      child: Tab(text: 'Activity'),
+                      child: Tab(
+                        child: Text(
+                          'Activity',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ),
+                    Showcase(
+                      key: _skey3,
+                      description:
+                          'The last tab shows shared routines by other users',
+                      overlayPadding: EdgeInsets.symmetric(horizontal: 15),
+                      contentPadding: EdgeInsets.all(20),
+                      child: Tab(
+                        child: Text(
+                          'Social',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -106,6 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ExercisesPage(),
                       RoutinesPage(),
                       ActivityPage(),
+                      SocialPage(),
                     ],
                   ),
                 ],
