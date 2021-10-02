@@ -192,6 +192,7 @@ class _WrapperState extends State<Wrapper> {
       settings.setVoice(
           filterVoices.length > 7 ? filterVoices[7] : filterVoices[0]);
 
+    settings.addExercisesNotPresent();
     // save all settings back to DB
     settings.saveSettings();
 

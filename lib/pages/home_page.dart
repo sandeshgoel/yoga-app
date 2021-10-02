@@ -69,12 +69,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     Showcase(
                       key: _skey0,
                       description:
-                          'First tab lists exercises.\n\nYou can add new exercises using the add button at the bottom. Choose from a library of predefined exercises, or create your own custom exercise',
+                          'First tab lists routines, a routine is a sequence of exercises.\n\nYou can add new routines using the add button at the bottom. Choose from a library of predefined routines, or create your own custom routine',
                       overlayPadding: EdgeInsets.symmetric(horizontal: 15),
                       contentPadding: EdgeInsets.all(20),
                       child: Tab(
                         child: Text(
-                          'Exercises',
+                          'Routines',
                           style: TextStyle(fontSize: 12),
                         ),
                       ),
@@ -82,12 +82,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     Showcase(
                       key: _skey1,
                       description:
-                          'Second tab lists routines, a routine is a sequence of exercises.\n\nYou can add new routines using the add button at the bottom. Choose from a library of predefined routines, or create your own custom routine',
+                          'Second tab lists exercises.\n\nYou can add new exercises using the add button at the bottom. Choose from a library of predefined exercises, or create your own custom exercise',
                       overlayPadding: EdgeInsets.symmetric(horizontal: 15),
                       contentPadding: EdgeInsets.all(20),
                       child: Tab(
                         child: Text(
-                          'Routines',
+                          'Exercises',
                           style: TextStyle(fontSize: 12),
                         ),
                       ),
@@ -133,8 +133,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   TabBarView(
                     children: [
-                      ExercisesPage(),
                       RoutinesPage(),
+                      ExercisesPage(),
                       ActivityPage(),
                       SocialPage(),
                     ],

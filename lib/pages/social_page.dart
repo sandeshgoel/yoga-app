@@ -12,15 +12,17 @@ class SharedInfo {
   late String photo;
   late List<dynamic> routines;
   late List<Routine> routineDetails;
+  late List<ConfigParam> exercises;
 
   SharedInfo(String email, String uid, List<dynamic> routines, String name,
-      String photo, List<Routine> routineDetails) {
+      String photo, List<Routine> routineDetails, List<ConfigParam> exercises) {
     this.email = email;
     this.uid = uid;
     this.routines = routines;
     this.name = name;
     this.photo = photo;
     this.routineDetails = routineDetails;
+    this.exercises = exercises;
   }
 
   @override
@@ -58,7 +60,8 @@ class _SocialPageState extends State<SocialPage> {
           doc.get('routines'),
           settings1.getUser().name,
           settings1.getUser().photo,
-          settings1.routines));
+          settings1.routines,
+          settings1.cps));
     }
     return shList;
   }
@@ -205,6 +208,15 @@ class _SocialPageState extends State<SocialPage> {
     if (rindex == -1) {
       for (int i = 0; i < e.routineDetails.length; i++)
         if (e.routineDetails[i].name == r) {
+          for (int j = 0; j < e.routineDetails[i].exercises.length; j++) {
+            String ename = e.routineDetails[i].exercises[j].name;
+            if (settings.findParamIndex(ename) == -1) {
+              ConfigParam newEx =
+                  e.exercises.firstWhere((element) => element.name == ename);
+              settings.addParam(newEx);
+              print('Added exercise $ename');
+            }
+          }
           settings.addRoutine(e.routineDetails[i]);
           Navigator.pop(context);
           showMsg(context, 'Routine \'$r\' imported!!');

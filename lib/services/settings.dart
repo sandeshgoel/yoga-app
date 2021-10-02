@@ -35,6 +35,10 @@ const exChakrasana = 'Chakra Aasanaa';
 
 // Routine library
 List<Routine> gRoutineLib = [
+  Routine('5 Minute Sampler', [
+    Exercise(exAnulomVilom, 4),
+    Exercise(exSheetkari, 4),
+  ]),
   Routine('10 Minute Breathing', [
     Exercise(exDeepBreathing, 6),
     Exercise(exBhramari, 6),
@@ -443,8 +447,8 @@ class YogaSettings with ChangeNotifier {
     _muteCounting = defMuteCounting;
     _notify = defNotify;
 
-    cps = [_exerciseLib[0]];
-    routines = [];
+    cps = [];
+    routines = [_routineLib[0]];
   }
 
   bool allDefaults() {
@@ -854,5 +858,18 @@ class YogaSettings with ChangeNotifier {
       if (exerciseNotPresent(r.exercises[i].name)) np.add(r.exercises[i].name);
     }
     return np;
+  }
+
+  void addExercisesNotPresent() {
+    for (int i = 0; i < routines.length; i++) {
+      List<String> np = exercisesNotPresent(routines[i]);
+      for (int j = 0; j < np.length; j++) {
+        ConfigParam? ex = getExerciseFromLib(np[j]);
+        if (ex != null)
+          addParam(ex);
+        else
+          print('Exercise ${np[j]} not found!!');
+      }
+    }
   }
 }
