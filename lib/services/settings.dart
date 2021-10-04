@@ -811,14 +811,22 @@ class YogaSettings with ChangeNotifier {
     return -1;
   }
 
-  void removeRoutine(String cfg) {
+  List<String> removeRoutine(String cfg) {
     int index = findRoutineIndex(cfg);
+    List<String> delEx = [];
+
     if (index >= 0) {
+      for (int i = 0; i < routines[index].exercises.length; i++) {
+        Exercise e = routines[index].exercises[i];
+        if (routinesWhichInclude(e.name).length <= 1) delEx.add(e.name);
+      }
+
       routines.removeAt(index);
       notifyListeners();
     } else {
       print('removeRoutine $cfg: not found');
     }
+    return delEx;
   }
 
   Routine getRoutine(int index) {

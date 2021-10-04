@@ -60,3 +60,14 @@ String obfuscate(String s) {
 
   return r;
 }
+
+String swapLeftRight(String stagename) {
+  List<String> words = stagename.split(' ');
+  for (var i = 0; i < words.length; i++) {
+    if (words[i].toLowerCase() == 'left')
+      words[i] = 'right';
+    else if (words[i].toLowerCase() == 'right') words[i] = 'left';
+  }
+  stagename = words.join(' ');
+  return stagename;
+}

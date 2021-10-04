@@ -9,6 +9,7 @@ import 'package:yoga/services/tts.dart';
 import 'package:yoga/services/audio.dart';
 import 'package:yoga/services/settings.dart';
 import 'package:yoga/services/user_activity.dart';
+import 'package:yoga/shared/constants.dart';
 
 class CounterPage extends StatefulWidget {
   final String exercise;
@@ -28,6 +29,8 @@ class _CounterPageState extends State<CounterPage> {
   double _totSeconds = 0;
   double _totSecondsRoutine = 0;
   bool _paused = true;
+  bool _pausePressed = false;
+  bool _playAfterPause = false;
   bool _reset = true;
   Timer _timerClock = Timer(Duration(milliseconds: 100), () {});
   Tts _tts = Tts();
@@ -182,7 +185,9 @@ class _CounterPageState extends State<CounterPage> {
                     ),
                     child: Center(
                         child: Text(
-                      _curExercise.stages[_curStage].name,
+                      (_curExercise.altLeftRight & (_curRound % 2 == 0))
+                          ? swapLeftRight(_curExercise.stages[_curStage].name)
+                          : _curExercise.stages[_curStage].name,
                       style: TextStyle(fontSize: 30),
                     )),
                   ),
@@ -278,6 +283,7 @@ class _CounterPageState extends State<CounterPage> {
                               : () {
                                   setState(() {
                                     _paused = true;
+                                    _pausePressed = true;
                                     _tts.stop();
                                     _am.pauseMusic();
                                   });
@@ -452,6 +458,10 @@ class _CounterPageState extends State<CounterPage> {
     var settings = Provider.of<YogaSettings>(context, listen: false);
     setState(() {
       _paused = false;
+      if (_pausePressed) {
+        _pausePressed = false;
+        _playAfterPause = true;
+      }
     });
 
     _am.startMusic();
@@ -459,7 +469,7 @@ class _CounterPageState extends State<CounterPage> {
       String msg = '';
       int gap = settings.getGapRoutine();
 
-      if (widget.routine != '') {
+      if ((widget.routine != '') & !_playAfterPause) {
         if (_curExIndexInRoutine == 0) {
           msg = 'This routine has ${_routine.exercises.length} exercises. ';
           msg += 'We will take a break of $gap seconds after each exercise. ';
@@ -477,6 +487,8 @@ class _CounterPageState extends State<CounterPage> {
           if (_paused) return;
         }
       }
+      _playAfterPause = false;
+
       msg =
           "The next exercise has $_totRounds rounds of ${_curExercise.name}. ";
       msg += "Each round has ${_curExercise.stages.length} ";
@@ -639,13 +651,7 @@ class _CounterPageState extends State<CounterPage> {
 
         // swap let and right, if needed
         if (_curExercise.altLeftRight & (_curRound % 2 == 0)) {
-          List<String> words = stagename.split(' ');
-          for (var i = 0; i < words.length; i++) {
-            if (words[i].toLowerCase() == 'left')
-              words[i] = 'right';
-            else if (words[i].toLowerCase() == 'right') words[i] = 'left';
-          }
-          stagename = words.join(' ');
+          stagename = swapLeftRight(stagename);
         }
 
         msg += stagename + ' . ' + postmsg;

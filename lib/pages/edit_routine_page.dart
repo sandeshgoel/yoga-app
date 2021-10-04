@@ -196,8 +196,40 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
   void _deleteRoutine(context, cfg) {
     var settings = Provider.of<YogaSettings>(context, listen: false);
 
-    settings.removeRoutine(cfg);
-    Navigator.pop(context);
+    List<String> delEx = settings.removeRoutine(cfg);
+
+    if (delEx.length > 0)
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          content: Text(
+              'Following exercises were only used in this routine:\n' +
+                  delEx.map((e) => '  - $e').join('\n') +
+                  '\n\nDo you want to delete these exercises too?'),
+          title: Text('Message'),
+          actions: [
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: Text('NO')),
+            ElevatedButton(
+                onPressed: () {
+                  delEx.forEach((e) {
+                    print('Removing $e');
+                    settings.removeParam(e);
+                  });
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: Text('OK')),
+          ],
+        ),
+        barrierDismissible: false,
+      );
+    else
+      Navigator.pop(context);
   }
 
   void _addExercise(context, cfg) {
