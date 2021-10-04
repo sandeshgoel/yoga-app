@@ -341,6 +341,7 @@ class Routine {
   }
 
   bool equals(Routine r) {
+    if (this.shared != r.shared) return false;
     if (this.exercises.length != r.exercises.length) return false;
     for (int i = 0; i < r.exercises.length; i++) {
       if (!this.exercises[i].equals(r.exercises[i])) return false;
