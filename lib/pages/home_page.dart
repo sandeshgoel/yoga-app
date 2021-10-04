@@ -84,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       description:
                           'Second tab lists exercises.\n\nYou can add new exercises using the add button at the bottom. Choose from a library of predefined exercises, or create your own custom exercise',
                       overlayPadding: EdgeInsets.symmetric(horizontal: 15),
-                      contentPadding: EdgeInsets.all(20),
+                      contentPadding: EdgeInsets.all(50),
                       child: Tab(
                         child: Text(
                           'Exercises',

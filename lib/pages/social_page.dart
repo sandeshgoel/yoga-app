@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -78,19 +80,114 @@ class _SocialPageState extends State<SocialPage> {
             List<SharedInfo> shList = snapshot.data!;
             List<Widget> children = [];
 
+            shList
+                .sort((a, b) => b.routines.length.compareTo(a.routines.length));
+
             for (SharedInfo e in shList) {
               print('${e.email}: ${e.name} ${e.routines}');
               if (e.routines.length > 0) children.add(_socialCard(e));
             }
 
-            ret = GridView.count(
-              crossAxisCount: 3,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              padding: EdgeInsets.all(20),
-              children: children,
+            ret = SingleChildScrollView(
+              child: Column(
+                children: [
+                  Card(
+                    margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    color: Colors.white.withOpacity(0.9),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0)),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 10),
+                        Container(
+                          width: double.infinity,
+                          child: Text('Top Sharers',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          alignment: Alignment.center,
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    padding: EdgeInsets.all(20),
+                    children: children,
+                  ),
+                  Card(
+                    margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    color: Colors.white.withOpacity(0.9),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0)),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 10),
+                        Container(
+                          width: double.infinity,
+                          child: Text('Friends',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          alignment: Alignment.center,
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+                  Card(
+                    margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    color: Colors.white.withOpacity(0.9),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0)),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 10),
+                        Container(
+                          width: double.infinity,
+                          child: Text('Friend Requests',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          alignment: Alignment.center,
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             );
+          } else if (snapshot.hasError) {
+            ret = Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  const Icon(
+                    Icons.error_outline,
+                    color: Colors.red,
+                    size: 60,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Text('Error: ${snapshot.error}'),
+                  )
+                ]);
+          } else {
+            ret = Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(height: 60),
+                  SizedBox(
+                    child: CircularProgressIndicator(),
+                    width: 60,
+                    height: 60,
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 16),
+                    child: Text('Awaiting result...'),
+                  )
+                ]);
           }
+
           return ret;
         });
   }
@@ -106,30 +203,61 @@ class _SocialPageState extends State<SocialPage> {
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
         child: Column(
           children: [
-            Expanded(flex: 5, child: Container()),
+            Expanded(flex: 7, child: Container()),
             Expanded(
               flex: 60,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(width: 2, color: Colors.blue),
-                  image: DecorationImage(
-                      fit: BoxFit.contain,
-                      image: (e.photo == '')
-                          ? AssetImage("assets/icon/yoga_icon_circular.png")
-                              as ImageProvider
-                          : NetworkImage(e.photo)),
-                ),
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(width: 2, color: Colors.blue),
+                      image: DecorationImage(
+                        fit: BoxFit.contain,
+                        image: (e.photo == '')
+                            ? AssetImage("assets/icon/yoga_icon_circular.png")
+                                as ImageProvider
+                            : NetworkImage(e.photo),
+                      ),
+                    ),
+                    //child: BackdropFilter(
+                    //    filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                    //    child: Container()),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(child: Container(height: 20)),
+                      Container(
+                        height: 20,
+                        width: 20,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(width: 2, color: Colors.red),
+                          color: Colors.white,
+                        ),
+                        child: Text(
+                          e.routines.length > 9
+                              ? '9'
+                              : e.routines.length.toString(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: Colors.red, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      SizedBox(width: 15),
+                    ],
+                  ),
+                ],
               ),
             ),
-            Expanded(flex: 10, child: Container()),
+            Expanded(flex: 6, child: Container()),
             Expanded(
               flex: 20,
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
-                      e.name,
+                      obfuscate(e.name),
                       textAlign: TextAlign.center,
                       style:
                           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
@@ -140,7 +268,7 @@ class _SocialPageState extends State<SocialPage> {
                 ],
               ),
             ),
-            Expanded(flex: 5, child: Container()),
+            Expanded(flex: 7, child: Container()),
           ],
         ),
       ),
@@ -154,6 +282,7 @@ class _SocialPageState extends State<SocialPage> {
         var width = MediaQuery.of(context).size.width;
 
         return AlertDialog(
+          title: Text('Routines shared:'),
           insetPadding: EdgeInsets.zero,
           contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
           //titlePadding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
@@ -162,41 +291,56 @@ class _SocialPageState extends State<SocialPage> {
               width: width - 50,
               child: SingleChildScrollView(
                 child: Column(
-                  children: e.routines
-                      .map((r) => Column(
-                            children: [
-                              Card(
-                                child: Row(
-                                  children: [
-                                    SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        r,
-                                        style: settingsTextStyle,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    SizedBox(width: 10),
-                                    ElevatedButton(
-                                        onPressed: () =>
-                                            _importRoutine(context, e, r),
-                                        child: Text('Import')),
-                                    SizedBox(width: 10),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 10),
-                            ],
-                          ))
-                      .toList(),
+                  children:
+                      e.routines.map((r) => _sharedRoutineTile(e, r)).toList() +
+                          [
+                            Column(
+                              children: [
+                                SizedBox(width: 20),
+                                ElevatedButton(
+                                    onPressed: () {
+                                      showMsg(context, 'Coming Soon!!');
+                                    },
+                                    child: Text('Send friend request')),
+                              ],
+                            ),
+                          ],
                 ),
               ),
             );
           }),
-          title: Text('Routines shared:'),
         );
       },
+    );
+  }
+
+  Widget _sharedRoutineTile(SharedInfo e, String r) {
+    return Column(
+      children: [
+        Card(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          child: Row(
+            children: [
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  r,
+                  style: settingsTextStyle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                  onPressed: () => _importRoutine(context, e, r),
+                  child: Text('Import')),
+              SizedBox(width: 10),
+            ],
+          ),
+        ),
+        SizedBox(height: 5),
+      ],
     );
   }
 

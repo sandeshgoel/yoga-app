@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:yoga/services/settings.dart';
+import 'package:yoga/services/user_activity.dart';
 
 class DBService {
   final String uid;
@@ -10,6 +11,30 @@ class DBService {
   static Map<String, dynamic> _lastShared = {};
 
   DBService({required this.uid, required this.email});
+
+// -------------------------------------------------
+
+  final CollectionReference friendsCollection =
+      FirebaseFirestore.instance.collection('friends');
+
+  Future setFriends(String fEmail, String status) async {
+    Map<String, dynamic> friends = {
+      'from': email,
+      'to': fEmail,
+      'status': status
+    };
+    await friendsCollection.add(friends);
+  }
+
+  Future getFriends() async {
+    QuerySnapshot sentRef =
+        await friendsCollection.where('from', isEqualTo: email).get();
+    QuerySnapshot rcvdRef =
+        await friendsCollection.where('to', isEqualTo: email).get();
+
+    return sentRef.docs.map((doc) => Friend.fromJson(doc.data())).toList() +
+        rcvdRef.docs.map((doc) => Friend.fromJson(doc.data())).toList();
+  }
 
 // -------------------------------------------------
 

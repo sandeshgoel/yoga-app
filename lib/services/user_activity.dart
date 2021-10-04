@@ -63,3 +63,29 @@ class ExerciseData {
     return '${this.exercise},${this.minutes}';
   }
 }
+
+class Friend {
+  late String from;
+  late String to;
+  late String status;
+
+  Friend(String from, String to, String status) {
+    this.from = from;
+    this.to = to;
+    this.status = status;
+  }
+
+  Friend.fromJson(jval) {
+    this.from = jval['from'];
+    this.to = jval['to'];
+    this.status = jval['status'];
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'from': this.from,
+      'to': this.to,
+      'status': this.status,
+    };
+  }
+}

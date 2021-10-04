@@ -48,3 +48,15 @@ void showMsg(context, String msg) {
     ),
   );
 }
+
+String obfuscate(String s) {
+  String r = '';
+
+  for (int i = 0; i < s.length; i++)
+    if (i % 2 == 1)
+      r += '*';
+    else
+      r += s[i];
+
+  return r;
+}
