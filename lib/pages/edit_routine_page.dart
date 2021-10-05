@@ -102,7 +102,26 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                           alignment: Alignment.centerLeft,
                           child: Text('Library Routine, can\'t be shared',
                               style: settingsTextStyle),
-                        )
+                        ),
+
+                  // No gap
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('No gap between exercises ',
+                          style: settingsTextStyle),
+                      Expanded(child: Container()),
+                      Switch(
+                        value: r.noGap,
+                        onChanged: (val) {
+                          setState(() {
+                            r.noGap = val;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                 ] +
 
                 // Exercise List
@@ -208,12 +227,13 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                   '\n\nDo you want to delete these exercises too?'),
           title: Text('Message'),
           actions: [
-            ElevatedButton(
+            TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.pop(context);
                 },
-                child: Text('NO')),
+                child:
+                    Text('No, leave them in', style: TextStyle(fontSize: 10))),
             ElevatedButton(
                 onPressed: () {
                   delEx.forEach((e) {
@@ -223,7 +243,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                   Navigator.pop(context);
                   Navigator.pop(context);
                 },
-                child: Text('OK')),
+                child: Text('Yes')),
           ],
         ),
         barrierDismissible: false,

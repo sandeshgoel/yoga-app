@@ -176,6 +176,7 @@ class _WrapperState extends State<Wrapper> {
     String userName = user.displayName ?? user.email.split('@')[0];
     settings.setUser(userName, user.email, user.uid, user.photoURL ?? '',
         user.emailVerified);
+    settings.addExercisesNotPresent();
 
     print(
         '_rightAfterSignIn: Signed in user ${settings.getUser()}, reading DB now ..');
@@ -193,8 +194,11 @@ class _WrapperState extends State<Wrapper> {
           filterVoices.length > 7 ? filterVoices[7] : filterVoices[0]);
 
     settings.addExercisesNotPresent();
+
     // save all settings back to DB
     settings.saveSettings();
+
+    VolumeControl.setVolume(settings.getSpeechVolume());
 
     //await NotificationService().show('', 'User ${user.email} has logged in');
 

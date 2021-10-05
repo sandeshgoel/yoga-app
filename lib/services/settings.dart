@@ -317,12 +317,13 @@ class Routine {
   late String name;
   late List<Exercise> exercises;
   bool shared = false;
+  bool noGap = false;
 
   Routine(this.name, this.exercises);
 
   @override
   String toString() {
-    return '{$name, $shared, exercises: $exercises}\n';
+    return '{$name, $shared, $noGap: $exercises}\n';
   }
 
   Map<String, dynamic> toJson() {
@@ -330,6 +331,7 @@ class Routine {
       'name': this.name,
       'exercises': this.exercises.map((x) => x.toJson()).toList(),
       'shared': this.shared,
+      'nogap': this.noGap,
     };
   }
 
@@ -338,10 +340,12 @@ class Routine {
     this.exercises =
         json['exercises'].map<Exercise>((x) => Exercise.fromJson(x)).toList();
     this.shared = json['shared'] ?? false;
+    this.noGap = json['nogap'] ?? false;
   }
 
   bool equals(Routine r) {
     if (this.shared != r.shared) return false;
+    if (this.noGap != r.noGap) return false;
     if (this.exercises.length != r.exercises.length) return false;
     for (int i = 0; i < r.exercises.length; i++) {
       if (!this.exercises[i].equals(r.exercises[i])) return false;
@@ -414,6 +418,7 @@ class YogaSettings with ChangeNotifier {
   late List<String> _voices;
   late String _speechVoice;
   late double _speechRate;
+  late double _speechVolume;
   late int _countDuration;
   late int _dailyTarget;
   late int _gapRoutine;
@@ -423,12 +428,16 @@ class YogaSettings with ChangeNotifier {
   late List<ConfigParam> cps;
   late List<Routine> routines;
 
+  late List<String> friends;
+  late List<String> friendsPending;
+
   YogaSettings() {
     initSettings();
   }
 
   // defaults
   double defSpeechRate = 0.3;
+  double defSpeechVolume = 0.5;
   int defCountDuration = 1800;
   int defGapRoutine = 10;
   bool defMuteCounting = true;
@@ -443,6 +452,7 @@ class YogaSettings with ChangeNotifier {
     _dailyTarget = 10;
 
     _speechRate = defSpeechRate;
+    _speechVolume = defSpeechVolume;
     _countDuration = defCountDuration;
     _gapRoutine = defGapRoutine;
     _muteCounting = defMuteCounting;
@@ -450,10 +460,14 @@ class YogaSettings with ChangeNotifier {
 
     cps = [];
     routines = [_routineLib[0]];
+
+    friends = [];
+    friendsPending = [];
   }
 
   bool allDefaults() {
     if ((_speechRate == defSpeechRate) &
+        (_speechVolume == defSpeechVolume) &
         (_countDuration == defCountDuration) &
         (_gapRoutine == defGapRoutine) &
         (_muteCounting == defMuteCounting) &
@@ -604,6 +618,7 @@ class YogaSettings with ChangeNotifier {
   void settingsFromJson(Map<String, dynamic> jval) {
     this._user = UserInfo.fromJson(jval['user'] ?? (this._user).toJson());
     this._speechRate = jval['speechRate'] ?? this._speechRate;
+    this._speechVolume = jval['speechVolume'] ?? this._speechVolume;
     this._speechVoice = jval['speechVoice'] ?? this._speechVoice;
     this._countDuration = jval['countDuration'] ?? this._countDuration;
     this._dailyTarget = jval['dailyTarget'] ?? this._dailyTarget;
@@ -617,6 +632,13 @@ class YogaSettings with ChangeNotifier {
         (jval['routines'] ?? (this.routines.map((x) => x.toJson()).toList()))
             .map<Routine>((x) => Routine.fromJson(x))
             .toList();
+    this.friends = (jval['friends'] ?? this.friends)
+        .map<String>((x) => x as String)
+        .toList();
+    this.friendsPending = (jval['friendsPending'] ?? this.friendsPending)
+        .map<String>((x) => x as String)
+        .toList();
+
     notifyListeners();
   }
 
@@ -624,6 +646,7 @@ class YogaSettings with ChangeNotifier {
     return {
       'user': (this._user).toJson(),
       'speechRate': this._speechRate,
+      'speechVolume': this._speechVolume,
       'speechVoice': this._speechVoice,
       'countDuration': this._countDuration,
       'dailyTarget': this._dailyTarget,
@@ -632,6 +655,8 @@ class YogaSettings with ChangeNotifier {
       'notify': this._notify,
       'cps': this.cps.map((x) => x.toJson()).toList(),
       'routines': this.routines.map((x) => x.toJson()).toList(),
+      'friends': this.friends,
+      'friendsPending': this.friendsPending,
     };
   }
 
@@ -674,9 +699,26 @@ class YogaSettings with ChangeNotifier {
     return true;
   }
 
+  bool friendsEquals(List<String> friends) {
+    if (this.friends.length != friends.length) return false;
+    for (int i = 0; i < friends.length; i++) {
+      if (this.friends[i] != friends[i]) return false;
+    }
+    return true;
+  }
+
+  bool friendsPendingEquals(List<String> friendsPending) {
+    if (this.friendsPending.length != friendsPending.length) return false;
+    for (int i = 0; i < friendsPending.length; i++) {
+      if (this.friendsPending[i] != friendsPending[i]) return false;
+    }
+    return true;
+  }
+
   bool equals(YogaSettings cfg) {
     if (this._user.equals(cfg._user) &
         (this._speechRate == cfg._speechRate) &
+        (this._speechVolume == cfg._speechVolume) &
         (this._speechVoice == cfg._speechVoice) &
         (this._countDuration == cfg._countDuration) &
         (this._dailyTarget == cfg._dailyTarget) &
@@ -684,7 +726,9 @@ class YogaSettings with ChangeNotifier {
         (this._muteCounting == cfg._muteCounting) &
         (this._notify == cfg._notify) &
         this.cpsEquals(cfg.cps) &
-        this.routinesEquals(cfg.routines))
+        this.routinesEquals(cfg.routines) &
+        this.friendsEquals(cfg.friends) &
+        this.friendsPendingEquals(cfg.friendsPending))
       return true;
     else
       return false;
@@ -742,6 +786,16 @@ class YogaSettings with ChangeNotifier {
 
   // ----------------------------------------------------
 
+  void setSpeechVolume(double speechVolume) {
+    this._speechVolume = speechVolume;
+  }
+
+  double getSpeechVolume() {
+    return this._speechVolume;
+  }
+
+  // ----------------------------------------------------
+
   void setCountDuration(int countDuration) {
     this._countDuration = countDuration;
   }
@@ -789,6 +843,7 @@ class YogaSettings with ChangeNotifier {
     cps[index] = cp;
     notifyListeners();
   }
+
   // ----------------------------------------------------
 
   int lengthRoutines() {
@@ -881,4 +936,20 @@ class YogaSettings with ChangeNotifier {
       }
     }
   }
+
+  // ----------------------------------------------------
+
+  bool friendsContains(String email) {
+    for (int i = 0; i < friends.length; i++)
+      if (friends[i] == email) return true;
+    return false;
+  }
+
+  bool friendsPendingContains(String email) {
+    for (int i = 0; i < friendsPending.length; i++)
+      if (friendsPending[i] == email) return true;
+    return false;
+  }
+
+  // ----------------------------------------------------
 }

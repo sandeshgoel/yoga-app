@@ -70,6 +70,8 @@ class _SocialPageState extends State<SocialPage> {
 
   @override
   Widget build(BuildContext context) {
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
+
     return FutureBuilder<List<SharedInfo>>(
         future: _shared(), // a previously-obtained Future<String> or null
         builder:
@@ -78,46 +80,25 @@ class _SocialPageState extends State<SocialPage> {
 
           if (snapshot.hasData) {
             List<SharedInfo> shList = snapshot.data!;
-            List<Widget> children = [];
+            List<Widget> sharers = [];
+            List<Widget> friends = [];
+            List<Widget> pending = [];
 
             shList
                 .sort((a, b) => b.routines.length.compareTo(a.routines.length));
 
             for (SharedInfo e in shList) {
               print('${e.email}: ${e.name} ${e.routines}');
-              if (e.routines.length > 0) children.add(_socialCard(e));
+              if (settings.friendsContains(e.email))
+                friends.add(_socialCard(e));
+              else if (settings.friendsPendingContains(e.email))
+                pending.add(_socialCard(e));
+              else if (e.routines.length > 0) sharers.add(_socialCard(e));
             }
 
             ret = SingleChildScrollView(
               child: Column(
                 children: [
-                  Card(
-                    margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    color: Colors.white.withOpacity(0.9),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0)),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 10),
-                        Container(
-                          width: double.infinity,
-                          child: Text('Top Sharers',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          alignment: Alignment.center,
-                        ),
-                        SizedBox(height: 10),
-                      ],
-                    ),
-                  ),
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    padding: EdgeInsets.all(20),
-                    children: children,
-                  ),
                   Card(
                     margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
                     color: Colors.white.withOpacity(0.9),
@@ -136,6 +117,46 @@ class _SocialPageState extends State<SocialPage> {
                       ],
                     ),
                   ),
+                  friends.length == 0
+                      ? Container()
+                      : GridView.count(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          padding: EdgeInsets.all(20),
+                          children: friends,
+                        ),
+                  Card(
+                    margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    color: Colors.white.withOpacity(0.9),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0)),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 10),
+                        Container(
+                          width: double.infinity,
+                          child: Text('Top Sharers',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          alignment: Alignment.center,
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+                  sharers.length == 0
+                      ? Container()
+                      : GridView.count(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          padding: EdgeInsets.all(20),
+                          children: sharers,
+                        ),
                   Card(
                     margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
                     color: Colors.white.withOpacity(0.9),
@@ -154,6 +175,17 @@ class _SocialPageState extends State<SocialPage> {
                       ],
                     ),
                   ),
+                  pending.length == 0
+                      ? Container()
+                      : GridView.count(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          padding: EdgeInsets.all(20),
+                          children: pending,
+                        ),
                 ],
               ),
             );
@@ -235,13 +267,15 @@ class _SocialPageState extends State<SocialPage> {
                           border: Border.all(width: 2, color: Colors.red),
                           color: Colors.white,
                         ),
-                        child: Text(
-                          e.routines.length > 9
-                              ? '9'
-                              : e.routines.length.toString(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: Colors.red, fontWeight: FontWeight.bold),
+                        child: FittedBox(
+                          child: Text(
+                            e.routines.length > 9
+                                ? '9'
+                                : e.routines.length.toString(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Colors.red, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                       SizedBox(width: 15),
@@ -276,6 +310,8 @@ class _SocialPageState extends State<SocialPage> {
   }
 
   void _listShared(SharedInfo e) {
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
+
     showDialog(
       context: context,
       builder: (_) {
@@ -291,20 +327,34 @@ class _SocialPageState extends State<SocialPage> {
               width: width - 50,
               child: SingleChildScrollView(
                 child: Column(
-                  children:
-                      e.routines.map((r) => _sharedRoutineTile(e, r)).toList() +
-                          [
-                            Column(
-                              children: [
-                                SizedBox(width: 20),
-                                ElevatedButton(
+                  children: e.routines
+                          .map((r) => _sharedRoutineTile(e, r))
+                          .toList() +
+                      [
+                        Column(
+                          children: [
+                            SizedBox(width: 20),
+                            settings.friendsContains(e.email) |
+                                    settings.friendsPendingContains(e.email)
+                                ? ElevatedButton(
                                     onPressed: () {
-                                      showMsg(context, 'Coming Soon!!');
+                                      setState(() {
+                                        settings.friendsPending.remove(e.email);
+                                      });
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text('Cancel friend request'))
+                                : ElevatedButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        settings.friendsPending.add(e.email);
+                                      });
+                                      Navigator.pop(context);
                                     },
                                     child: Text('Send friend request')),
-                              ],
-                            ),
                           ],
+                        ),
+                      ],
                 ),
               ),
             );
@@ -352,25 +402,37 @@ class _SocialPageState extends State<SocialPage> {
     if (rindex == -1) {
       for (int i = 0; i < e.routineDetails.length; i++)
         if (e.routineDetails[i].name == r) {
+          List<String> changedEx = [];
+
           for (int j = 0; j < e.routineDetails[i].exercises.length; j++) {
             String ename = e.routineDetails[i].exercises[j].name;
-            if (settings.findParamIndex(ename) == -1) {
-              ConfigParam newEx =
-                  e.exercises.firstWhere((element) => element.name == ename);
+            int exIndex = settings.findParamIndex(ename);
+            ConfigParam newEx =
+                e.exercises.firstWhere((element) => element.name == ename);
+            if (exIndex == -1) {
               settings.addParam(newEx);
               print('Added exercise $ename');
+            } else {
+              ConfigParam oldEx = settings.getParam(exIndex);
+              if (!oldEx.equals(newEx)) changedEx.add(ename);
             }
           }
           settings.addRoutine(e.routineDetails[i]);
           Navigator.pop(context);
-          showMsg(context, 'Routine \'$r\' imported!!');
+          showMsg(
+              context,
+              'Routine \'$r\' imported!!' +
+                  '\n\nFollowing exercises are part of the imported routine, and they already exist in your config, but are different:\n\n' +
+                  changedEx.map((e) => ' - $e').join('\n') +
+                  '\n\nWe have retained the original exercise versions. Delete these exercises and reimport the routine if you want the new exercises versions.');
           return;
         }
       Navigator.pop(context);
       showMsg(context, 'Routine \'$r\' not found in config!!');
     } else {
       Navigator.pop(context);
-      showMsg(context, 'Routine \'$r\' already present!!');
+      showMsg(context,
+          'Routine \'$r\' already present!!\n\nDelete it to import it again.');
     }
   }
 }

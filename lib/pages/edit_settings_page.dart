@@ -183,6 +183,34 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                   },
                 ),
 
+                // Speech Volume
+
+                Row(
+                  children: [
+                    Text(
+                      settings.getSpeechVolume() == settings.defSpeechVolume
+                          ? ''
+                          : '* ',
+                      style: starStyle,
+                    ),
+                    Text('Speech Volume', style: settingsTextStyle),
+                    _infoIcon(topicSpeechVolume),
+                    Expanded(child: Container()),
+                    Text('${settings.getSpeechVolume()}'),
+                  ],
+                ),
+                Slider(
+                  value: settings.getSpeechVolume(),
+                  min: 0.1,
+                  max: 1.0,
+                  divisions: 9,
+                  onChanged: (val) {
+                    setState(() {
+                      settings.setSpeechVolume(val);
+                    });
+                  },
+                ),
+
                 // Mute Counting
 
                 Row(
@@ -333,6 +361,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
   static const String topicMuteCounting = 'mute_counting';
   static const String topicCountDur = 'count_duration';
   static const String topicSpeechRate = 'speech_rate';
+  static const String topicSpeechVolume = 'speech_volume';
   static const String topicDailyTarget = 'daily_target';
   static const String topicGapRoutine = 'gap_routine';
   static const String topicNotify = 'notify';
@@ -352,6 +381,10 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
         break;
       case topicSpeechRate:
         msg = 'Speech rate determines how fast or slow the speaker is talking';
+        break;
+      case topicSpeechRate:
+        msg =
+            'Speech volume is the default volume level when the app is started';
         break;
       case topicDailyTarget:
         msg =

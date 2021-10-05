@@ -469,7 +469,7 @@ class _CounterPageState extends State<CounterPage> {
       String msg = '';
       int gap = settings.getGapRoutine();
 
-      if ((widget.routine != '') & !_playAfterPause) {
+      if ((widget.routine != '') & !_playAfterPause & !_routine.noGap) {
         if (_curExIndexInRoutine == 0) {
           msg = 'This routine has ${_routine.exercises.length} exercises. ';
           msg += 'We will take a break of $gap seconds after each exercise. ';
