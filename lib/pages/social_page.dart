@@ -327,34 +327,33 @@ class _SocialPageState extends State<SocialPage> {
               width: width - 50,
               child: SingleChildScrollView(
                 child: Column(
-                  children: e.routines
-                          .map((r) => _sharedRoutineTile(e, r))
-                          .toList() +
-                      [
-                        Column(
-                          children: [
-                            SizedBox(width: 20),
-                            settings.friendsContains(e.email) |
-                                    settings.friendsPendingContains(e.email)
-                                ? ElevatedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        settings.friendsPending.remove(e.email);
-                                      });
-                                      Navigator.pop(context);
-                                    },
-                                    child: Text('Cancel friend request'))
-                                : ElevatedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        settings.friendsPending.add(e.email);
-                                      });
-                                      Navigator.pop(context);
-                                    },
-                                    child: Text('Send friend request')),
+                  children:
+                      e.routines.map((r) => _sharedRoutineTile(e, r)).toList() +
+                          [
+                            Column(
+                              children: [
+                                SizedBox(width: 20),
+                                settings.friendsContains(e.email) |
+                                        settings.friendsPendingContains(e.email)
+                                    ? ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            settings.delFriendsPending(e.email);
+                                          });
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text('Cancel friend request'))
+                                    : ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            settings.addFriendsPending(e.email);
+                                          });
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text('Send friend request')),
+                              ],
+                            ),
                           ],
-                        ),
-                      ],
                 ),
               ),
             );
@@ -374,11 +373,15 @@ class _SocialPageState extends State<SocialPage> {
             children: [
               SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  r,
-                  style: settingsTextStyle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: GestureDetector(
+                  onTap: () => _showRoutineDetails(e, r),
+                  child: Text(
+                    r,
+                    style: TextStyle(
+                        color: Colors.blue, fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
               SizedBox(width: 10),
@@ -391,6 +394,75 @@ class _SocialPageState extends State<SocialPage> {
         ),
         SizedBox(height: 5),
       ],
+    );
+  }
+
+  void _showRoutineDetails(SharedInfo e, String r) {
+    int i;
+
+    for (i = 0; i < e.routineDetails.length; i++)
+      if (e.routineDetails[i].name == r) break;
+    Routine rt = e.routineDetails[i];
+
+    showDialog(
+      context: context,
+      builder: (_) {
+        var width = MediaQuery.of(context).size.width;
+
+        return AlertDialog(
+          title: Text(r),
+          insetPadding: EdgeInsets.zero,
+          contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+          //titlePadding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+          content: Builder(builder: (context) {
+            return Container(
+              width: width - 50,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                        SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Text(
+                              'Exercise',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Expanded(child: Container()),
+                            Text(
+                              'Rounds',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 20),
+                      ] +
+                      rt.exercises
+                          .map((e) => Row(
+                                children: [
+                                  Text(
+                                    e.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Expanded(child: Container()),
+                                  Text(
+                                    e.rounds.toString(),
+                                  ),
+                                  SizedBox(width: 20),
+                                ],
+                              ))
+                          .toList(),
+                ),
+              ),
+            );
+          }),
+          actions: [
+            ElevatedButton(
+                onPressed: () => Navigator.pop(context), child: Text('Back'))
+          ],
+        );
+      },
+      barrierDismissible: false,
     );
   }
 
@@ -419,12 +491,13 @@ class _SocialPageState extends State<SocialPage> {
           }
           settings.addRoutine(e.routineDetails[i]);
           Navigator.pop(context);
-          showMsg(
-              context,
-              'Routine \'$r\' imported!!' +
-                  '\n\nFollowing exercises are part of the imported routine, and they already exist in your config, but are different:\n\n' +
-                  changedEx.map((e) => ' - $e').join('\n') +
-                  '\n\nWe have retained the original exercise versions. Delete these exercises and reimport the routine if you want the new exercises versions.');
+          if (changedEx.length > 0)
+            showMsg(
+                context,
+                'Routine \'$r\' imported!!' +
+                    '\n\nFollowing exercises are part of the imported routine, and they already exist in your config, but are different:\n\n' +
+                    changedEx.map((e) => ' - $e').join('\n') +
+                    '\n\nWe have retained the original exercise versions. Delete these exercises and reimport the routine if you want the new exercises versions.');
           return;
         }
       Navigator.pop(context);

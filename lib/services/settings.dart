@@ -951,5 +951,14 @@ class YogaSettings with ChangeNotifier {
     return false;
   }
 
+  void addFriendsPending(String email) {
+    if (!friendsPendingContains(email)) friendsPending.add(email);
+    saveSettings();
+  }
+
+  void delFriendsPending(String email) {
+    if (friendsPendingContains(email)) friendsPending.remove(email);
+    saveSettings();
+  }
   // ----------------------------------------------------
 }
