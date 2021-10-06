@@ -247,7 +247,7 @@ class _MyHomePageState extends State<MyHomePage> {
       context: context,
       applicationVersion: 'Ver $version +$buildNumber',
       applicationIcon: Image.asset(
-        "assets/icon/yoga.png",
+        "assets/icon/yoga_icon_circular.png",
         height: 40,
         width: 40,
       ),

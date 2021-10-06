@@ -71,3 +71,6 @@ String swapLeftRight(String stagename) {
   stagename = words.join(' ');
   return stagename;
 }
+
+const String FRIEND_ADD = 'add';
+const String FRIEND_REMOVE = 'remove';

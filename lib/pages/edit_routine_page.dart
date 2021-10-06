@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -81,7 +82,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
 
                   // Shared
 
-                  settings.getRoutineFromLib(cfg) == null
+                  rl == null
                       ? Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -111,6 +112,13 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                     children: [
                       Text('No gap between exercises ',
                           style: settingsTextStyle),
+                      Text(
+                          (rl == null)
+                              ? ''
+                              : (rl.noGap != r.noGap)
+                                  ? '*'
+                                  : '',
+                          style: starStyle),
                       Expanded(child: Container()),
                       Switch(
                         value: r.noGap,
@@ -352,6 +360,9 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
               child: TextFormField(
                 initialValue: r.exercises[i].rounds.toString(),
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp('[0-9]+'))
+                ],
                 textAlign: TextAlign.center,
                 style: settingsTextStyle,
                 onChanged: (val) {

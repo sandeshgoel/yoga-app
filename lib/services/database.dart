@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:yoga/services/settings.dart';
-import 'package:yoga/services/user_activity.dart';
 
 class DBService {
   final String uid;
@@ -17,25 +16,28 @@ class DBService {
   final CollectionReference friendsCollection =
       FirebaseFirestore.instance.collection('friends');
 
-  Future setFriends(String fEmail, String status) async {
+  Future addFriendRequest(String fEmail, String status) async {
     Map<String, dynamic> friends = {
       'from': email,
       'to': fEmail,
-      'status': status
+      'status': status,
+      'ts': DateTime.now(),
     };
     await friendsCollection.add(friends);
   }
 
-  Future getFriends() async {
-    QuerySnapshot sentRef =
-        await friendsCollection.where('from', isEqualTo: email).get();
-    QuerySnapshot rcvdRef =
-        await friendsCollection.where('to', isEqualTo: email).get();
+  Future getFriendRequests() async {
+    QuerySnapshot rcvdRef = await friendsCollection
+        .where('to', isEqualTo: email)
+        .orderBy('ts', descending: true)
+        .get();
 
-    return sentRef.docs.map((doc) => Friend.fromJson(doc.data())).toList() +
-        rcvdRef.docs.map((doc) => Friend.fromJson(doc.data())).toList();
+    return rcvdRef;
   }
 
+  Future deleteFriendDoc(String id) async {
+    await friendsCollection.doc(id).delete();
+  }
 // -------------------------------------------------
 
   final CollectionReference sharedCollection =
@@ -80,13 +82,19 @@ class DBService {
   }
 
   Future getUserData() async {
-    print('Reading from DB configs ...');
     return await cfgCollection.doc(uid).get();
   }
 
   Future getOtherUserData(String otherUid) async {
-    print('Reading from DB configs ...');
     return await cfgCollection.doc(otherUid).get();
+  }
+
+  Future getOtherUserDataByEmail(String otherEmail) async {
+    QuerySnapshot ref =
+        await cfgCollection.where('user.email', isEqualTo: otherEmail).get();
+
+    for (var doc in ref.docs) return doc;
+    return null;
   }
 
 // -------------------------------------------------

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:volume_control/volume_control.dart';
 import 'package:yoga/services/settings.dart';
 import 'package:yoga/services/tts.dart';
 import 'package:yoga/shared/constants.dart';
@@ -53,7 +54,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
   }
 
   Widget _editSettingsPage() {
-    var settings = Provider.of<YogaSettings>(context, listen: false);
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
     dropdownValue = settings.getVoice();
 
     return SingleChildScrollView(
@@ -207,6 +208,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                   onChanged: (val) {
                     setState(() {
                       settings.setSpeechVolume(val);
+                      VolumeControl.setVolume(settings.getSpeechVolume());
                     });
                   },
                 ),
@@ -326,6 +328,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                         ? null
                         : () {
                             settings.setSpeechRate(settings.defSpeechRate);
+                            settings.setSpeechVolume(settings.defSpeechVolume);
                             settings.setMuteCounting(settings.defMuteCounting);
                             settings
                                 .setCountDuration(settings.defCountDuration);
@@ -367,6 +370,8 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
   static const String topicNotify = 'notify';
 
   Widget _infoIcon(String topic) {
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
+
     String msg = '';
     switch (topic) {
       case topicVoice:
@@ -377,14 +382,16 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
             'If this is turned off, then every count is spoken aloud during the exercises. If this is turned on, then the counts are muted, and round numbers are also not announced';
         break;
       case topicCountDur:
-        msg = 'Count duration is the gap between each count during an exercise';
-        break;
-      case topicSpeechRate:
-        msg = 'Speech rate determines how fast or slow the speaker is talking';
+        msg =
+            'Count duration is the gap between each count during an exercise.\n\nDefault value is ${settings.defCountDuration / 1000} seconds';
         break;
       case topicSpeechRate:
         msg =
-            'Speech volume is the default volume level when the app is started';
+            'Speech rate determines how fast or slow the speaker is talking.\n\nDefault value is ${settings.defSpeechRate}';
+        break;
+      case topicSpeechVolume:
+        msg =
+            'Speech volume is the default volume level when the app is started.\n\nDefault value is ${settings.defSpeechVolume}';
         break;
       case topicDailyTarget:
         msg =
@@ -392,7 +399,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
         break;
       case topicGapRoutine:
         msg =
-            'This is the gap between exercises during a routine consisting of multiple exercises';
+            'This is the gap between exercises during a routine consisting of multiple exercises.\n\nDefault value is ${settings.defGapRoutine}';
         break;
       case topicNotify:
         msg = 'Enable or disable daily notifications';

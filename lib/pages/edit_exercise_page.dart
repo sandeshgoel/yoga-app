@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 //import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -421,6 +422,9 @@ class _EditConfigPageState extends State<EditConfigPage> {
               //..text = cp.stages[i].count.toString(),
               //initialValue: disableCount ? '-' : cp.stages[i].count.toString(),
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp('[0-9]+'))
+              ],
               textAlign: TextAlign.center,
               style: disableCount ? settingsTextStyleGrey : settingsTextStyle,
               readOnly: disableCount ? true : false,

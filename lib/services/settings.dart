@@ -428,8 +428,9 @@ class YogaSettings with ChangeNotifier {
   late List<ConfigParam> cps;
   late List<Routine> routines;
 
-  late List<String> friends;
-  late List<String> friendsPending;
+  late Set<String> friends;
+  late Set<String> friendsPending;
+  late Set<String> friendsReceived;
 
   YogaSettings() {
     initSettings();
@@ -461,8 +462,9 @@ class YogaSettings with ChangeNotifier {
     cps = [];
     routines = [_routineLib[0]];
 
-    friends = [];
-    friendsPending = [];
+    friends = Set();
+    friendsPending = Set();
+    friendsReceived = Set();
   }
 
   bool allDefaults() {
@@ -634,10 +636,13 @@ class YogaSettings with ChangeNotifier {
             .toList();
     this.friends = (jval['friends'] ?? this.friends)
         .map<String>((x) => x as String)
-        .toList();
+        .toSet();
     this.friendsPending = (jval['friendsPending'] ?? this.friendsPending)
         .map<String>((x) => x as String)
-        .toList();
+        .toSet();
+    this.friendsReceived = (jval['friendsReceived'] ?? this.friendsReceived)
+        .map<String>((x) => x as String)
+        .toSet();
 
     notifyListeners();
   }
@@ -655,8 +660,9 @@ class YogaSettings with ChangeNotifier {
       'notify': this._notify,
       'cps': this.cps.map((x) => x.toJson()).toList(),
       'routines': this.routines.map((x) => x.toJson()).toList(),
-      'friends': this.friends,
-      'friendsPending': this.friendsPending,
+      'friends': this.friends.toList(),
+      'friendsPending': this.friendsPending.toList(),
+      'friendsReceived': this.friendsReceived.toList(),
     };
   }
 
@@ -699,22 +705,6 @@ class YogaSettings with ChangeNotifier {
     return true;
   }
 
-  bool friendsEquals(List<String> friends) {
-    if (this.friends.length != friends.length) return false;
-    for (int i = 0; i < friends.length; i++) {
-      if (this.friends[i] != friends[i]) return false;
-    }
-    return true;
-  }
-
-  bool friendsPendingEquals(List<String> friendsPending) {
-    if (this.friendsPending.length != friendsPending.length) return false;
-    for (int i = 0; i < friendsPending.length; i++) {
-      if (this.friendsPending[i] != friendsPending[i]) return false;
-    }
-    return true;
-  }
-
   bool equals(YogaSettings cfg) {
     if (this._user.equals(cfg._user) &
         (this._speechRate == cfg._speechRate) &
@@ -727,8 +717,11 @@ class YogaSettings with ChangeNotifier {
         (this._notify == cfg._notify) &
         this.cpsEquals(cfg.cps) &
         this.routinesEquals(cfg.routines) &
-        this.friendsEquals(cfg.friends) &
-        this.friendsPendingEquals(cfg.friendsPending))
+        DeepCollectionEquality.unordered().equals(this.friends, cfg.friends) &
+        DeepCollectionEquality.unordered()
+            .equals(this.friendsPending, cfg.friendsPending) &
+        DeepCollectionEquality.unordered()
+            .equals(this.friendsReceived, cfg.friendsReceived))
       return true;
     else
       return false;
@@ -939,16 +932,35 @@ class YogaSettings with ChangeNotifier {
 
   // ----------------------------------------------------
 
+  Set<String> getFriends() {
+    return friends;
+  }
+
+  Set<String> getFriendsPending() {
+    return friendsPending;
+  }
+
+  Set<String> getFriendsReceived() {
+    return friendsReceived;
+  }
+
   bool friendsContains(String email) {
-    for (int i = 0; i < friends.length; i++)
-      if (friends[i] == email) return true;
-    return false;
+    return friends.contains(email);
   }
 
   bool friendsPendingContains(String email) {
-    for (int i = 0; i < friendsPending.length; i++)
-      if (friendsPending[i] == email) return true;
-    return false;
+    return friendsPending.contains(email);
+  }
+
+  bool friendsReceivedContains(String email) {
+    return friendsReceived.contains(email);
+  }
+
+  void addFriends(String email) {
+    if (!friendsContains(email)) friends.add(email);
+    friendsPending.remove(email);
+    friendsReceived.remove(email);
+    saveSettings();
   }
 
   void addFriendsPending(String email) {
@@ -956,8 +968,26 @@ class YogaSettings with ChangeNotifier {
     saveSettings();
   }
 
-  void delFriendsPending(String email) {
-    if (friendsPendingContains(email)) friendsPending.remove(email);
+  void addFriendsReceived(String email) {
+    if (!friendsReceivedContains(email)) friendsReceived.add(email);
+    saveSettings();
+  }
+
+  void alignFriends() {
+    Set<String> inter = friendsPending.intersection(friendsReceived);
+
+    for (String s in inter) {
+      addFriends(s);
+      friendsPending.remove(s);
+      friendsReceived.remove(s);
+    }
+  }
+
+  void delFriendsAll(String email) {
+    friendsPending.remove(email);
+    friendsReceived.remove(email);
+    friends.remove(email);
+
     saveSettings();
   }
   // ----------------------------------------------------

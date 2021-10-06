@@ -9,17 +9,15 @@ import 'package:yoga/shared/constants.dart';
 
 class SharedInfo {
   late String email;
-  late String uid;
   late String name;
   late String photo;
   late List<dynamic> routines;
   late List<Routine> routineDetails;
   late List<ConfigParam> exercises;
 
-  SharedInfo(String email, String uid, List<dynamic> routines, String name,
-      String photo, List<Routine> routineDetails, List<ConfigParam> exercises) {
+  SharedInfo(String email, List<dynamic> routines, String name, String photo,
+      List<Routine> routineDetails, List<ConfigParam> exercises) {
     this.email = email;
-    this.uid = uid;
     this.routines = routines;
     this.name = name;
     this.photo = photo;
@@ -45,26 +43,73 @@ class _SocialPageState extends State<SocialPage> {
     YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
     String uid = settings.getUser().uid;
     String email = settings.getUser().email;
-    List<SharedInfo> shList = [];
 
-    QuerySnapshot queryRef =
+    // First get all the add/del friend requests from DB
+    Map<String, List<Map<String, dynamic>>> reqs = {};
+    QuerySnapshot fQueryRef =
+        await DBService(uid: uid, email: email).getFriendRequests();
+    for (var doc in fQueryRef.docs) {
+      print('${doc.id}:${doc.data()}');
+      String from = doc.get('from');
+      if (!reqs.containsKey(from)) reqs[from] = [];
+      reqs[from]!.add(
+          {'status': doc.get('status'), 'ts': doc.get('ts'), 'id': doc.id});
+    }
+
+    // Act on the most recent request for each peer
+    for (String k in reqs.keys) {
+      if (reqs[k]![0]['status'] == FRIEND_ADD)
+        _rcvdAddFriend(k);
+      else // must be FRIEND_DEL
+        _rcvdDelFriend(k);
+
+      // Delete all the documents from this email
+      for (Map<String, dynamic> m in reqs[k]!)
+        await DBService(uid: uid, email: email).deleteFriendDoc(m['id']);
+    }
+
+    settings.alignFriends();
+    Set<String> f = settings.getFriends();
+    Set<String> fP = settings.getFriendsPending();
+    Set<String> fR = settings.getFriendsReceived();
+    Set<String> fAll = f.union(fP.union(fR));
+    print('fAll: $fAll [$f,$fP, $fR]');
+
+    // Get all the sharers
+    QuerySnapshot sQueryRef =
         await DBService(uid: uid, email: email).getShared();
 
-    for (var doc in queryRef.docs) {
+    List<SharedInfo> shList = [];
+    for (var doc in sQueryRef.docs) {
+      String userEmail = doc.id;
+
       var doc1 = await DBService(uid: uid, email: email)
-          .getOtherUserData(doc.get('uid'));
+          .getOtherUserDataByEmail(userEmail);
 
       YogaSettings settings1 = YogaSettings();
       settings1.settingsFromJson(doc1.data());
       shList.add(SharedInfo(
-          doc.id,
-          doc.get('uid'),
+          userEmail,
           doc.get('routines'),
           settings1.getUser().name,
           settings1.getUser().photo,
           settings1.routines,
           settings1.cps));
+
+      if (fAll.contains(userEmail)) fAll.remove(userEmail);
     }
+
+    // Create profile for friends who are not in sharers
+    for (String f in fAll) {
+      var doc1 =
+          await DBService(uid: uid, email: email).getOtherUserDataByEmail(f);
+
+      YogaSettings settings1 = YogaSettings();
+      settings1.settingsFromJson(doc1.data());
+      shList.add(SharedInfo(f, [], settings1.getUser().name,
+          settings1.getUser().photo, settings1.routines, settings1.cps));
+    }
+
     return shList;
   }
 
@@ -73,7 +118,7 @@ class _SocialPageState extends State<SocialPage> {
     YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
 
     return FutureBuilder<List<SharedInfo>>(
-        future: _shared(), // a previously-obtained Future<String> or null
+        future: _shared(),
         builder:
             (BuildContext context, AsyncSnapshot<List<SharedInfo>> snapshot) {
           Widget ret = Container();
@@ -82,23 +127,30 @@ class _SocialPageState extends State<SocialPage> {
             List<SharedInfo> shList = snapshot.data!;
             List<Widget> sharers = [];
             List<Widget> friends = [];
-            List<Widget> pending = [];
+            List<Widget> sent = [];
+            List<Widget> received = [];
 
             shList
                 .sort((a, b) => b.routines.length.compareTo(a.routines.length));
 
             for (SharedInfo e in shList) {
-              print('${e.email}: ${e.name} ${e.routines}');
+              //print('${e.email}: ${e.name} ${e.routines}');
+              Widget w = _socialCard(e);
+
               if (settings.friendsContains(e.email))
-                friends.add(_socialCard(e));
+                friends.add(w);
+              else if (settings.friendsReceivedContains(e.email))
+                received.add(w);
               else if (settings.friendsPendingContains(e.email))
-                pending.add(_socialCard(e));
-              else if (e.routines.length > 0) sharers.add(_socialCard(e));
+                sent.add(w);
+              else if (e.routines.length > 0) sharers.add(w);
             }
 
             ret = SingleChildScrollView(
               child: Column(
                 children: [
+                  // Friends
+
                   Card(
                     margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
                     color: Colors.white.withOpacity(0.9),
@@ -125,9 +177,12 @@ class _SocialPageState extends State<SocialPage> {
                           crossAxisCount: 3,
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 10,
-                          padding: EdgeInsets.all(20),
+                          padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
                           children: friends,
                         ),
+
+                  // Top Sharers
+
                   Card(
                     margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
                     color: Colors.white.withOpacity(0.9),
@@ -154,28 +209,34 @@ class _SocialPageState extends State<SocialPage> {
                           crossAxisCount: 3,
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 10,
-                          padding: EdgeInsets.all(20),
+                          padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
                           children: sharers,
                         ),
-                  Card(
-                    margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    color: Colors.white.withOpacity(0.9),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0)),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 10),
-                        Container(
-                          width: double.infinity,
-                          child: Text('Friend Requests',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          alignment: Alignment.center,
+
+                  // Friend Requests Sent
+
+                  sent.length == 0
+                      ? Container()
+                      : Card(
+                          margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                          color: Colors.white.withOpacity(0.9),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0)),
+                          child: Column(
+                            children: [
+                              SizedBox(height: 10),
+                              Container(
+                                width: double.infinity,
+                                child: Text('Friend Requests Sent',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                alignment: Alignment.center,
+                              ),
+                              SizedBox(height: 10),
+                            ],
+                          ),
                         ),
-                        SizedBox(height: 10),
-                      ],
-                    ),
-                  ),
-                  pending.length == 0
+                  sent.length == 0
                       ? Container()
                       : GridView.count(
                           shrinkWrap: true,
@@ -183,8 +244,43 @@ class _SocialPageState extends State<SocialPage> {
                           crossAxisCount: 3,
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 10,
-                          padding: EdgeInsets.all(20),
-                          children: pending,
+                          padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                          children: sent,
+                        ),
+
+                  // Friend Requests Received
+
+                  received.length == 0
+                      ? Container()
+                      : Card(
+                          margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                          color: Colors.white.withOpacity(0.9),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0)),
+                          child: Column(
+                            children: [
+                              SizedBox(height: 10),
+                              Container(
+                                width: double.infinity,
+                                child: Text('Friend Requests Received',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                alignment: Alignment.center,
+                              ),
+                              SizedBox(height: 10),
+                            ],
+                          ),
+                        ),
+                  received.length == 0
+                      ? Container()
+                      : GridView.count(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                          children: received,
                         ),
                 ],
               ),
@@ -224,7 +320,9 @@ class _SocialPageState extends State<SocialPage> {
         });
   }
 
-  Widget _socialCard(SharedInfo e) {
+  Widget _socialCard(
+    SharedInfo e,
+  ) {
     return GestureDetector(
       onTap: () {
         _listShared(e);
@@ -318,7 +416,9 @@ class _SocialPageState extends State<SocialPage> {
         var width = MediaQuery.of(context).size.width;
 
         return AlertDialog(
-          title: Text('Routines shared:'),
+          title: e.routines.length == 0
+              ? Text('No routines shared')
+              : Text('Routines shared:'),
           insetPadding: EdgeInsets.zero,
           contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
           //titlePadding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
@@ -327,33 +427,67 @@ class _SocialPageState extends State<SocialPage> {
               width: width - 50,
               child: SingleChildScrollView(
                 child: Column(
-                  children:
-                      e.routines.map((r) => _sharedRoutineTile(e, r)).toList() +
-                          [
-                            Column(
-                              children: [
-                                SizedBox(width: 20),
-                                settings.friendsContains(e.email) |
-                                        settings.friendsPendingContains(e.email)
-                                    ? ElevatedButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            settings.delFriendsPending(e.email);
-                                          });
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text('Cancel friend request'))
-                                    : ElevatedButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            settings.addFriendsPending(e.email);
-                                          });
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text('Send friend request')),
-                              ],
-                            ),
-                          ],
+                  children: e.routines
+                          .map((r) => _sharedRoutineTile(e, r))
+                          .toList() +
+                      [
+                        e.email == settings.getUser().email
+                            ? Container()
+                            : Column(
+                                children: [
+                                  SizedBox(width: 20),
+                                  settings.friendsReceivedContains(e.email)
+                                      ? Column(
+                                          children: [
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _acceptFriend(e.email);
+                                                });
+                                                Navigator.pop(context);
+                                              },
+                                              child:
+                                                  Text('Accept friend request'),
+                                            ),
+                                            SizedBox(width: 20),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _sendDelFriend(e.email);
+                                                });
+                                                Navigator.pop(context);
+                                              },
+                                              child:
+                                                  Text('Reject friend request'),
+                                            )
+                                          ],
+                                        )
+                                      : settings.friendsContains(e.email) |
+                                              settings.friendsPendingContains(
+                                                  e.email)
+                                          ? ElevatedButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _sendDelFriend(e.email);
+                                                });
+                                                Navigator.pop(context);
+                                              },
+                                              child:
+                                                  Text('Cancel friend request'),
+                                            )
+                                          : ElevatedButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _sendAddFriend(e.email);
+                                                });
+                                                Navigator.pop(context);
+                                              },
+                                              child:
+                                                  Text('Send friend request'),
+                                            ),
+                                ],
+                              ),
+                      ],
                 ),
               ),
             );
@@ -361,6 +495,49 @@ class _SocialPageState extends State<SocialPage> {
         );
       },
     );
+  }
+
+  void _sendDelFriend(String userEmail) {
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
+    String uid = settings.getUser().uid;
+    String email = settings.getUser().email;
+
+    settings.delFriendsAll(userEmail);
+    DBService(uid: uid, email: email)
+        .addFriendRequest(userEmail, FRIEND_REMOVE);
+  }
+
+  void _rcvdDelFriend(String userEmail) {
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
+
+    settings.delFriendsAll(userEmail);
+  }
+
+  void _acceptFriend(String userEmail) {
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
+    String uid = settings.getUser().uid;
+    String email = settings.getUser().email;
+
+    settings.addFriends(userEmail);
+    DBService(uid: uid, email: email).addFriendRequest(userEmail, FRIEND_ADD);
+  }
+
+  void _sendAddFriend(String userEmail) {
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
+    String uid = settings.getUser().uid;
+    String email = settings.getUser().email;
+
+    settings.addFriendsPending(userEmail);
+    DBService(uid: uid, email: email).addFriendRequest(userEmail, FRIEND_ADD);
+  }
+
+  void _rcvdAddFriend(String userEmail) {
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
+
+    if (settings.friendsPendingContains(userEmail))
+      settings.addFriends(userEmail);
+    else
+      settings.addFriendsReceived(userEmail);
   }
 
   Widget _sharedRoutineTile(SharedInfo e, String r) {
@@ -462,7 +639,6 @@ class _SocialPageState extends State<SocialPage> {
           ],
         );
       },
-      barrierDismissible: false,
     );
   }
 
