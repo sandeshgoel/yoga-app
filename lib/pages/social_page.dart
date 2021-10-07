@@ -31,6 +31,21 @@ class SharedInfo {
   }
 }
 
+class MyClipper extends CustomClipper<Rect> {
+  @override
+  Rect getClip(Size size) {
+    return Rect.fromCenter(
+        center: Offset(size.width / 2, size.height / 2),
+        width: size.height - 3,
+        height: size.height - 3);
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Rect> oldClipper) {
+    return false;
+  }
+}
+
 class SocialPage extends StatefulWidget {
   const SocialPage({Key? key}) : super(key: key);
 
@@ -291,6 +306,7 @@ class _SocialPageState extends State<SocialPage> {
                   child: FloatingActionButton(
                     onPressed: () {
                       setState(() {});
+                      showMsg(context, 'Page Refreshed');
                     },
                     child: Icon(Icons.refresh),
                   ),
@@ -340,7 +356,7 @@ class _SocialPageState extends State<SocialPage> {
         _listShared(e);
       },
       child: Card(
-        color: Colors.white.withOpacity(0.9),
+        //color: Colors.white.withOpacity(0.9),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
         child: Column(
@@ -369,7 +385,8 @@ class _SocialPageState extends State<SocialPage> {
                       clear
                           ? Container()
                           : Positioned.fill(
-                              child: ClipRRect(
+                              child: ClipOval(
+                                clipper: MyClipper(),
                                 child: BackdropFilter(
                                   filter:
                                       ImageFilter.blur(sigmaX: 4, sigmaY: 4),

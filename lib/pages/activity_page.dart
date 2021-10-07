@@ -167,6 +167,9 @@ class _ActivityPageState extends State<ActivityPage> {
             else
               color = Colors.red.withOpacity(0.8);
 
+            int maxAct = 10;
+            if (actList.length > maxAct) actList = actList.sublist(0, maxAct);
+
             actList.forEach((act) {
               children.add(Text(
                 '${DateFormat("MMM-dd HH:mm").format(act.start)}: ${act.actName} for ${(act.duration / 60).toStringAsFixed(1)} mins',
@@ -345,7 +348,7 @@ class _ActivityPageState extends State<ActivityPage> {
                       children: <Widget>[
                         Container(
                           margin: EdgeInsets.only(bottom: 10),
-                          child: Text('Raw Activity Log',
+                          child: Text('Last $maxAct exercises',
                               style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                         Column(

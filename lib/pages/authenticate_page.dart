@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
 import 'package:yoga/services/auth.dart';
+import 'package:yoga/services/local_auth_api.dart';
 import 'package:yoga/shared/constants.dart';
 
 class AuthenticatePage extends StatefulWidget {
@@ -18,7 +19,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
   final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
-  bool _checkboxValue = false;
+  bool _signup = false;
 
   String email = '';
   String password = '';
@@ -56,7 +57,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: 40),
+              SizedBox(height: 10),
               Image.asset(
                 "assets/icon/yoga_icon_circular.png",
                 height: 80,
@@ -75,7 +76,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
 
               // Google sign in button
 
-              SizedBox(height: 40),
+              SizedBox(height: 20),
               SizedBox(
                 width: 300,
                 child: ElevatedButton.icon(
@@ -87,7 +88,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                     color: Colors.orange,
                   ),
                   label: Text(
-                    'Sign in with Google',
+                    (_signup ? 'Sign up ' : 'Sign in ') + 'with Google',
                     style: TextStyle(fontSize: 16),
                   ),
                   style: ElevatedButton.styleFrom(
@@ -99,7 +100,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
               // OR separator
 
               Container(
-                height: 100,
+                height: 80,
                 child: Center(
                   child: Text(
                     '------- OR -------',
@@ -112,7 +113,6 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
 
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                height: 40,
                 child: TextFormField(
                   initialValue: email,
                   validator: (val) => (val!.contains('@') &
@@ -124,43 +124,39 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                     email = val;
                   },
                   decoration: textInputDeco.copyWith(hintText: 'Email'),
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                 ),
               ),
               SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  height: 40,
-                  child: TextFormField(
-                    initialValue: password,
-                    obscureText: !_showPassword,
-                    validator: (val) => val!.length < 6
-                        ? 'Password length must be at least 6'
-                        : null,
-                    onChanged: (val) {
-                      password = val;
-                    },
-                    decoration: textInputDeco.copyWith(
-                      hintText: 'Password',
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          // Based on passwordVisible state choose the icon
-                          _showPassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Theme.of(context).primaryColorDark,
-                        ),
-                        onPressed: () {
-                          // Update the state i.e. toogle the state of passwordVisible variable
-                          setState(() {
-                            _showPassword = !_showPassword;
-                          });
-                        },
+                child: TextFormField(
+                  initialValue: password,
+                  obscureText: !_showPassword,
+                  validator: (val) => val!.length < 6
+                      ? 'Password length must be at least 6'
+                      : null,
+                  onChanged: (val) {
+                    password = val;
+                  },
+                  decoration: textInputDeco.copyWith(
+                    hintText: 'Password',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        // Based on passwordVisible state choose the icon
+                        _showPassword ? Icons.visibility : Icons.visibility_off,
+                        color: Theme.of(context).primaryColorDark,
+                        size: 20,
                       ),
+                      onPressed: () {
+                        // Update the state i.e. toogle the state of passwordVisible variable
+                        setState(() {
+                          _showPassword = !_showPassword;
+                        });
+                      },
                     ),
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                 ),
               ),
 
@@ -190,8 +186,8 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
               SizedBox(
                 width: 300,
                 child: ElevatedButton(
-                  child: Text(_checkboxValue ? 'SIGN UP' : 'SIGN IN',
-                      style: TextStyle(fontSize: 16)),
+                  child: Text(_signup ? 'SIGN UP' : 'SIGN IN',
+                      style: TextStyle(fontSize: 14)),
                   style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30))),
@@ -208,18 +204,18 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                 child: Center(
                   child: GestureDetector(
                     onTap: () {
-                      if (_checkboxValue == false) {
+                      if (_signup == false) {
                         setState(() {
-                          _checkboxValue = true;
+                          _signup = true;
                         });
-                      } else if (_checkboxValue == true) {
+                      } else if (_signup == true) {
                         setState(() {
-                          _checkboxValue = false;
+                          _signup = false;
                         });
                       }
                     },
                     child: Text(
-                      _checkboxValue
+                      _signup
                           ? 'Already have an account, Sign In'
                           : 'First time user, Sign Up',
                       style: TextStyle(
@@ -231,10 +227,43 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                 ),
               ),
 
+              // Fingerprint login
+
+              SizedBox(height: 10),
+              GestureDetector(
+                child: Card(
+                  color: Colors.white.withOpacity(0.9),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 20),
+                    child: Column(
+                      children: [
+                        Icon(Icons.fingerprint, size: 50, color: Colors.blue),
+                        SizedBox(height: 10),
+                        Text('Sign in with fingerprint',
+                            style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ),
+                onTap: () async {
+                  showMsg(context, 'To be implemented');
+                  return;
+                  final isAuthenticated = await LocalAuthApi.authenticate();
+                  if (isAuthenticated) {
+                    print('Fingerprint auth successful!!');
+                  }
+                },
+              ),
+
               // Copyright line
 
               SizedBox(
-                height: 80,
+                height: 40,
                 child: Center(
                   child: Text(
                     'Copyright 2021 Sandesh Goel',
@@ -290,7 +319,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
       List userAuthList = await _auth.checkEmail(email);
       if (userAuthList.length == 0) {
         print('User not registered');
-        if (!_checkboxValue)
+        if (!_signup)
           showDialog(
               context: context,
               builder: (_) => AlertDialog(
