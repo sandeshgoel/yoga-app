@@ -202,16 +202,6 @@ class _RoutinesPageState extends State<RoutinesPage> {
             ],
       ),
     );
-/*
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: settings.lengthRoutines(),
-      itemBuilder: (BuildContext context, int index) =>
-          _routineTile(settings, index),
-      separatorBuilder: (BuildContext context, int index) =>
-          Container(height: 20),
-    );
-    */
   }
 
   void _routineSelected(context, String routine) {

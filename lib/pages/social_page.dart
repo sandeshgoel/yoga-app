@@ -134,156 +134,170 @@ class _SocialPageState extends State<SocialPage> {
                 .sort((a, b) => b.routines.length.compareTo(a.routines.length));
 
             for (SharedInfo e in shList) {
-              //print('${e.email}: ${e.name} ${e.routines}');
-              Widget w = _socialCard(e);
-
               if (settings.friendsContains(e.email))
-                friends.add(w);
+                friends.add(_socialCard(e, true));
               else if (settings.friendsReceivedContains(e.email))
-                received.add(w);
+                received.add(_socialCard(e, true));
               else if (settings.friendsPendingContains(e.email))
-                sent.add(w);
-              else if (e.routines.length > 0) sharers.add(w);
+                sent.add(_socialCard(e, false));
+              else if (e.routines.length > 0)
+                sharers.add(_socialCard(e, false));
             }
 
-            ret = SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Friends
+            ret = Stack(
+              children: [
+                SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // Friends
 
-                  Card(
-                    margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    color: Colors.white.withOpacity(0.9),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0)),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 10),
-                        Container(
-                          width: double.infinity,
-                          child: Text('Friends',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          alignment: Alignment.center,
+                      Card(
+                        margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                        color: Colors.white.withOpacity(0.9),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0)),
+                        child: Column(
+                          children: [
+                            SizedBox(height: 10),
+                            Container(
+                              width: double.infinity,
+                              child: Text('Friends',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              alignment: Alignment.center,
+                            ),
+                            SizedBox(height: 10),
+                          ],
                         ),
-                        SizedBox(height: 10),
-                      ],
-                    ),
-                  ),
-                  friends.length == 0
-                      ? Container()
-                      : GridView.count(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                          children: friends,
+                      ),
+                      friends.length == 0
+                          ? Container()
+                          : GridView.count(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                              children: friends,
+                            ),
+
+                      // Top Sharers
+
+                      Card(
+                        margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                        color: Colors.white.withOpacity(0.9),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0)),
+                        child: Column(
+                          children: [
+                            SizedBox(height: 10),
+                            Container(
+                              width: double.infinity,
+                              child: Text('Top Sharers',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              alignment: Alignment.center,
+                            ),
+                            SizedBox(height: 10),
+                          ],
                         ),
+                      ),
+                      sharers.length == 0
+                          ? Container()
+                          : GridView.count(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                              children: sharers,
+                            ),
 
-                  // Top Sharers
+                      // Friend Requests Sent
 
-                  Card(
-                    margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    color: Colors.white.withOpacity(0.9),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0)),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 10),
-                        Container(
-                          width: double.infinity,
-                          child: Text('Top Sharers',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          alignment: Alignment.center,
-                        ),
-                        SizedBox(height: 10),
-                      ],
-                    ),
-                  ),
-                  sharers.length == 0
-                      ? Container()
-                      : GridView.count(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                          children: sharers,
-                        ),
-
-                  // Friend Requests Sent
-
-                  sent.length == 0
-                      ? Container()
-                      : Card(
-                          margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                          color: Colors.white.withOpacity(0.9),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0)),
-                          child: Column(
-                            children: [
-                              SizedBox(height: 10),
-                              Container(
-                                width: double.infinity,
-                                child: Text('Friend Requests Sent',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                alignment: Alignment.center,
+                      sent.length == 0
+                          ? Container()
+                          : Card(
+                              margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                              color: Colors.white.withOpacity(0.9),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0)),
+                              child: Column(
+                                children: [
+                                  SizedBox(height: 10),
+                                  Container(
+                                    width: double.infinity,
+                                    child: Text('Friend Requests Sent',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    alignment: Alignment.center,
+                                  ),
+                                  SizedBox(height: 10),
+                                ],
                               ),
-                              SizedBox(height: 10),
-                            ],
-                          ),
-                        ),
-                  sent.length == 0
-                      ? Container()
-                      : GridView.count(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                          children: sent,
-                        ),
+                            ),
+                      sent.length == 0
+                          ? Container()
+                          : GridView.count(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                              children: sent,
+                            ),
 
-                  // Friend Requests Received
+                      // Friend Requests Received
 
-                  received.length == 0
-                      ? Container()
-                      : Card(
-                          margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                          color: Colors.white.withOpacity(0.9),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0)),
-                          child: Column(
-                            children: [
-                              SizedBox(height: 10),
-                              Container(
-                                width: double.infinity,
-                                child: Text('Friend Requests Received',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                alignment: Alignment.center,
+                      received.length == 0
+                          ? Container()
+                          : Card(
+                              margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                              color: Colors.white.withOpacity(0.9),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0)),
+                              child: Column(
+                                children: [
+                                  SizedBox(height: 10),
+                                  Container(
+                                    width: double.infinity,
+                                    child: Text('Friend Requests Received',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    alignment: Alignment.center,
+                                  ),
+                                  SizedBox(height: 10),
+                                ],
                               ),
-                              SizedBox(height: 10),
-                            ],
-                          ),
-                        ),
-                  received.length == 0
-                      ? Container()
-                      : GridView.count(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                          children: received,
-                        ),
-                ],
-              ),
+                            ),
+                      received.length == 0
+                          ? Container()
+                          : GridView.count(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                              children: received,
+                            ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  child: FloatingActionButton(
+                    onPressed: () {
+                      setState(() {});
+                    },
+                    child: Icon(Icons.refresh),
+                  ),
+                  bottom: 15,
+                  right: 15,
+                )
+              ],
             );
           } else if (snapshot.hasError) {
             ret = Column(
@@ -320,9 +334,7 @@ class _SocialPageState extends State<SocialPage> {
         });
   }
 
-  Widget _socialCard(
-    SharedInfo e,
-  ) {
+  Widget _socialCard(SharedInfo e, bool clear) {
     return GestureDetector(
       onTap: () {
         _listShared(e);
@@ -338,21 +350,34 @@ class _SocialPageState extends State<SocialPage> {
               flex: 60,
               child: Stack(
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(width: 2, color: Colors.blue),
-                      image: DecorationImage(
-                        fit: BoxFit.contain,
-                        image: (e.photo == '')
-                            ? AssetImage("assets/icon/yoga_icon_circular.png")
-                                as ImageProvider
-                            : NetworkImage(e.photo),
+                  Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(width: 2, color: Colors.blue),
+                          image: DecorationImage(
+                            fit: BoxFit.contain,
+                            image: (e.photo == '')
+                                ? AssetImage(
+                                        "assets/icon/yoga_icon_circular.png")
+                                    as ImageProvider
+                                : NetworkImage(e.photo),
+                          ),
+                        ),
                       ),
-                    ),
-                    //child: BackdropFilter(
-                    //    filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                    //    child: Container()),
+                      clear
+                          ? Container()
+                          : Positioned.fill(
+                              child: ClipRRect(
+                                child: BackdropFilter(
+                                  filter:
+                                      ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                                  child: Container(),
+                                ),
+                              ),
+                            ),
+                    ],
                   ),
                   Row(
                     children: [
@@ -389,7 +414,7 @@ class _SocialPageState extends State<SocialPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      obfuscate(e.name),
+                      clear ? e.name : obfuscate(e.name),
                       textAlign: TextAlign.center,
                       style:
                           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
@@ -533,10 +558,15 @@ class _SocialPageState extends State<SocialPage> {
 
   void _rcvdAddFriend(String userEmail) {
     YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
+    String uid = settings.getUser().uid;
+    String email = settings.getUser().email;
 
-    if (settings.friendsPendingContains(userEmail))
+    if (settings.friendsContains(userEmail)) {
+      // ignore
+    } else if (settings.friendsPendingContains(userEmail)) {
       settings.addFriends(userEmail);
-    else
+      DBService(uid: uid, email: email).addFriendRequest(userEmail, FRIEND_ADD);
+    } else
       settings.addFriendsReceived(userEmail);
   }
 
