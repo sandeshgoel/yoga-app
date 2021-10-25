@@ -22,16 +22,16 @@ class CounterPage extends StatefulWidget {
 }
 
 class _CounterPageState extends State<CounterPage> {
-  int _curCount = 1;
-  int _curStage = 0;
-  int _curRound = 1;
-  late int _totRounds;
+  bool _reset = true;
+  int _curCount = 0;
+  int _curStage = -1;
+  int _curRound = 0;
   double _totSeconds = 0;
+  late int _totRounds;
   double _totSecondsRoutine = 0;
   bool _paused = true;
   bool _pausePressed = false;
   bool _playAfterPause = false;
-  bool _reset = true;
   Timer _timerClock = Timer(Duration(milliseconds: 100), () {});
   Tts _tts = Tts();
   AudioMusic _am = AudioMusic();
@@ -164,32 +164,46 @@ class _CounterPageState extends State<CounterPage> {
                     ),
                   ),
 
-                  // Stage number
-
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    child: Center(
-                        child: Text(
-                      'Stage ${_curStage + 1} of ${_curExercise.stages.length}',
-                      style: TextStyle(fontSize: 12),
-                    )),
-                  ),
-
-                  // Stage name
+                  // Stage number and name
 
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 20),
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                     decoration: new BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                       color: Colors.amber.withOpacity(0.6),
                     ),
-                    child: Center(
-                        child: Text(
-                      (_curExercise.altLeftRight & (_curRound % 2 == 0))
-                          ? swapLeftRight(_curExercise.stages[_curStage].name)
-                          : _curExercise.stages[_curStage].name,
-                      style: TextStyle(fontSize: 30),
-                    )),
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Text(
+                            'Stage ${_curStage + 1} of ${_curExercise.stages.length}',
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Center(
+                          child: Container(
+                            height: 50,
+                            width: MediaQuery.of(context).size.width,
+                            child: FittedBox(
+                              child: Text(
+                                _curStage == -1
+                                    ? ''
+                                    : (_curExercise.altLeftRight &
+                                            (_curRound % 2 == 0))
+                                        ? swapLeftRight(
+                                            _curExercise.stages[_curStage].name)
+                                        : _curExercise.stages[_curStage].name,
+                                style: TextStyle(fontSize: 30),
+                                maxLines: 2,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
 
                   // Count
@@ -216,7 +230,9 @@ class _CounterPageState extends State<CounterPage> {
                               fontSize: 80, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          '/${_curExercise.stages[_curStage].count}',
+                          _curStage == -1
+                              ? '/0'
+                              : '/${_curExercise.stages[_curStage].count}',
                           style: TextStyle(fontSize: 12),
                         ),
                       ],
@@ -253,6 +269,7 @@ class _CounterPageState extends State<CounterPage> {
                         child: IconButton(
                           onPressed: () {
                             setState(() {
+                              _tts.stop();
                               _resetCounter();
                             });
                           },
@@ -439,13 +456,11 @@ class _CounterPageState extends State<CounterPage> {
     int rounds = _curRound;
 
     setState(() {
-      _curCount = 1;
-      _curStage = 0;
-      _curRound = 1;
+      _curCount = 0;
+      _curStage = -1;
+      _curRound = 0;
       _totSeconds = 0;
       if (widget.routine == '') _totSecondsRoutine = 0;
-//      else if (_curExIndexInRoutine + 1 == _routine.exercises.length)
-//        _totSecondsRoutine = 0;
       _reset = true;
     });
 
@@ -517,7 +532,7 @@ class _CounterPageState extends State<CounterPage> {
         Duration(milliseconds: settings.getCountDuration()), _handleTimeout);
 
     if (_reset) {
-      String stagename = _curExercise.stages[_curStage].name;
+/*      String stagename = _curExercise.stages[_curStage].name;
       // if count is muted and count>6, include total counts in stagename
       if (settings.getMuteCounting() &
           (_curExercise.stages[_curStage].count > 6)) {
@@ -525,6 +540,7 @@ class _CounterPageState extends State<CounterPage> {
       }
 
       await _tts.speak(context, stagename);
+*/
       _reset = false;
     }
   }
@@ -552,7 +568,6 @@ class _CounterPageState extends State<CounterPage> {
     }
 
     setState(() {
-      Stage stage = _curExercise.stages[_curStage];
       int _totStages = _curExercise.stages.length;
       String msg = '';
       String postmsg = '';
@@ -561,7 +576,10 @@ class _CounterPageState extends State<CounterPage> {
       _totSecondsRoutine += settings.getCountDuration() / 1000;
 
       _curCount = (_curCount + 1);
-      if (_curCount == stage.count + 1) _curCount = 1;
+      if (_curStage > -1) {
+        if (_curCount == _curExercise.stages[_curStage].count + 1)
+          _curCount = 1;
+      }
 
       if (_curCount == 1) {
         _curStage = (_curStage + 1) % _totStages;

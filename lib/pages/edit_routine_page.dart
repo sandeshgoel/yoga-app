@@ -309,6 +309,11 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
       ),
     );
 
+    list.add(Text(
+      'Long press and drag any row to reorder exercises',
+      style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+    ));
+
     List<Widget> elist = [];
     for (var i = 0; i < r.exercises.length; i++) {
       elist.add(
@@ -316,17 +321,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
           key: Key('$i'),
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            //Expanded(flex: 3, child: Container()),
             Expanded(
-              flex: 10,
-              child: IconButton(
-                icon: Icon(Icons.drag_handle),
-                onPressed: () => {},
-              ),
-            ),
-            Expanded(flex: 5, child: Container()),
-            Expanded(
-              flex: 55,
+              flex: 70,
               child: DropdownButton<String>(
                   value: r.exercises[i].name,
                   isExpanded: true,

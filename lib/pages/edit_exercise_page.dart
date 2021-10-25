@@ -423,7 +423,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
               //initialValue: disableCount ? '-' : cp.stages[i].count.toString(),
               keyboardType: TextInputType.number,
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp('[0-9]+'))
+                FilteringTextInputFormatter.allow(RegExp('[1-9][0-9]*'))
               ],
               textAlign: TextAlign.center,
               style: disableCount ? settingsTextStyleGrey : settingsTextStyle,
@@ -432,11 +432,11 @@ class _EditConfigPageState extends State<EditConfigPage> {
               onChanged: (val) {
                 if (cp.sameCount & (i == 0)) {
                   for (int j = 1; j < cp.stages.length; j++) {
-                    cp.stages[j].count = int.tryParse(val) ?? 0;
+                    cp.stages[j].count = int.tryParse(val) ?? 1;
                     _ctrlList[j].text = val;
                   }
                 }
-                cp.stages[i].count = int.tryParse(val) ?? 0;
+                cp.stages[i].count = int.tryParse(val) ?? 1;
               },
             ),
           ),

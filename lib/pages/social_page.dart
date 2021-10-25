@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:share/share.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -149,21 +150,24 @@ class _SocialPageState extends State<SocialPage> {
                 .sort((a, b) => b.routines.length.compareTo(a.routines.length));
 
             for (SharedInfo e in shList) {
-              if (settings.friendsContains(e.email))
-                friends.add(_socialCard(e, true));
-              else if (settings.friendsReceivedContains(e.email))
-                received.add(_socialCard(e, true));
-              else if (settings.friendsPendingContains(e.email))
-                sent.add(_socialCard(e, false));
-              else if (e.routines.length > 0)
-                sharers.add(_socialCard(e, false));
+              if (e.email != settings.getUser().email) {
+                if (settings.friendsContains(e.email))
+                  friends.add(_socialCard(e, true));
+                else if (settings.friendsReceivedContains(e.email))
+                  received.add(_socialCard(e, true));
+                else if (settings.friendsPendingContains(e.email))
+                  sent.add(_socialCard(e, false));
+                else if (e.routines.length > 0)
+                  sharers.add(_socialCard(e, false));
+              }
             }
-
             ret = Stack(
               children: [
                 SingleChildScrollView(
                   child: Column(
                     children: [
+                      SizedBox(height: 10),
+                      _shareAppWidget(),
                       // Friends
 
                       Card(
@@ -299,6 +303,75 @@ class _SocialPageState extends State<SocialPage> {
                               padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
                               children: received,
                             ),
+
+                      // My Shared
+
+                      Card(
+                        margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                        color: Colors.white.withOpacity(0.9),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0)),
+                        child: Column(
+                            children: [
+                                  SizedBox(height: 10),
+                                  Container(
+                                    width: double.infinity,
+                                    child: Text('My Routines',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    alignment: Alignment.center,
+                                  ),
+                                  SizedBox(height: 20),
+                                  Row(
+                                    children: [
+                                      SizedBox(width: 30),
+                                      Text('Routine',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                      Expanded(child: Container()),
+                                      Text('Shared',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                      SizedBox(width: 30),
+                                    ],
+                                  ),
+                                  SizedBox(height: 10),
+                                ] +
+                                settings.routines
+                                    .map((r) => settings
+                                                .getRoutineFromLib(r.name) ==
+                                            null
+                                        ? Row(
+                                            children: [
+                                              SizedBox(width: 30),
+                                              Text(r.name,
+                                                  overflow:
+                                                      TextOverflow.ellipsis),
+                                              Expanded(child: Container()),
+                                              SizedBox(
+                                                height: 30,
+                                                child: Switch(
+                                                  value: r.shared,
+                                                  onChanged: (val) {
+                                                    setState(() {
+                                                      r.shared = val;
+                                                      settings.saveSettings();
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                              SizedBox(width: 30),
+                                            ],
+                                          )
+                                        : Container())
+                                    .toList() +
+                                [
+                                  SizedBox(height: 20),
+                                ]),
+                      ),
+                      SizedBox(height: 20),
+                      _shareAppWidget(),
+                      SizedBox(height: 100)
                     ],
                   ),
                 ),
@@ -348,6 +421,19 @@ class _SocialPageState extends State<SocialPage> {
 
           return ret;
         });
+  }
+
+  Widget _shareAppWidget() {
+    return ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6)),
+      label: Text('Share this app', style: TextStyle(fontSize: 14)),
+      icon: Icon(Icons.share),
+      onPressed: () {
+        Share.share(
+            'I\'m using this great yoga app, check it out!!\n https://play.google.com/store/apps/details?id=com.sandeshgoel.yoga');
+      },
+    );
   }
 
   Widget _socialCard(SharedInfo e, bool clear) {
