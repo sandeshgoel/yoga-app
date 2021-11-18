@@ -40,7 +40,7 @@ class Tts {
       ));
   }
 
-  void stop() {
-    flutterTts.stop();
+  Future<void> stop() async {
+    await flutterTts.stop();
   }
 }

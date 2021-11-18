@@ -424,6 +424,7 @@ class YogaSettings with ChangeNotifier {
   late int _gapRoutine;
   late bool _muteCounting;
   late bool _notify;
+  late bool _music;
 
   late List<ConfigParam> cps;
   late List<Routine> routines;
@@ -443,6 +444,7 @@ class YogaSettings with ChangeNotifier {
   int defGapRoutine = 10;
   bool defMuteCounting = true;
   bool defNotify = true;
+  bool defMusic = true;
 
   void initSettings() {
     _user = UserInfo();
@@ -458,6 +460,7 @@ class YogaSettings with ChangeNotifier {
     _gapRoutine = defGapRoutine;
     _muteCounting = defMuteCounting;
     _notify = defNotify;
+    _music = defMusic;
 
     cps = [];
     routines = [_routineLib[0]];
@@ -473,7 +476,8 @@ class YogaSettings with ChangeNotifier {
         (_countDuration == defCountDuration) &
         (_gapRoutine == defGapRoutine) &
         (_muteCounting == defMuteCounting) &
-        (_notify = defNotify))
+        (_notify = defNotify) &
+        (_music = defMusic))
       return true;
     else
       return false;
@@ -627,6 +631,7 @@ class YogaSettings with ChangeNotifier {
     this._gapRoutine = jval['gapRoutine'] ?? this._gapRoutine;
     this._muteCounting = jval['muteCounting'] ?? this._muteCounting;
     this._notify = jval['notify'] ?? this._notify;
+    this._music = jval['music'] ?? this._music;
     this.cps = (jval['cps'] ?? (this.cps.map((x) => x.toJson()).toList()))
         .map<ConfigParam>((x) => ConfigParam.fromJson(x))
         .toList();
@@ -658,6 +663,7 @@ class YogaSettings with ChangeNotifier {
       'gapRoutine': this._gapRoutine,
       'muteCounting': this._muteCounting,
       'notify': this._notify,
+      'music': this._music,
       'cps': this.cps.map((x) => x.toJson()).toList(),
       'routines': this.routines.map((x) => x.toJson()).toList(),
       'friends': this.friends.toList(),
@@ -706,6 +712,7 @@ class YogaSettings with ChangeNotifier {
   }
 
   bool equals(YogaSettings cfg) {
+    print('${this._music} , ${cfg._music}');
     if (this._user.equals(cfg._user) &
         (this._speechRate == cfg._speechRate) &
         (this._speechVolume == cfg._speechVolume) &
@@ -715,6 +722,7 @@ class YogaSettings with ChangeNotifier {
         (this._gapRoutine == cfg._gapRoutine) &
         (this._muteCounting == cfg._muteCounting) &
         (this._notify == cfg._notify) &
+        (this._music == cfg._music) &
         this.cpsEquals(cfg.cps) &
         this.routinesEquals(cfg.routines) &
         DeepCollectionEquality.unordered().equals(this.friends, cfg.friends) &
@@ -765,6 +773,17 @@ class YogaSettings with ChangeNotifier {
 
   bool getNotify() {
     return this._notify;
+  }
+
+  // ----------------------------------------------------
+
+  void setMusic(bool music) {
+    this._music = music;
+    notifyListeners();
+  }
+
+  bool getMusic() {
+    return this._music;
   }
 
   // ----------------------------------------------------

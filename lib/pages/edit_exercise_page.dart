@@ -270,10 +270,9 @@ class _EditConfigPageState extends State<EditConfigPage> {
     //print('_saveConfig: Before $pindex ${settings.cps}');
     ConfigParam cp = settings.getParam(pindex);
     cp.name = values['configName'];
-    //cp.rounds = values['rounds'].toInt();
+    cp.desc = values['desc'];
     for (var i = 0; i < cp.stages.length; i++) {
       cp.stages[i].name = values['stagename' + i.toString()];
-      //cp.stages[i].count = int.parse(values['stagecount' + i.toString()]);
     }
     settings.setParam(pindex, cp);
     //print('_saveConfig: $pindex $cp');

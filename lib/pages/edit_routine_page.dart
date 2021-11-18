@@ -287,6 +287,20 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     Routine r = settings.getRoutine(rindex);
     Routine? rl = settings.getRoutineFromLib(cfg);
 
+    List<int> exTime = [];
+    int totTime = 0;
+    for (var i = 0; i < r.exercises.length; i++) {
+      int exindex = settings.findParamIndex(r.exercises[i].name);
+      ConfigParam ex = settings.getParam(exindex);
+      int c = 0;
+      for (int j = 0; j < ex.stages.length; j++) {
+        c += ex.stages[j].count;
+      }
+      exTime
+          .add(c * r.exercises[i].rounds * settings.getCountDuration() ~/ 1000);
+      totTime += exTime[i];
+    }
+
     list.add(
       Container(
         padding: EdgeInsets.all(16),
@@ -304,6 +318,10 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                         ? '*'
                         : '',
                 style: starStyle),
+            Text(
+              ' (${(totTime.toDouble() / 60).toStringAsFixed(1)} mins) ',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),
@@ -323,21 +341,30 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
           children: [
             Expanded(
               flex: 70,
-              child: DropdownButton<String>(
-                  value: r.exercises[i].name,
-                  isExpanded: true,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      r.exercises[i].name = newValue!;
-                    });
-                  },
-                  items: settings.cps
-                      .map<DropdownMenuItem<String>>(
-                          (ex) => DropdownMenuItem<String>(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DropdownButton<String>(
+                      value: r.exercises[i].name,
+                      isExpanded: true,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          r.exercises[i].name = newValue!;
+                        });
+                      },
+                      items: settings.cps
+                          .map<DropdownMenuItem<String>>((ex) =>
+                              DropdownMenuItem<String>(
                                 value: ex.name,
                                 child: Text(ex.name, style: settingsTextStyle),
                               ))
-                      .toList()),
+                          .toList()),
+                  Text(
+                    '${(exTime[i].toDouble() / 60).toStringAsFixed(1)} minutes',
+                    style: TextStyle(fontSize: 10),
+                  ),
+                ],
+              ),
             ),
             Expanded(
               flex: 5,

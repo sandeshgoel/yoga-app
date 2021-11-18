@@ -213,6 +213,30 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                   },
                 ),
 
+                // Music On
+
+                Row(
+                  children: [
+                    Text(
+                      settings.getMusic() == settings.defMusic ? '' : '* ',
+                      style: starStyle,
+                    ),
+                    Text('Music On', style: settingsTextStyle),
+                    _infoIcon(topicMusic),
+                    Expanded(
+                      child: Container(),
+                    ),
+                    Switch(
+                      value: settings.getMusic(),
+                      onChanged: (val) {
+                        setState(() {
+                          settings.setMusic(val);
+                        });
+                      },
+                    ),
+                  ],
+                ),
+
                 // Mute Counting
 
                 Row(
@@ -334,6 +358,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                                 .setCountDuration(settings.defCountDuration);
                             settings.setGapRoutine(settings.defGapRoutine);
                             settings.setNotify(settings.defNotify);
+                            settings.setMusic(settings.defMusic);
                             Navigator.pop(context);
                           },
                     child: Text('Defaults')),
@@ -368,6 +393,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
   static const String topicDailyTarget = 'daily_target';
   static const String topicGapRoutine = 'gap_routine';
   static const String topicNotify = 'notify';
+  static const String topicMusic = 'music';
 
   Widget _infoIcon(String topic) {
     YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
@@ -379,7 +405,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
         break;
       case topicMuteCounting:
         msg =
-            'If this is turned off, then every count is spoken aloud during the exercises. If this is turned on, then the counts are muted, and round numbers are also not announced';
+            'Disable or enable the announcement of round number and count within the round';
         break;
       case topicCountDur:
         msg =
@@ -403,6 +429,9 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
         break;
       case topicNotify:
         msg = 'Enable or disable daily notifications';
+        break;
+      case topicMusic:
+        msg = 'Turn background music on or off';
         break;
       default:
     }

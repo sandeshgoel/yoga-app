@@ -282,7 +282,7 @@ class _CounterPageState extends State<CounterPage> {
 
                       CircleAvatar(
                         child: IconButton(
-                          onPressed: !_paused ? null : () => _startTimer(),
+                          onPressed: !_paused ? null : () => _startExercise(),
                           icon: Icon(Icons.play_arrow),
                           iconSize: 40,
                         ),
@@ -299,10 +299,8 @@ class _CounterPageState extends State<CounterPage> {
                               ? null
                               : () {
                                   setState(() {
-                                    _paused = true;
                                     _pausePressed = true;
-                                    _tts.stop();
-                                    _am.pauseMusic();
+                                    _pauseExercise(pauseMusic: true);
                                   });
                                 },
                           icon: Icon(Icons.pause),
@@ -353,8 +351,10 @@ class _CounterPageState extends State<CounterPage> {
                     ? null
                     : () {
                         setState(() {
+                          _pauseExercise();
                           _resetCounter();
                           _moveExerciseInRoutine(settings, -1);
+                          _startExercise();
                         });
                       },
                 icon: Icon(Icons.skip_previous),
@@ -394,8 +394,10 @@ class _CounterPageState extends State<CounterPage> {
                         ? null
                         : () {
                             setState(() {
+                              _pauseExercise();
                               _resetCounter();
                               _moveExerciseInRoutine(settings, 1);
+                              _startExercise();
                             });
                           },
                 icon: Icon(Icons.skip_next),
@@ -420,9 +422,9 @@ class _CounterPageState extends State<CounterPage> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(cp.desc),
-                  SizedBox(height: 20),
-                  Icon(Icons.construction),
+                  Text(cp.desc == '' ? 'No description provided' : cp.desc),
+                  //SizedBox(height: 20),
+                  //Icon(Icons.construction),
                 ],
               ),
               actions: [
@@ -446,8 +448,8 @@ class _CounterPageState extends State<CounterPage> {
       Map<String, dynamic> act = UserActivity(uid, email, _curExercise.name,
               DateTime.now(), duration, rounds, widget.routine)
           .toJson();
+      print('Saving activity $email: ${_curExercise.name} $duration');
       await DBService(uid: uid, email: email).addUserActivity(act);
-      print('Saved activity $email: ${_curExercise.name} $duration');
     }
   }
 
@@ -469,8 +471,19 @@ class _CounterPageState extends State<CounterPage> {
         duration, rounds, settings.getUser().uid, settings.getUser().email);
   }
 
-  void _startTimer() async {
+  void _pauseExercise({bool pauseMusic = false}) async {
+    print('Pausing exercise ${_curExercise.name}');
+    _paused = true;
+    _timerClock.cancel();
+    await _tts.stop();
+    await Future.delayed(Duration(milliseconds: 500), () {});
+    if (pauseMusic) _am.pauseMusic();
+  }
+
+  void _startExercise() async {
     var settings = Provider.of<YogaSettings>(context, listen: false);
+
+    print('Starting exercise ${_curExercise.name}, reset is $_reset');
     setState(() {
       _paused = false;
       if (_pausePressed) {
@@ -479,7 +492,8 @@ class _CounterPageState extends State<CounterPage> {
       }
     });
 
-    _am.startMusic();
+    if (settings.getMusic()) _am.startMusic();
+
     if (_reset) {
       String msg = '';
       int gap = settings.getGapRoutine();
@@ -512,7 +526,7 @@ class _CounterPageState extends State<CounterPage> {
       else
         msg += "stages. ";
 
-      if (_curExercise.stages.length <= 4) {
+      if (_curExercise.stages.length <= 2) {
         for (var i = 0; i < _curExercise.stages.length; i++) {
           msg += "${_curExercise.stages[i].name}";
           if (i == (_curExercise.stages.length - 2))
@@ -526,28 +540,9 @@ class _CounterPageState extends State<CounterPage> {
 
       msg += " Starting round 1 now ... ";
       await _tts.speak(context, msg);
-    }
-
-    _timerClock = new Timer.periodic(
-        Duration(milliseconds: settings.getCountDuration()), _handleTimeout);
-
-    if (_reset) {
-/*      String stagename = _curExercise.stages[_curStage].name;
-      // if count is muted and count>6, include total counts in stagename
-      if (settings.getMuteCounting() &
-          (_curExercise.stages[_curStage].count > 6)) {
-        stagename += ' for ${_curExercise.stages[_curStage].count} counts . ';
-      }
-
-      await _tts.speak(context, stagename);
-*/
       _reset = false;
     }
-  }
-
-  void _pauseTimer(Timer t) {
-    t.cancel();
-    _am.pauseMusic();
+    _timerClock = new Timer(Duration(milliseconds: 200), _handleTimeout);
   }
 
   void _moveExerciseInRoutine(YogaSettings settings, int step) {
@@ -559,75 +554,52 @@ class _CounterPageState extends State<CounterPage> {
     _totRounds = _routine.exercises[_curExIndexInRoutine].rounds;
   }
 
-  void _handleTimeout(Timer t) {
-    var settings = Provider.of<YogaSettings>(context, listen: false);
+  void _handleTimeout() async {
+    Stopwatch stopwatch = new Stopwatch()..start();
+    YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
 
     if (_paused) {
-      _pauseTimer(t);
+      //_pauseTimer(t);
       return;
     }
 
-    setState(() {
-      int _totStages = _curExercise.stages.length;
-      String msg = '';
-      String postmsg = '';
+    int _totStages = _curExercise.stages.length;
+    String msg = '';
+    String postmsg = '';
 
-      _totSeconds += settings.getCountDuration() / 1000;
-      _totSecondsRoutine += settings.getCountDuration() / 1000;
+    _totSeconds += settings.getCountDuration() / 1000;
+    _totSecondsRoutine += settings.getCountDuration() / 1000;
 
-      _curCount = (_curCount + 1);
-      if (_curStage > -1) {
-        if (_curCount == _curExercise.stages[_curStage].count + 1)
-          _curCount = 1;
-      }
+    _curCount = (_curCount + 1);
+    if (_curStage > -1) {
+      if (_curCount == _curExercise.stages[_curStage].count + 1) _curCount = 1;
+    }
 
-      if (_curCount == 1) {
-        _curStage = (_curStage + 1) % _totStages;
-        if (_curStage == 0) {
-          _curRound++;
-          if (_curRound > _totRounds) {
-            // rounds are complete
+    if (_curCount == 1) {
+      _curStage = (_curStage + 1) % _totStages;
+      if (_curStage == 0) {
+        _curRound++;
+        if (_curRound > _totRounds) {
+          // rounds are complete
 
-            _pauseTimer(t);
+          //_pauseTimer(t);
 
-            int _totMinutes = (_totSecondsRoutine + 30) ~/ 60;
-            _resetCounter();
+          int _totMinutes = (_totSecondsRoutine + 30) ~/ 60;
+          _resetCounter();
 
-            if (widget.routine != '') {
-              if (_routine.exercises.length > _curExIndexInRoutine + 1) {
-                _moveExerciseInRoutine(settings, 1);
-                _startTimer();
-              } else {
-                msg = 'Your routine is complete!!\n' +
-                    '${_routine.exercises.length} exercises in about ' +
-                    '$_totMinutes minutes.';
-                showDialog(
-                    context: context,
-                    builder: (_) => AlertDialog(
-                          content: Text(msg),
-                          title: Text('Routine Complete'),
-                          actions: [
-                            ElevatedButton(
-                                onPressed: () {
-                                  int count = 0;
-                                  Navigator.of(context)
-                                      .popUntil((_) => count++ >= 2);
-                                },
-                                child: Text('OK'))
-                          ],
-                        ),
-                    barrierDismissible: false);
-                _tts.speak(context, msg);
-              }
+          if (widget.routine != '') {
+            if (_routine.exercises.length > _curExIndexInRoutine + 1) {
+              _moveExerciseInRoutine(settings, 1);
+              _startExercise();
             } else {
-              msg = 'Your exercise is complete!!\n' +
-                  '$_totRounds rounds in about ' +
+              msg = 'Your routine is complete!!\n' +
+                  '${_routine.exercises.length} exercises in about ' +
                   '$_totMinutes minutes.';
               showDialog(
                   context: context,
                   builder: (_) => AlertDialog(
                         content: Text(msg),
-                        title: Text('Exercise Complete'),
+                        title: Text('Routine Complete'),
                         actions: [
                           ElevatedButton(
                               onPressed: () {
@@ -639,46 +611,93 @@ class _CounterPageState extends State<CounterPage> {
                         ],
                       ),
                   barrierDismissible: false);
-              _tts.speak(context, msg);
+              await _tts.speak(context, msg);
+              _am.pauseMusic();
             }
-
-            return;
           } else {
-            // rounds not complete yet
-            if (_curRound == _totRounds)
-              postmsg = 'Last round . ';
-            else if (_curRound == _totRounds - 2)
-              postmsg = '3 rounds left . ';
-            else if ((_totRounds > 10) & (_curRound == (_totRounds ~/ 2) + 1))
-              postmsg = '${_totRounds - _curRound + 1} rounds left . ';
-            else {
-              if (settings.getMuteCounting()) {
-                msg = '';
-              } else
-                msg = 'Round $_curRound ';
-            }
+            msg = 'Your exercise is complete!!\n' +
+                '$_totRounds rounds in about ' +
+                '$_totMinutes minutes.';
+            showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                      content: Text(msg),
+                      title: Text('Exercise Complete'),
+                      actions: [
+                        ElevatedButton(
+                            onPressed: () {
+                              int count = 0;
+                              Navigator.of(context)
+                                  .popUntil((_) => count++ >= 2);
+                            },
+                            child: Text('OK'))
+                      ],
+                    ),
+                barrierDismissible: false);
+            await _tts.speak(context, msg);
+            _am.pauseMusic();
+          }
+
+          return;
+        } else {
+          // rounds not complete yet
+          if (_curRound == _totRounds) {
+            if (_totRounds > 1) postmsg = 'Last round . ';
+          } else if (_curRound == _totRounds - 2)
+            postmsg = '3 rounds left . ';
+          else if ((_totRounds > 10) & (_curRound == (_totRounds ~/ 2) + 1))
+            postmsg = '${_totRounds - _curRound + 1} rounds left . ';
+          else {
+            if (settings.getMuteCounting()) {
+              msg = '';
+            } else
+              msg = 'Round $_curRound ';
           }
         }
-
-        String stagename = _curExercise.stages[_curStage].name;
-        // if count is muted and count>6, include total counts in stagename
-        if (settings.getMuteCounting() &
-            (_curExercise.stages[_curStage].count > 6)) {
-          stagename += ' for ${_curExercise.stages[_curStage].count} counts . ';
-        }
-
-        // swap let and right, if needed
-        if (_curExercise.altLeftRight & (_curRound % 2 == 0)) {
-          stagename = swapLeftRight(stagename);
-        }
-
-        msg += stagename + ' . ' + postmsg;
-        _tts.speak(context, msg);
-      } else {
-        if (!settings.getMuteCounting())
-          _tts.speak(context, _curCount.toString());
       }
-    }); //setState
+
+      String stagename = _curExercise.stages[_curStage].name;
+      // if count is muted and count>6, include total counts in stagename
+      if (settings.getMuteCounting() &
+          (_curExercise.stages[_curStage].count > 6)) {
+        stagename += ' for ${_curExercise.stages[_curStage].count} counts . ';
+      }
+
+      // swap let and right, if needed
+      if (_curExercise.altLeftRight & (_curRound % 2 == 0)) {
+        stagename = swapLeftRight(stagename);
+      }
+
+      msg += stagename + ' . ' + postmsg;
+      setState(() {});
+      await _tts.speak(context, msg);
+    } else {
+      setState(() {});
+      if (!settings.getMuteCounting())
+        await _tts.speak(context, _curCount.toString());
+    }
+
+    int timeRemaining =
+        settings.getCountDuration() - stopwatch.elapsed.inMilliseconds;
+    while ((timeRemaining < 100) &
+        (_curCount < _curExercise.stages[_curStage].count)) {
+      timeRemaining += settings.getCountDuration();
+      _curCount += 1;
+      _totSeconds += settings.getCountDuration() / 1000;
+      _totSecondsRoutine += settings.getCountDuration() / 1000;
+      setState(() {});
+    }
+    if (timeRemaining < 100) {
+      timeRemaining = 100;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Speech overflow'),
+        duration: Duration(seconds: 1),
+      ));
+    }
+    //print('Done speaking ${stopwatch.elapsed.inMilliseconds}, ' +
+    //    'starting timer for $timeRemaining ms...');
+    _timerClock =
+        new Timer(Duration(milliseconds: timeRemaining), _handleTimeout);
   }
 
   // class end
