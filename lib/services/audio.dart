@@ -21,6 +21,7 @@ class AudioMusic {
   }
 
   void pauseMusic() {
+    if (!audioInitialized) return;
     audioPlayer.pause();
     print('Pausing music');
   }

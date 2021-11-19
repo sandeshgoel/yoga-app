@@ -22,7 +22,8 @@ const exShavasana = 'Shava Aasanaa';
 // standing exercises
 const exSuryaNamaskara = 'Surya Namaskara';
 const exSuryaNamaskaraFast = 'Surya Namaskara Fast';
-const exHandRotation = 'Arm Rotation';
+const exHandRotationClock = 'Arm Rotation Clockwise';
+const exHandRotationAnticlock = 'Arm Rotation Anti Clockwise';
 
 // sitting exercises
 const exNeckUpDown = 'Neck Up-Down';
@@ -54,7 +55,8 @@ List<Routine> gRoutineLib = [
     Exercise(exShavasana, 1),
   ]),
   Routine('Standing Warm Up', [
-    Exercise(exHandRotation, 10),
+    Exercise(exHandRotationClock, 10),
+    Exercise(exHandRotationAnticlock, 10),
     Exercise(exNeckUpDown, 10),
     Exercise(exNeckRightLeft, 10),
     Exercise(exSuryaNamaskara, 10),
@@ -154,7 +156,10 @@ List<ConfigParam> gExerciseLib = [
       ],
       sameCount: true,
       altLeftRight: true),
-  ConfigParam(exHandRotation, ExCategory.standing, 10, [Stage('Rotate', 2)]),
+  ConfigParam(
+      exHandRotationClock, ExCategory.standing, 10, [Stage('Rotate', 1)]),
+  ConfigParam(
+      exHandRotationAnticlock, ExCategory.standing, 10, [Stage('Rotate', 1)]),
   ConfigParam(exNeckUpDown, ExCategory.standing, 10,
       [Stage('Neck up', 2), Stage('Neck down', 2)]),
   ConfigParam(exNeckRightLeft, ExCategory.standing, 10,
@@ -415,6 +420,8 @@ class UserInfo {
 class YogaSettings with ChangeNotifier {
   late UserInfo _user;
 
+  late List<String> _bgMusicList;
+  late String _bgMusic;
   late List<String> _voices;
   late String _speechVoice;
   late double _speechRate;
@@ -445,11 +452,14 @@ class YogaSettings with ChangeNotifier {
   bool defMuteCounting = true;
   bool defNotify = true;
   bool defMusic = true;
+  String defBgMusic = 'yoga.mp3';
 
   void initSettings() {
     _user = UserInfo();
     _user.initUser();
 
+    _bgMusicList = [''];
+    _bgMusic = '';
     _voices = [];
     _speechVoice = '';
     _dailyTarget = 10;
@@ -476,8 +486,9 @@ class YogaSettings with ChangeNotifier {
         (_countDuration == defCountDuration) &
         (_gapRoutine == defGapRoutine) &
         (_muteCounting == defMuteCounting) &
-        (_notify = defNotify) &
-        (_music = defMusic))
+        (_notify == defNotify) &
+        (_bgMusic == defBgMusic) &
+        (_music == defMusic))
       return true;
     else
       return false;
@@ -601,6 +612,26 @@ class YogaSettings with ChangeNotifier {
 
   // ----------------------------------------------------
 
+  List<String> getBgMusicList() {
+    return _bgMusicList;
+  }
+
+  void setBgMusicList(List<String> bgMusicList) {
+    this._bgMusicList = bgMusicList;
+    if (!_bgMusicList.contains(_bgMusic)) _bgMusic = _bgMusicList[0];
+  }
+
+  String getBgMusic() {
+    return _bgMusic;
+  }
+
+  void setBgMusic(String bgMusic) {
+    this._bgMusic = bgMusic;
+    notifyListeners();
+  }
+
+  // ----------------------------------------------------
+
   List<String> getVoices() {
     return _voices;
   }
@@ -631,6 +662,7 @@ class YogaSettings with ChangeNotifier {
     this._gapRoutine = jval['gapRoutine'] ?? this._gapRoutine;
     this._muteCounting = jval['muteCounting'] ?? this._muteCounting;
     this._notify = jval['notify'] ?? this._notify;
+    this._bgMusic = jval['bgMusic'] ?? this._bgMusic;
     this._music = jval['music'] ?? this._music;
     this.cps = (jval['cps'] ?? (this.cps.map((x) => x.toJson()).toList()))
         .map<ConfigParam>((x) => ConfigParam.fromJson(x))
@@ -663,6 +695,7 @@ class YogaSettings with ChangeNotifier {
       'gapRoutine': this._gapRoutine,
       'muteCounting': this._muteCounting,
       'notify': this._notify,
+      'bgMusic': this._bgMusic,
       'music': this._music,
       'cps': this.cps.map((x) => x.toJson()).toList(),
       'routines': this.routines.map((x) => x.toJson()).toList(),
@@ -722,6 +755,7 @@ class YogaSettings with ChangeNotifier {
         (this._gapRoutine == cfg._gapRoutine) &
         (this._muteCounting == cfg._muteCounting) &
         (this._notify == cfg._notify) &
+        (this._bgMusic == cfg._bgMusic) &
         (this._music == cfg._music) &
         this.cpsEquals(cfg.cps) &
         this.routinesEquals(cfg.routines) &
@@ -779,7 +813,6 @@ class YogaSettings with ChangeNotifier {
 
   void setMusic(bool music) {
     this._music = music;
-    notifyListeners();
   }
 
   bool getMusic() {

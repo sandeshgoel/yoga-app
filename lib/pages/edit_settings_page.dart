@@ -156,6 +156,45 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                   ),
                 ),
 
+                // BG Music
+
+                Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text('Music:', style: settingsTextStyle),
+                      _infoIcon(topicBgMusic),
+                      IconButton(
+                        icon: Icon(Icons.volume_down_sharp, size: 15),
+                        onPressed: () => _playVoiceSample(settings),
+                      ),
+                      Expanded(child: Container()),
+                      DropdownButton<String>(
+                        value: settings.getBgMusic(),
+                        //isExpanded: true,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            settings.setBgMusic(newValue!);
+                          });
+                        },
+                        items: settings
+                            .getBgMusicList()
+                            .asMap()
+                            .entries
+                            .map<DropdownMenuItem<String>>((entry) {
+                          return DropdownMenuItem<String>(
+                            value: entry.value,
+                            child: Text(
+                              '${entry.key}: ${entry.value}',
+                              style: TextStyle(fontSize: 10),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+
                 // Speech Rate
 
                 Row(
@@ -359,6 +398,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                             settings.setGapRoutine(settings.defGapRoutine);
                             settings.setNotify(settings.defNotify);
                             settings.setMusic(settings.defMusic);
+                            settings.setBgMusic(settings.defBgMusic);
                             Navigator.pop(context);
                           },
                     child: Text('Defaults')),
@@ -386,6 +426,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
   }
 
   static const String topicVoice = 'voice';
+  static const String topicBgMusic = 'bg_music';
   static const String topicMuteCounting = 'mute_counting';
   static const String topicCountDur = 'count_duration';
   static const String topicSpeechRate = 'speech_rate';
@@ -402,6 +443,10 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
     switch (topic) {
       case topicVoice:
         msg = 'This selects the voice which you hear during the exercises';
+        break;
+      case topicBgMusic:
+        msg =
+            'This selects the background music which you hear during the exercises';
         break;
       case topicMuteCounting:
         msg =
