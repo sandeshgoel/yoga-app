@@ -30,8 +30,6 @@ class _CounterPageState extends State<CounterPage> {
   late int _totRounds;
   double _totSecondsRoutine = 0;
   bool _paused = true;
-  bool _pausePressed = false;
-  bool _playAfterPause = false;
   Timer _timerClock = Timer(Duration(milliseconds: 100), () {});
   Tts _tts = Tts();
   AudioMusic _am = AudioMusic();
@@ -267,11 +265,10 @@ class _CounterPageState extends State<CounterPage> {
 
                       CircleAvatar(
                         child: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _tts.stop();
-                              _resetCounter();
-                            });
+                          onPressed: () async {
+                            _tts.stop();
+                            await _resetCounter();
+                            setState(() {});
                           },
                           icon: Icon(Icons.restart_alt),
                         ),
@@ -282,7 +279,11 @@ class _CounterPageState extends State<CounterPage> {
 
                       CircleAvatar(
                         child: IconButton(
-                          onPressed: !_paused ? null : () => _startExercise(),
+                          onPressed: !_paused
+                              ? null
+                              : () async {
+                                  await _startExercise();
+                                },
                           icon: Icon(Icons.play_arrow),
                           iconSize: 40,
                         ),
@@ -297,11 +298,9 @@ class _CounterPageState extends State<CounterPage> {
                         child: IconButton(
                           onPressed: _paused
                               ? null
-                              : () {
-                                  setState(() {
-                                    _pausePressed = true;
-                                    _pauseExercise(pauseMusic: true);
-                                  });
+                              : () async {
+                                  await _pauseExercise(pauseMusic: true);
+                                  setState(() {});
                                 },
                           icon: Icon(Icons.pause),
                           //iconSize: 40,
@@ -349,13 +348,13 @@ class _CounterPageState extends State<CounterPage> {
               child: IconButton(
                 onPressed: (_curExIndexInRoutine == 0)
                     ? null
-                    : () {
-                        setState(() {
-                          _pauseExercise();
-                          _resetCounter();
-                          _moveExerciseInRoutine(settings, -1);
-                          _startExercise();
-                        });
+                    : () async {
+                        await _pauseExercise();
+                        await _resetCounter();
+                        setState(() {});
+                        _moveExerciseInRoutine(settings, -1);
+                        await _startExercise();
+                        setState(() {});
                       },
                 icon: Icon(Icons.skip_previous),
               ),
@@ -392,13 +391,13 @@ class _CounterPageState extends State<CounterPage> {
                 onPressed:
                     (_routine.exercises.length == _curExIndexInRoutine + 1)
                         ? null
-                        : () {
-                            setState(() {
-                              _pauseExercise();
-                              _resetCounter();
-                              _moveExerciseInRoutine(settings, 1);
-                              _startExercise();
-                            });
+                        : () async {
+                            await _pauseExercise();
+                            await _resetCounter();
+                            setState(() {});
+                            _moveExerciseInRoutine(settings, 1);
+                            await _startExercise();
+                            setState(() {});
                           },
                 icon: Icon(Icons.skip_next),
               ),
@@ -453,7 +452,7 @@ class _CounterPageState extends State<CounterPage> {
     }
   }
 
-  void _resetCounter() async {
+  Future<void> _resetCounter() async {
     int duration = _totSeconds.toInt();
     int rounds = _curRound;
 
@@ -471,25 +470,22 @@ class _CounterPageState extends State<CounterPage> {
         duration, rounds, settings.getUser().uid, settings.getUser().email);
   }
 
-  void _pauseExercise({bool pauseMusic = false}) async {
+  Future<void> _pauseExercise({bool pauseMusic = false}) async {
     print('Pausing exercise ${_curExercise.name}');
     _paused = true;
     _timerClock.cancel();
     await _tts.stop();
-    await Future.delayed(Duration(milliseconds: 500), () {});
+    //await Future.delayed(Duration(milliseconds: 500), () {});
     if (pauseMusic) _am.pauseMusic();
+    print('Done pausing exercise ${_curExercise.name}');
   }
 
-  void _startExercise() async {
+  Future<void> _startExercise() async {
     var settings = Provider.of<YogaSettings>(context, listen: false);
 
     print('Starting exercise ${_curExercise.name}, reset is $_reset');
     setState(() {
       _paused = false;
-      if (_pausePressed) {
-        _pausePressed = false;
-        _playAfterPause = true;
-      }
     });
 
     if (settings.getMusic()) _am.startMusic();
@@ -498,25 +494,13 @@ class _CounterPageState extends State<CounterPage> {
       String msg = '';
       int gap = settings.getGapRoutine();
 
-      if (widget.routine != '') if (!_playAfterPause & !_routine.noGap) {
+      if (widget.routine != '') {
         if (_curExIndexInRoutine == 0) {
           msg = 'This routine has ${_routine.exercises.length} exercises. ';
           msg += 'We will take a break of $gap seconds after each exercise. ';
           await _tts.speak(context, msg);
-        } else {
-          msg = 'The exercise is now complete, please relax for $gap seconds';
-
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(msg),
-            duration: Duration(seconds: gap + 4),
-          ));
-
-          await _tts.speak(context, msg);
-          await Future.delayed(Duration(seconds: gap), () {});
-          if (_paused) return;
         }
       }
-      _playAfterPause = false;
 
       msg =
           "The next exercise has $_totRounds rounds of ${_curExercise.name}. ";
@@ -558,10 +542,7 @@ class _CounterPageState extends State<CounterPage> {
     Stopwatch stopwatch = new Stopwatch()..start();
     YogaSettings settings = Provider.of<YogaSettings>(context, listen: false);
 
-    if (_paused) {
-      //_pauseTimer(t);
-      return;
-    }
+    if (_paused) return;
 
     int _totStages = _curExercise.stages.length;
     String msg = '';
@@ -582,15 +563,29 @@ class _CounterPageState extends State<CounterPage> {
         if (_curRound > _totRounds) {
           // rounds are complete
 
-          //_pauseTimer(t);
-
           int _totMinutes = (_totSecondsRoutine + 30) ~/ 60;
-          _resetCounter();
+          await _resetCounter();
 
           if (widget.routine != '') {
             if (_routine.exercises.length > _curExIndexInRoutine + 1) {
               _moveExerciseInRoutine(settings, 1);
-              _startExercise();
+
+              int gap = settings.getGapRoutine();
+              if (!_routine.noGap) {
+                msg =
+                    'The exercise is now complete, please relax for $gap seconds';
+
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(msg),
+                  duration: Duration(seconds: gap + 4),
+                ));
+
+                await _tts.speak(context, msg);
+
+                await Future.delayed(Duration(seconds: gap), () {});
+                if (_paused) return;
+              }
+              await _startExercise();
             } else {
               msg = 'Your routine is complete!!\n' +
                   '${_routine.exercises.length} exercises in about ' +
@@ -611,8 +606,8 @@ class _CounterPageState extends State<CounterPage> {
                         ],
                       ),
                   barrierDismissible: false);
-              await _tts.speak(context, msg);
               _am.pauseMusic();
+              await _tts.speak(context, msg);
             }
           } else {
             msg = 'Your exercise is complete!!\n' +
@@ -634,8 +629,8 @@ class _CounterPageState extends State<CounterPage> {
                       ],
                     ),
                 barrierDismissible: false);
-            await _tts.speak(context, msg);
             _am.pauseMusic();
+            await _tts.speak(context, msg);
           }
 
           return;
