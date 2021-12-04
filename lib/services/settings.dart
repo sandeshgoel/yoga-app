@@ -62,7 +62,7 @@ List<Routine> gRoutineLib = [
     Exercise(exSuryaNamaskara, 10),
   ]),
   Routine('Sitting Warm Up', [
-    Exercise(exSquat, 10),
+    Exercise(exSquat, 4),
     Exercise(exButterfly, 10),
     Exercise(exPawanMukt, 4),
     Exercise(exMarkatasana, 6),

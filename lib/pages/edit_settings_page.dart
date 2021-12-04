@@ -157,7 +157,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                 ),
 
                 // BG Music
-
+/*
                 Container(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -194,7 +194,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                     ],
                   ),
                 ),
-
+*/
                 // Speech Rate
 
                 Row(

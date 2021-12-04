@@ -287,7 +287,9 @@ class _RoutinesPageState extends State<RoutinesPage> {
         i++;
       } while (settings.findRoutineIndex(cfgName) != -1);
 
-      settings.addRoutine(Routine(cfgName, [Exercise(exAnulomVilom, 10)]));
+      if (settings.cps.length == 0) settings.addParam(gExerciseLib[0]);
+      settings
+          .addRoutine(Routine(cfgName, [Exercise(settings.cps[0].name, 10)]));
     } else {
       Routine r = settings.getRoutineFromLib(cfgName)!;
       print('_addRoutine: Adding routine $cfgName');
