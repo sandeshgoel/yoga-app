@@ -266,7 +266,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     setState(() {
       var pindex = settings.findRoutineIndex(cfg);
       Routine cp = settings.getRoutine(pindex);
-      cp.exercises.add(Exercise(settings.cps[0].name, 10));
+      cp.exercises
+          .add(Exercise(settings.cps[0].name, settings.cps[0].rounds, true));
       settings.setRoutine(pindex, cp);
     });
   }
@@ -286,9 +287,11 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     int rindex = settings.findRoutineIndex(cfg);
     Routine r = settings.getRoutine(rindex);
     Routine? rl = settings.getRoutineFromLib(cfg);
+    List<TextEditingController> _ctrlList = [];
 
     List<int> exTime = [];
     int totTime = 0;
+    int totTimeInclGaps = 0;
     for (var i = 0; i < r.exercises.length; i++) {
       int exindex = settings.findParamIndex(r.exercises[i].name);
       ConfigParam ex = settings.getParam(exindex);
@@ -299,11 +302,16 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
       exTime
           .add(c * r.exercises[i].rounds * settings.getCountDuration() ~/ 1000);
       totTime += exTime[i];
+      totTimeInclGaps += exTime[i] +
+          ((!r.noGap & r.exercises[i].gapBefore)
+              ? settings.getGapRoutine() + 6
+              : 0) +
+          3;
     }
 
     list.add(
       Container(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -326,98 +334,200 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
         ),
       ),
     );
-
+    list.add(Text(
+      'Time including gaps: ${(totTimeInclGaps.toDouble() / 60).toStringAsFixed(1)} mins',
+      style: TextStyle(fontSize: 12),
+    ));
+    list.add(SizedBox(height: 16));
     list.add(Text(
       'Long press and drag any row to reorder exercises',
       style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
     ));
 
+    for (var i = 0; i < r.exercises.length; i++)
+      _ctrlList
+          .add(TextEditingController(text: r.exercises[i].rounds.toString()));
+
     List<Widget> elist = [];
     for (var i = 0; i < r.exercises.length; i++) {
       elist.add(
-        Row(
+        Column(
           key: Key('$i'),
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Expanded(
-              flex: 70,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DropdownButton<String>(
-                      value: r.exercises[i].name,
-                      isExpanded: true,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          r.exercises[i].name = newValue!;
-                        });
-                      },
-                      items: settings.cps
-                          .map<DropdownMenuItem<String>>((ex) =>
-                              DropdownMenuItem<String>(
-                                value: ex.name,
-                                child: Text(ex.name, style: settingsTextStyle),
+            (i == 0) | r.noGap
+                ? Container()
+                : Card(
+                    margin: EdgeInsets.fromLTRB(0, 8, 0, 0),
+                    color: Colors.white.withOpacity(0.9),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0)),
+                    child: Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                      width: double.infinity,
+                      //height: 25,
+                      child: Row(
+                        children: [
+                          (r.exercises[i].gapBefore & !r.noGap)
+                              ? Text(
+                                  'Gap: ${settings.getGapRoutine()} seconds',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : Text(
+                                  'No Gap',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                          Expanded(child: Container()),
+                          SizedBox(
+                            child: GestureDetector(
+                              onTap: () {
+                                if (r.exercises[i].gapBefore == false) {
+                                  setState(() {
+                                    r.exercises[i].gapBefore = true;
+                                  });
+                                } else if (r.exercises[i].gapBefore == true) {
+                                  setState(() {
+                                    r.exercises[i].gapBefore = false;
+                                  });
+                                }
+                              },
+                              child: r.exercises[i].gapBefore
+                                  ? Text(
+                                      'Remove gap',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.red,
+                                          decoration: TextDecoration.underline),
+                                    )
+                                  : Text(
+                                      'Add gap',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue,
+                                          decoration: TextDecoration.underline),
+                                    ),
+                            ),
+                          ),
+                          /*
+                          Transform.scale(
+                              scale: 0.7,
+                              child: Checkbox(
+                                value: r.exercises[i].gapBefore,
+                                onChanged: (val) {
+                                  setState(() {
+                                    r.exercises[i].gapBefore = val!;
+                                  });
+                                },
                               ))
-                          .toList()),
-                  Text(
-                    '${(exTime[i].toDouble() / 60).toStringAsFixed(1)} minutes',
-                    style: TextStyle(fontSize: 10),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 5,
-              child: Text(
-                  (rl == null)
-                      ? ''
-                      : (rl.exercises.length <= i)
-                          ? '+'
-                          : (rl.exercises[i].name != r.exercises[i].name)
-                              ? '*'
-                              : '',
-                  style: starStyle),
-            ),
-            Expanded(
-              flex: 10,
-              child: TextFormField(
-                initialValue: r.exercises[i].rounds.toString(),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp('[0-9]+'))
-                ],
-                textAlign: TextAlign.center,
-                style: settingsTextStyle,
-                onChanged: (val) {
-                  setState(() {
-                    r.exercises[i].rounds = int.parse(val);
-                  });
-                },
-              ),
-            ),
-            Expanded(
-              flex: 5,
-              child: Text(
-                  (rl == null)
-                      ? ''
-                      : (rl.exercises.length <= i)
-                          ? '+'
-                          : (rl.exercises[i].rounds != r.exercises[i].rounds)
-                              ? '*'
-                              : '',
-                  style: starStyle),
-            ),
-            Expanded(
-              flex: 10,
-              child: r.exercises.length == 1
-                  ? Container()
-                  : IconButton(
-                      icon: Icon(Icons.delete),
-                      color: Colors.red,
-                      onPressed: () => _deleteExercise(cfg, i),
+                              */
+                        ],
+                      ),
+                      alignment: Alignment.center,
                     ),
+                  ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  flex: 70,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DropdownButton<String>(
+                          value: r.exercises[i].name,
+                          isExpanded: true,
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              if (newValue! != r.exercises[i].name) {
+                                r.exercises[i].name = newValue;
+                                ConfigParam ex = settings.getParam(
+                                    settings.findParamIndex(newValue));
+                                r.exercises[i].rounds = ex.rounds;
+                                _ctrlList[i].text = ex.rounds.toString();
+                              }
+                            });
+                          },
+                          items: settings.cps
+                              .map<DropdownMenuItem<String>>((ex) =>
+                                  DropdownMenuItem<String>(
+                                    value: ex.name,
+                                    child:
+                                        Text(ex.name, style: settingsTextStyle),
+                                  ))
+                              .toList()),
+                      Text(
+                        '${(exTime[i].toDouble() / 60).toStringAsFixed(1)} minutes',
+                        style: TextStyle(fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  flex: 5,
+                  child: Text(
+                      (rl == null)
+                          ? ''
+                          : (rl.exercises.length <= i)
+                              ? '+'
+                              : (rl.exercises[i].name != r.exercises[i].name)
+                                  ? '*'
+                                  : '',
+                      style: starStyle),
+                ),
+                Expanded(
+                  flex: 10,
+                  child: TextFormField(
+                    controller: _ctrlList[i],
+                    //initialValue: r.exercises[i].rounds.toString(),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp('[0-9]+'))
+                    ],
+                    textAlign: TextAlign.center,
+                    style: settingsTextStyle,
+                    onChanged: (val) {
+                      setState(() {
+                        r.exercises[i].rounds = int.parse(val);
+                      });
+                    },
+                  ),
+                ),
+                Expanded(
+                  flex: 5,
+                  child: Text(
+                      (rl == null)
+                          ? ''
+                          : (rl.exercises.length <= i)
+                              ? '+'
+                              : (rl.exercises[i].rounds !=
+                                      r.exercises[i].rounds)
+                                  ? '*'
+                                  : '',
+                      style: starStyle),
+                ),
+                Expanded(
+                  flex: 10,
+                  child: r.exercises.length == 1
+                      ? Container()
+                      : IconButton(
+                          icon: Icon(Icons.delete),
+                          color: Colors.red,
+                          onPressed: () => _deleteExercise(cfg, i),
+                        ),
+                ),
+                //Expanded(flex: 3, child: Container()),
+              ],
             ),
-            //Expanded(flex: 3, child: Container()),
           ],
         ),
       );

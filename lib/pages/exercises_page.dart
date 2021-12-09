@@ -138,54 +138,105 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  // size should be same as number of categories
-  List<bool> expanded = [true, false, false];
-
-  Widget _buildPanel(YogaSettings settings, ExCategory cat, int index) {
+  List<Widget> _getExerciseList(YogaSettings settings, ExCategory cat) {
     List<Widget> exlist = [];
-    String catName = describeEnum(cat);
-    catName = catName[0].toUpperCase() + catName.substring(1);
-
     List<ConfigParam> catlist =
         settings.cps.where((e) => e.category == cat).toList();
-
-    if (catlist.length == 0) return Container();
 
     for (int i = 0; i < catlist.length; i++)
       exlist.add(_exerciseTile(settings, catlist[i]));
 
-    ExpansionPanel ep = ExpansionPanel(
-      canTapOnHeader: true,
-      headerBuilder: (BuildContext context, bool isExpanded) {
-        return Align(
-          alignment: Alignment.centerLeft,
-          child: Text(catName + ' Exercises (${catlist.length})',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-        );
-      },
-      body: Column(
-        children: exlist,
-      ),
-      isExpanded: expanded[index],
-      //backgroundColor: Colors.white.withOpacity(1),
-    );
+    return exlist;
+  }
 
-    return Card(
-      margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-      child: Container(
-        margin: EdgeInsets.fromLTRB(20, 0, 10, 0),
-        child: ExpansionPanelList(
-            expandedHeaderPadding: EdgeInsets.all(0),
-            elevation: 0,
-            expansionCallback: (_, bool isExpanded) {
-              setState(() {
-                expanded[index] = !isExpanded;
-              });
-            },
-            children: [ep]),
-      ),
-    );
+  // size should be same as number of categories
+  List<bool> expanded = [true, true, true];
+
+  Widget _buildPanel(YogaSettings settings, ExCategory cat, int index) {
+    String catName = describeEnum(cat);
+    catName = catName[0].toUpperCase() + catName.substring(1);
+    List<Widget> exlist = _getExerciseList(settings, cat);
+    if (exlist.length == 0) return Container();
+
+    if (!settings.getBrief()) {
+      return Container(
+        padding: EdgeInsets.fromLTRB(20, 10, 0, 0),
+        child: Column(
+            children: <Widget>[
+                  Card(
+                    margin: EdgeInsets.fromLTRB(0, 0, 20, 15),
+                    //margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5)),
+                    child: Container(
+                      color: Colors.white,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Divider(
+                              thickness: 3,
+                              color: Colors.grey,
+                              indent: 10,
+                              endIndent: 10,
+                            ),
+                          ),
+                          Text(
+                            catName + ' Exercises',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic),
+                          ),
+                          Expanded(
+                            child: Divider(
+                              thickness: 3,
+                              color: Colors.grey,
+                              indent: 10,
+                              endIndent: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ] +
+                exlist),
+      );
+    } else {
+      ExpansionPanel ep = ExpansionPanel(
+        canTapOnHeader: true,
+        headerBuilder: (BuildContext context, bool isExpanded) {
+          return Align(
+            alignment: Alignment.centerLeft,
+            child: Text(catName + ' Exercises (${exlist.length})',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+          );
+        },
+        body: Column(
+          children: exlist,
+        ),
+        isExpanded: expanded[index],
+        //backgroundColor: Colors.white.withOpacity(1),
+      );
+
+      return Card(
+        margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+        child: Container(
+          margin: EdgeInsets.fromLTRB(20, 0, 10, 0),
+          child: ExpansionPanelList(
+              expandedHeaderPadding: EdgeInsets.all(0),
+              elevation: 0,
+              expansionCallback: (_, bool isExpanded) {
+                setState(() {
+                  expanded[index] = !isExpanded;
+                });
+              },
+              children: [ep]),
+        ),
+      );
+    }
   }
 
   Widget _listExercises(YogaSettings settings) {

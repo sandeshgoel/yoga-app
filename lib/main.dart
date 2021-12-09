@@ -223,5 +223,7 @@ class _WrapperState extends State<Wrapper> {
         initialDelay: delay,
         existingWorkPolicy: ExistingWorkPolicy.replace);
     print('Scheduled yogaReminderTask, delay $delay ...');
+
+    settings.setLoadComplete(true);
   }
 }

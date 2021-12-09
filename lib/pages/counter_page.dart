@@ -136,7 +136,13 @@ class _CounterPageState extends State<CounterPage> {
                   // Round number
 
                   Container(
-                    height: 80,
+                    margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                    decoration: new BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      color: Colors.white.withOpacity(0.6),
+                    ),
+                    //height: 80,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -169,7 +175,7 @@ class _CounterPageState extends State<CounterPage> {
                     padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                     decoration: new BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
-                      color: Colors.amber.withOpacity(0.6),
+                      color: Colors.white.withOpacity(0.6),
                     ),
                     child: Column(
                       children: [
@@ -188,7 +194,7 @@ class _CounterPageState extends State<CounterPage> {
                             child: FittedBox(
                               child: Text(
                                 _curStage == -1
-                                    ? ''
+                                    ? '-'
                                     : (_curExercise.altLeftRight &
                                             (_curRound % 2 == 0))
                                         ? swapLeftRight(
@@ -207,7 +213,7 @@ class _CounterPageState extends State<CounterPage> {
                   // Count
 
                   Container(
-                    margin: EdgeInsets.symmetric(vertical: 40),
+                    margin: EdgeInsets.symmetric(vertical: 30),
                     decoration: new BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.green.withOpacity(0.8),
@@ -240,7 +246,7 @@ class _CounterPageState extends State<CounterPage> {
                   // Time elapsed
 
                   Container(
-                    margin: EdgeInsets.all(20),
+                    margin: EdgeInsets.symmetric(horizontal: 20),
                     decoration: new BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                       color: Colors.white.withOpacity(0.6),
@@ -315,14 +321,17 @@ class _CounterPageState extends State<CounterPage> {
                   // Voice and info
 
                   Container(
-                    margin: EdgeInsets.only(top: 40),
+                    margin: EdgeInsets.only(top: 30),
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     decoration: new BoxDecoration(
                       color: Colors.white.withOpacity(0.6),
                     ),
-                    child: Text('Voice: ${settings.getVoice()}' +
-                        (settings.getMuteCounting() ? ', Count muted' : '') +
-                        (_curExercise.altLeftRight ? ', Alt' : '')),
+                    child: Text(
+                      'Voice: ${settings.getVoice()}' +
+                          (settings.getMuteCounting() ? ', Count muted' : '') +
+                          (_curExercise.altLeftRight ? ', Alt' : ''),
+                      style: TextStyle(fontStyle: FontStyle.italic),
+                    ),
                   ),
                   SizedBox(height: 20),
                 ],
@@ -421,8 +430,25 @@ class _CounterPageState extends State<CounterPage> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(cp.desc == '' ? 'No description provided' : cp.desc),
-                  //SizedBox(height: 20),
+                  cp.desc == ''
+                      ? Text(
+                          'No description provided',
+                          style: TextStyle(
+                              fontStyle: FontStyle.italic, fontSize: 12),
+                        )
+                      : Text(cp.desc),
+                  SizedBox(height: 20),
+                  Text(
+                    'Exercise stages:\n',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  Text(
+                    cp.stages
+                        .map((s) => '- ${s.name} (${s.count} counts)')
+                        .toList()
+                        .join('\n'),
+                    style: TextStyle(fontSize: 14),
+                  )
                   //Icon(Icons.construction),
                 ],
               ),
@@ -490,6 +516,8 @@ class _CounterPageState extends State<CounterPage> {
 
     if (settings.getMusic()) _am.startMusic();
 
+    bool brief = settings.getBrief();
+
     if (_reset) {
       String msg = '';
       int gap = settings.getGapRoutine();
@@ -497,28 +525,33 @@ class _CounterPageState extends State<CounterPage> {
       if (widget.routine != '') {
         if (_curExIndexInRoutine == 0) {
           msg = 'This routine has ${_routine.exercises.length} exercises. ';
-          msg += 'We will take a break of $gap seconds after each exercise. ';
+          if (!_routine.noGap & (gap > 0) & !brief)
+            msg += 'We will take a break of $gap seconds after each exercise. ';
           await _tts.speak(context, msg);
         }
       }
 
-      msg =
-          "The next exercise has $_totRounds rounds of ${_curExercise.name}. ";
-      msg += "Each round has ${_curExercise.stages.length} ";
-      if (_curExercise.stages.length == 1)
-        msg += "stage. ";
-      else
-        msg += "stages. ";
+      msg = "The next exercise has $_totRounds round" +
+          ((_totRounds > 1) ? 's' : '') +
+          " of ${_curExercise.name}. ";
 
-      if (_curExercise.stages.length <= 2) {
-        for (var i = 0; i < _curExercise.stages.length; i++) {
-          msg += "${_curExercise.stages[i].name}";
-          if (i == (_curExercise.stages.length - 2))
-            msg += " and ";
-          else if (i == (_curExercise.stages.length - 1))
-            msg += ". ";
-          else
-            msg += ", ";
+      if (!brief) {
+        msg += "Each round has ${_curExercise.stages.length} ";
+        if (_curExercise.stages.length == 1)
+          msg += "stage. ";
+        else
+          msg += "stages. ";
+
+        if (_curExercise.stages.length <= 2) {
+          for (var i = 0; i < _curExercise.stages.length; i++) {
+            msg += "${_curExercise.stages[i].name}";
+            if (i == (_curExercise.stages.length - 2))
+              msg += " and ";
+            else if (i == (_curExercise.stages.length - 1))
+              msg += ". ";
+            else
+              msg += ", ";
+          }
         }
       }
 
@@ -571,7 +604,8 @@ class _CounterPageState extends State<CounterPage> {
               _moveExerciseInRoutine(settings, 1);
 
               int gap = settings.getGapRoutine();
-              if (!_routine.noGap) {
+              if (!_routine.noGap &
+                  _routine.exercises[_curExIndexInRoutine].gapBefore) {
                 msg =
                     'The exercise is now complete, please relax for $gap seconds';
 

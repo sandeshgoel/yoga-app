@@ -44,6 +44,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
   Widget _routineTile(YogaSettings settings, int index) {
     Routine r = settings.getRoutine(index);
     int totTime = 0;
+    int totTimeInclGaps = 0;
     bool error = false;
 
     for (int i = 0; i < r.exercises.length; i++) {
@@ -61,6 +62,12 @@ class _RoutinesPageState extends State<RoutinesPage> {
       }
       totTime +=
           c * r.exercises[i].rounds * settings.getCountDuration() ~/ 1000;
+      totTimeInclGaps +=
+          c * r.exercises[i].rounds * settings.getCountDuration() ~/ 1000 +
+              ((!r.noGap & r.exercises[i].gapBefore)
+                  ? settings.getGapRoutine() + 6
+                  : 0) +
+              3;
     }
 
     String annotation;
@@ -111,7 +118,7 @@ class _RoutinesPageState extends State<RoutinesPage> {
                         ],
                       ),
                       Text(
-                        '${r.exercises.length} exercises, ${totTime ~/ 60} minutes',
+                        '${r.exercises.length} exercises, ${totTime ~/ 60} minutes (${totTimeInclGaps ~/ 60} mins)',
                         style: TextStyle(fontSize: 10),
                       )
                     ],
@@ -288,8 +295,8 @@ class _RoutinesPageState extends State<RoutinesPage> {
       } while (settings.findRoutineIndex(cfgName) != -1);
 
       if (settings.cps.length == 0) settings.addParam(gExerciseLib[0]);
-      settings
-          .addRoutine(Routine(cfgName, [Exercise(settings.cps[0].name, 10)]));
+      settings.addRoutine(Routine(cfgName,
+          [Exercise(settings.cps[0].name, settings.cps[0].rounds, true)]));
     } else {
       Routine r = settings.getRoutineFromLib(cfgName)!;
       print('_addRoutine: Adding routine $cfgName');

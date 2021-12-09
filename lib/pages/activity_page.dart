@@ -108,14 +108,15 @@ class _ActivityPageState extends State<ActivityPage> {
               exMap[act.actName] = (exMap[act.actName] ?? 0) + act.duration;
             }
 
-            int maxSlices = 6;
+            int maxSlices = 7;
             List<Color> colorList = [
               Colors.green,
               Colors.blue,
               Colors.red,
               Colors.orange,
               Colors.yellow,
-              Colors.deepPurple
+              Colors.amber,
+              Colors.lime
             ];
             List<ExerciseData> exData = [];
             int totMins = 0;
@@ -167,7 +168,7 @@ class _ActivityPageState extends State<ActivityPage> {
             else
               color = Colors.red.withOpacity(0.8);
 
-            int maxAct = 10;
+            int maxAct = 20;
             if (actList.length > maxAct) actList = actList.sublist(0, maxAct);
 
             actList.forEach((act) {

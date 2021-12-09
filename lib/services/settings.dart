@@ -22,6 +22,7 @@ const exShavasana = 'Shava Aasanaa';
 // standing exercises
 const exSuryaNamaskara = 'Surya Namaskara';
 const exSuryaNamaskaraFast = 'Surya Namaskara Fast';
+const exSuryaNamaskaraSuperFast = 'Surya Namaskara Super Fast';
 const exHandRotationClock = 'Arm Rotation Clockwise';
 const exHandRotationAnticlock = 'Arm Rotation Anti Clockwise';
 
@@ -37,35 +38,35 @@ const exChakrasana = 'Chakra Aasanaa';
 // Routine library
 List<Routine> gRoutineLib = [
   Routine('5 Minute Sampler', [
-    Exercise(exAnulomVilom, 4),
-    Exercise(exSheetkari, 4),
+    Exercise(exAnulomVilom, 4, true),
+    Exercise(exSheetkari, 4, true),
   ]),
   Routine('10 Minute Breathing', [
-    Exercise(exDeepBreathing, 6),
-    Exercise(exBhramari, 6),
-    Exercise(exAnulomVilom, 5),
-    Exercise(exSheetkari, 6),
-    Exercise(exShavasana, 1),
+    Exercise(exDeepBreathing, 6, true),
+    Exercise(exBhramari, 6, true),
+    Exercise(exAnulomVilom, 5, true),
+    Exercise(exSheetkari, 6, true),
+    Exercise(exShavasana, 1, true),
   ]),
   Routine('Breathing Routine', [
-    Exercise(exDeepBreathing, 15),
-    Exercise(exBhramari, 15),
-    Exercise(exAnulomVilom, 10),
-    Exercise(exSheetkari, 15),
-    Exercise(exShavasana, 1),
+    Exercise(exDeepBreathing, 15, true),
+    Exercise(exBhramari, 15, true),
+    Exercise(exAnulomVilom, 10, true),
+    Exercise(exSheetkari, 15, true),
+    Exercise(exShavasana, 1, true),
   ]),
   Routine('Standing Warm Up', [
-    Exercise(exHandRotationClock, 10),
-    Exercise(exHandRotationAnticlock, 10),
-    Exercise(exNeckUpDown, 10),
-    Exercise(exNeckRightLeft, 10),
-    Exercise(exSuryaNamaskara, 10),
+    Exercise(exHandRotationClock, 10, true),
+    Exercise(exHandRotationAnticlock, 10, true),
+    Exercise(exNeckUpDown, 10, true),
+    Exercise(exNeckRightLeft, 10, true),
+    Exercise(exSuryaNamaskara, 10, true),
   ]),
   Routine('Sitting Warm Up', [
-    Exercise(exSquat, 4),
-    Exercise(exButterfly, 10),
-    Exercise(exPawanMukt, 4),
-    Exercise(exMarkatasana, 6),
+    Exercise(exSquat, 4, true),
+    Exercise(exButterfly, 10, true),
+    Exercise(exPawanMukt, 4, true),
+    Exercise(exMarkatasana, 6, true),
   ]),
 ];
 
@@ -107,9 +108,9 @@ List<ConfigParam> gExerciseLib = [
     [
       Stage('Lie down still with eyes closed and relax', 60),
       Stage('Stretch all your muscles', 10),
-      Stage('Sit back up', 10),
+      Stage('Sit back up', 6),
       Stage('Chant om shanti shanti', 10),
-      Stage('Rub your palms and cup your eyes', 8),
+      Stage('Rub your palms and cup your eyes', 6),
       Stage('Open your eyes with a smile', 4)
     ],
   ),
@@ -153,6 +154,25 @@ List<ConfigParam> gExerciseLib = [
         Stage('Left leg forward', 2),
         Stage('Touch your feet', 2),
         Stage('Hands above your head', 2),
+      ],
+      sameCount: true,
+      altLeftRight: true),
+  ConfigParam(
+      exSuryaNamaskaraSuperFast,
+      ExCategory.standing,
+      6,
+      [
+        Stage('Fold both hands', 1),
+        Stage('Hands above your head', 1),
+        Stage('Touch your feet', 1),
+        Stage('Right leg back', 1),
+        Stage('Mountain pose', 1),
+        Stage('Prone position', 1),
+        Stage('Cobra pose', 1),
+        Stage('Mountain pose', 1),
+        Stage('Left leg forward', 1),
+        Stage('Touch your feet', 1),
+        Stage('Hands above your head', 1),
       ],
       sameCount: true,
       altLeftRight: true),
@@ -291,25 +311,33 @@ class ConfigParam {
 class Exercise {
   late String name;
   late int rounds;
+  late bool gapBefore;
 
-  Exercise(this.name, this.rounds);
+  Exercise(this.name, this.rounds, this.gapBefore);
 
   @override
   String toString() {
-    return '{$name, $rounds\n';
+    return '{$name, $rounds, $gapBefore\n';
   }
 
   Map<String, dynamic> toJson() {
-    return {'name': this.name, 'rounds': this.rounds};
+    return {
+      'name': this.name,
+      'rounds': this.rounds,
+      'gapBefore': this.gapBefore
+    };
   }
 
   Exercise.fromJson(Map<String, dynamic> json) {
     this.name = json['name'];
     this.rounds = json['rounds'];
+    this.gapBefore = json['gapBefore'] ?? true;
   }
 
   bool equals(Exercise ex) {
-    if ((this.name == ex.name) & (this.rounds == ex.rounds))
+    if ((this.name == ex.name) &
+        (this.rounds == ex.rounds) &
+        (this.gapBefore == ex.gapBefore))
       return true;
     else
       return false;
@@ -440,6 +468,8 @@ class YogaSettings with ChangeNotifier {
   late Set<String> friendsPending;
   late Set<String> friendsReceived;
 
+  late bool _loadComplete;
+
   YogaSettings() {
     initSettings();
   }
@@ -478,6 +508,8 @@ class YogaSettings with ChangeNotifier {
     friends = Set();
     friendsPending = Set();
     friendsReceived = Set();
+
+    _loadComplete = false;
   }
 
   bool allDefaults() {
@@ -492,6 +524,14 @@ class YogaSettings with ChangeNotifier {
       return true;
     else
       return false;
+  }
+
+  void setLoadComplete(bool complete) {
+    _loadComplete = complete;
+  }
+
+  bool getLoadComplete() {
+    return _loadComplete;
   }
 
   // ----------------------------------------------------
@@ -787,6 +827,10 @@ class YogaSettings with ChangeNotifier {
 
   int getGapRoutine() {
     return this._gapRoutine;
+  }
+
+  bool getBrief() {
+    return true;
   }
 
   // ----------------------------------------------------
