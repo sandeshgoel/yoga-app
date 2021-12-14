@@ -1,10 +1,12 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:yoga/services/auth.dart';
-import 'package:yoga/services/local_auth_api.dart';
 import 'package:yoga/shared/constants.dart';
 
 class AuthenticatePage extends StatefulWidget {
@@ -37,10 +39,15 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
               children: [
                 Container(
                   decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.amber, Colors.white],
+                      end: Alignment.topLeft,
+                      begin: Alignment.bottomRight,
+                    ), /*
                     image: DecorationImage(
                       image: AssetImage("assets/images/background.jpg"),
                       fit: BoxFit.cover,
-                    ),
+                    ),*/
                   ),
                 ),
                 _signInPage()
@@ -102,9 +109,29 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
               Container(
                 height: 80,
                 child: Center(
-                  child: Text(
-                    '------- OR -------',
-                    style: TextStyle(fontSize: 14, color: Colors.white),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Divider(
+                          thickness: 3,
+                          color: Colors.grey,
+                          indent: 10,
+                          endIndent: 10,
+                        ),
+                      ),
+                      Text(
+                        'OR',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      Expanded(
+                        child: Divider(
+                          thickness: 3,
+                          color: Colors.grey,
+                          indent: 10,
+                          endIndent: 10,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -173,7 +200,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                       'Forgot Password',
                       style: TextStyle(
                           fontSize: 12,
-                          color: Colors.white,
+                          color: Colors.blue,
                           decoration: TextDecoration.underline),
                     ),
                   ),
@@ -220,7 +247,7 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                           : 'First time user, Sign Up',
                       style: TextStyle(
                           fontSize: 12,
-                          color: Colors.white,
+                          color: Colors.blue,
                           decoration: TextDecoration.underline),
                     ),
                   ),
@@ -231,46 +258,60 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
 
               SizedBox(height: 10),
               GestureDetector(
-                child: Card(
-                  color: Colors.white.withOpacity(0.9),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 20),
-                    child: Column(
-                      children: [
-                        Icon(Icons.fingerprint, size: 50, color: Colors.blue),
-                        SizedBox(height: 10),
-                        Text('Sign in with fingerprint',
-                            style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold)),
-                      ],
-                    ),
+                child: Container(
+                  child: Column(
+                    children: [
+                      Icon(Icons.fingerprint, size: 50, color: Colors.blue),
+                      SizedBox(height: 10),
+                      Text('Sign in with fingerprint',
+                          style: TextStyle(
+                              color: Colors.blue, fontWeight: FontWeight.bold)),
+                    ],
                   ),
                 ),
                 onTap: () async {
-                  showMsg(context, 'To be implemented');
-                  return;
+                  if (kIsWeb)
+                    showMsg(context, 'Supported on mobile app only');
+                  else
+                    showMsg(context, 'To be implemented');
+                  /*
                   final isAuthenticated = await LocalAuthApi.authenticate();
                   if (isAuthenticated) {
                     print('Fingerprint auth successful!!');
-                  }
+                  }*/
                 },
               ),
 
               // Copyright line
 
               SizedBox(
-                height: 40,
+                height: 50,
                 child: Center(
                   child: Text(
                     'Copyright 2021 Sandesh Goel',
-                    style: TextStyle(fontSize: 10, color: Colors.white),
+                    style: TextStyle(fontSize: 10, color: Colors.blue),
                   ),
                 ),
-              )
+              ),
+
+              // Webpage link
+              RichText(
+                text: TextSpan(
+                  text: 'https://sites.google.com/view/yogabuddy',
+                  style: TextStyle(
+                      color: Colors.blue, decoration: TextDecoration.underline),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () async {
+                      final url = 'https://sites.google.com/view/yogabuddy';
+                      if (await canLaunch(url)) {
+                        await launch(
+                          url,
+                          forceSafariVC: false,
+                        );
+                      }
+                    },
+                ),
+              ),
             ],
           ),
         ),

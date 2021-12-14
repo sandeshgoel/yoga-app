@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -118,43 +119,45 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
 
                 // Voice
 
-                Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text('Voice:', style: settingsTextStyle),
-                      _infoIcon(topicVoice),
-                      IconButton(
-                        icon: Icon(Icons.volume_down_sharp, size: 15),
-                        onPressed: () => _playVoiceSample(settings),
-                      ),
-                      Expanded(child: Container()),
-                      DropdownButton<String>(
-                        value: dropdownValue,
-                        //isExpanded: true,
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            dropdownValue = newValue!;
-                            settings.setVoice(newValue);
-                          });
-                        },
-                        items: settings
-                            .getVoices()
-                            .asMap()
-                            .entries
-                            .map<DropdownMenuItem<String>>((entry) {
-                          return DropdownMenuItem<String>(
-                            value: entry.value,
-                            child: Text(
-                              '${entry.key}: ${entry.value}',
-                              style: TextStyle(fontSize: 10),
+                kIsWeb
+                    ? Container()
+                    : Container(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text('Voice:', style: settingsTextStyle),
+                            _infoIcon(topicVoice),
+                            IconButton(
+                              icon: Icon(Icons.volume_down_sharp, size: 15),
+                              onPressed: () => _playVoiceSample(settings),
                             ),
-                          );
-                        }).toList(),
+                            Expanded(child: Container()),
+                            DropdownButton<String>(
+                              value: dropdownValue,
+                              //isExpanded: true,
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  dropdownValue = newValue!;
+                                  settings.setVoice(newValue);
+                                });
+                              },
+                              items: settings
+                                  .getVoices()
+                                  .asMap()
+                                  .entries
+                                  .map<DropdownMenuItem<String>>((entry) {
+                                return DropdownMenuItem<String>(
+                                  value: entry.value,
+                                  child: Text(
+                                    '${entry.key}: ${entry.value}',
+                                    style: TextStyle(fontSize: 10),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
 
                 // BG Music
 /*
@@ -361,27 +364,31 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
 
                 // Notify
 
-                Row(
-                  children: [
-                    Text(
-                      settings.getNotify() == settings.defNotify ? '' : '* ',
-                      style: starStyle,
-                    ),
-                    Text('Daily Notifications', style: settingsTextStyle),
-                    _infoIcon(topicNotify),
-                    Expanded(
-                      child: Container(),
-                    ),
-                    Switch(
-                      value: settings.getNotify(),
-                      onChanged: (val) {
-                        setState(() {
-                          settings.setNotify(val);
-                        });
-                      },
-                    ),
-                  ],
-                ),
+                kIsWeb
+                    ? Container()
+                    : Row(
+                        children: [
+                          Text(
+                            settings.getNotify() == settings.defNotify
+                                ? ''
+                                : '* ',
+                            style: starStyle,
+                          ),
+                          Text('Daily Notifications', style: settingsTextStyle),
+                          _infoIcon(topicNotify),
+                          Expanded(
+                            child: Container(),
+                          ),
+                          Switch(
+                            value: settings.getNotify(),
+                            onChanged: (val) {
+                              setState(() {
+                                settings.setNotify(val);
+                              });
+                            },
+                          ),
+                        ],
+                      ),
 
                 // Reset to defaults
 

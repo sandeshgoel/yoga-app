@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:volume_control/volume_control.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:upgrader/upgrader.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:yoga/pages/email_verify_page.dart';
 import 'package:yoga/services/auth.dart';
@@ -73,13 +74,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  VolumeControl.setVolume(0.5);
+  if (!kIsWeb) {
+    VolumeControl.setVolume(0.5);
 
-  var voices = await Tts().flutterTts.getVoices;
-  for (var voice in voices) {
-    if (voice['locale'] == 'en-IN') {
-      print('Voice: $voice');
-      filterVoices.add(voice['name']);
+    var voices = await Tts().flutterTts.getVoices;
+    for (var voice in voices) {
+      if (voice['locale'] == 'en-IN') {
+        print('Voice: $voice');
+        filterVoices.add(voice['name']);
+      }
     }
   }
 
@@ -110,13 +113,19 @@ class MyApp extends StatelessWidget {
     return StreamProvider<User?>.value(
       value: AuthService().user,
       initialData: null,
-      child: MaterialApp(
-        title: 'Yoga Buddy',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
+      child: Center(
+        child: SizedBox(
+          width: kIsWeb ? 400 : double.infinity,
+          height: kIsWeb ? 800 : double.infinity,
+          child: MaterialApp(
+            title: 'Yoga Buddy',
+            theme: ThemeData(
+              primarySwatch: Colors.blue,
+            ),
+            home: kIsWeb ? Wrapper() : UpgradeAlert(child: Wrapper()),
+            debugShowCheckedModeBanner: false,
+          ),
         ),
-        home: UpgradeAlert(child: Wrapper()),
-        debugShowCheckedModeBanner: false,
       ),
     );
   }
@@ -169,9 +178,12 @@ class _WrapperState extends State<Wrapper> {
     print('_rightAfterSignIn: ${user.email} ${user.displayName}');
 
     settings.initSettings();
-    settings.setVoices(filterVoices);
-    if (!filterVoices.contains(settings.getVoice()))
-      settings.setVoice(filterVoices[0]);
+
+    if (!kIsWeb) {
+      settings.setVoices(filterVoices);
+      if (!filterVoices.contains(settings.getVoice()))
+        settings.setVoice(filterVoices[0]);
+    }
 
     String userName = user.displayName ?? user.email.split('@')[0];
     settings.setUser(userName, user.email, user.uid, user.photoURL ?? '',
@@ -189,40 +201,44 @@ class _WrapperState extends State<Wrapper> {
     else
       print('_rightAfterSignIn: DB returned null record for ${user.uid}!!');
 
-    if (!filterVoices.contains(settings.getVoice()))
-      settings.setVoice(
-          filterVoices.length > 7 ? filterVoices[7] : filterVoices[0]);
+    if (!kIsWeb) {
+      if (!filterVoices.contains(settings.getVoice()))
+        settings.setVoice(
+            filterVoices.length > 7 ? filterVoices[7] : filterVoices[0]);
+    }
 
     settings.addExercisesNotPresent();
 
     // save all settings back to DB
     settings.saveSettings();
 
-    VolumeControl.setVolume(settings.getSpeechVolume());
+    if (!kIsWeb) {
+      VolumeControl.setVolume(settings.getSpeechVolume());
 
-    //await NotificationService().show('', 'User ${user.email} has logged in');
+      //await NotificationService().show('', 'User ${user.email} has logged in');
 
-    // calculate initial delay
-    int targetHour = 7;
-    var now = DateTime.now();
-    var nextTarget;
+      // calculate initial delay
+      int targetHour = 7;
+      var now = DateTime.now();
+      var nextTarget;
 
-    if (now.hour >= targetHour + 12)
-      nextTarget = DateTime(now.year, now.month, now.day, targetHour)
-          .add(Duration(days: 1));
-    else if (now.hour >= targetHour)
-      nextTarget = DateTime(now.year, now.month, now.day, targetHour + 12);
-    else
-      nextTarget = DateTime(now.year, now.month, now.day, targetHour);
-    Duration delay = nextTarget.difference(now);
+      if (now.hour >= targetHour + 12)
+        nextTarget = DateTime(now.year, now.month, now.day, targetHour)
+            .add(Duration(days: 1));
+      else if (now.hour >= targetHour)
+        nextTarget = DateTime(now.year, now.month, now.day, targetHour + 12);
+      else
+        nextTarget = DateTime(now.year, now.month, now.day, targetHour);
+      Duration delay = nextTarget.difference(now);
 
-    Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
-    Workmanager().registerPeriodicTask("1", "yogaReminderTask",
-        inputData: {'uid': user.uid, 'email': user.email, 'name': userName},
-        frequency: Duration(hours: 12),
-        initialDelay: delay,
-        existingWorkPolicy: ExistingWorkPolicy.replace);
-    print('Scheduled yogaReminderTask, delay $delay ...');
+      Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+      Workmanager().registerPeriodicTask("1", "yogaReminderTask",
+          inputData: {'uid': user.uid, 'email': user.email, 'name': userName},
+          frequency: Duration(hours: 12),
+          initialDelay: delay,
+          existingWorkPolicy: ExistingWorkPolicy.replace);
+      print('Scheduled yogaReminderTask, delay $delay ...');
+    }
 
     settings.setLoadComplete(true);
   }
