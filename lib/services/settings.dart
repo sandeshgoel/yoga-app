@@ -266,7 +266,7 @@ class ConfigParam {
     this.category =
         strToCategory(json['category'] ?? describeEnum(ExCategory.breathing));
     this.rounds = json['rounds'];
-    this.altLeftRight = json['altLeftRight'];
+    this.altLeftRight = json['altLeftRight'] ?? false;
     this.sameCount = json['sameCount'] ?? false;
     this.desc = json['desc'] ?? '';
     this.stages = json['stages'].map<Stage>((x) => Stage.fromJson(x)).toList();
@@ -695,7 +695,8 @@ class YogaSettings with ChangeNotifier {
   void settingsFromJson(Map<String, dynamic> jval) {
     this._user = UserInfo.fromJson(jval['user'] ?? (this._user).toJson());
     this._speechRate = jval['speechRate'] ?? this._speechRate;
-    this._speechVolume = jval['speechVolume'] ?? this._speechVolume;
+    this._speechVolume =
+        (jval['speechVolume'] ?? this._speechVolume).toDouble();
     this._speechVoice = jval['speechVoice'] ?? this._speechVoice;
     this._countDuration = jval['countDuration'] ?? this._countDuration;
     this._dailyTarget = jval['dailyTarget'] ?? this._dailyTarget;

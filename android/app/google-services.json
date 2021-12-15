@@ -7,49 +7,36 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:875433396585:android:29892ff5215d7794b855f8",
-        "android_client_info": {
-          "package_name": "com.example.yoga"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "875433396585-7j595b244q4ed6o8at61508kaooqd66s.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.yoga",
-            "certificate_hash": "a6957b9d175f0fb66239b13c1b26c8d0af97844e"
-          }
-        },
-        {
-          "client_id": "875433396585-iq8khptfuc7j26fdb19v9nohpcec624k.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDamju5LuXGoDUlnYIBTGbTNeAghsb6W-g"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "875433396585-iq8khptfuc7j26fdb19v9nohpcec624k.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:875433396585:android:bc517e1c2bd98dd4b855f8",
+        "mobilesdk_app_id": "1:875433396585:android:c5a426f803bb565db855f8",
         "android_client_info": {
           "package_name": "com.sandeshgoel.yoga"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "875433396585-f9mada1c8uhdu3nl30ng4bkrsb1a1g3t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sandeshgoel.yoga",
+            "certificate_hash": "a6957b9d175f0fb66239b13c1b26c8d0af97844e"
+          }
+        },
+        {
+          "client_id": "875433396585-kgbc5o1ino6f622tnvp1n2sq6vngsc3a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sandeshgoel.yoga",
+            "certificate_hash": "1f5d283c8dc05b172ba809c5b795239063203993"
+          }
+        },
+        {
+          "client_id": "875433396585-mk69elip5gd544ma84q9mkqg48r8u3cv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sandeshgoel.yoga",
+            "certificate_hash": "18c364d37aa34f09f834c66953f9d0676caa78c9"
+          }
+        },
         {
           "client_id": "875433396585-iq8khptfuc7j26fdb19v9nohpcec624k.apps.googleusercontent.com",
           "client_type": 3
