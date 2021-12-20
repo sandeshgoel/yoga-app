@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -41,10 +42,15 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
         children: [
           Container(
             decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.lime, Colors.white],
+                end: Alignment.topLeft,
+                begin: Alignment.bottomRight,
+              ), /*
               image: DecorationImage(
                 image: AssetImage("assets/images/bg-blue.jpeg"),
                 fit: BoxFit.cover,
-              ),
+              ),*/
             ),
           ),
           _editRoutinePage(context, widget.cfg),
@@ -357,7 +363,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
             (i == 0) | r.noGap
                 ? Container()
                 : Card(
-                    margin: EdgeInsets.fromLTRB(0, 8, 0, 0),
+                    margin: EdgeInsets.fromLTRB(0, 8, kIsWeb ? 40 : 0, 0),
                     color: Colors.white.withOpacity(0.9),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0)),
@@ -418,18 +424,6 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                                     ),
                             ),
                           ),
-                          /*
-                          Transform.scale(
-                              scale: 0.7,
-                              child: Checkbox(
-                                value: r.exercises[i].gapBefore,
-                                onChanged: (val) {
-                                  setState(() {
-                                    r.exercises[i].gapBefore = val!;
-                                  });
-                                },
-                              ))
-                              */
                         ],
                       ),
                       alignment: Alignment.center,
@@ -525,7 +519,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                           onPressed: () => _deleteExercise(cfg, i),
                         ),
                 ),
-                //Expanded(flex: 3, child: Container()),
+                kIsWeb ? SizedBox(width: 40, child: Container()) : Container(),
               ],
             ),
           ],

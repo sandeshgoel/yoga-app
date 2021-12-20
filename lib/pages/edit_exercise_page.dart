@@ -43,10 +43,15 @@ class _EditConfigPageState extends State<EditConfigPage> {
         children: [
           Container(
             decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.lime, Colors.white],
+                end: Alignment.topLeft,
+                begin: Alignment.bottomRight,
+              ), /*
               image: DecorationImage(
                 image: AssetImage("assets/images/bg-blue.jpeg"),
                 fit: BoxFit.cover,
-              ),
+              ),*/
             ),
           ),
           _editConfigPage(context, widget.cfg),

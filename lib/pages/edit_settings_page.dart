@@ -42,10 +42,15 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
         children: [
           Container(
             decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.lime, Colors.white],
+                end: Alignment.topLeft,
+                begin: Alignment.bottomRight,
+              ), /*
               image: DecorationImage(
                 image: AssetImage("assets/images/bg-blue.jpeg"),
                 fit: BoxFit.cover,
-              ),
+              ),*/
             ),
           ),
           _editSettingsPage(),
@@ -107,9 +112,9 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                 ),
                 Slider(
                   value: settings.getDailyTarget().toDouble(),
-                  min: 1,
+                  min: 5,
                   max: 60,
-                  divisions: 59,
+                  divisions: 11,
                   onChanged: (val) {
                     setState(() {
                       settings.setDailyTarget(val.toInt());
