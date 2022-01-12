@@ -934,6 +934,22 @@ class YogaSettings with ChangeNotifier {
     notifyListeners();
   }
 
+  String createCopy(String cfg) {
+    int copynum = 0;
+    String newCfg;
+    do {
+      copynum += 1;
+      newCfg = cfg + ' ' + copynum.toString();
+    } while (findParamIndex(newCfg) != -1);
+
+    int index = findParamIndex(cfg);
+    ConfigParam cp = getParam(index);
+    ConfigParam newCp = new ConfigParam.fromJson(cp.toJson());
+    newCp.name = newCfg;
+    addParam(newCp);
+    return newCfg;
+  }
+
   // ----------------------------------------------------
 
   int lengthRoutines() {

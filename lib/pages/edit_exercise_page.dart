@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-//import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -216,11 +214,23 @@ class _EditConfigPageState extends State<EditConfigPage> {
                           child: Text('Delete', style: settingsTextStyle)),
                     ],
                   ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => _createCopy(cfg),
+                    child: Text('Create a Copy', style: settingsTextStyle),
+                  ),
                 ],
           ),
         ),
       ),
     );
+  }
+
+  void _createCopy(String cfg) {
+    var settings = Provider.of<YogaSettings>(context, listen: false);
+    String newCfg = settings.createCopy(cfg);
+    Navigator.pop(context);
+    showMsg(context, 'Exercise \'$newCfg\' created');
   }
 
   void _loadDefault(String cfg) {
@@ -276,9 +286,9 @@ class _EditConfigPageState extends State<EditConfigPage> {
     ConfigParam cp = settings.getParam(pindex);
     cp.name = values['configName'];
     cp.desc = values['desc'];
-    for (var i = 0; i < cp.stages.length; i++) {
-      cp.stages[i].name = values['stagename' + i.toString()];
-    }
+    //for (var i = 0; i < cp.stages.length; i++) {
+    //  cp.stages[i].name = values['stagename' + i.toString()];
+    //}
     settings.setParam(pindex, cp);
     //print('_saveConfig: $pindex $cp');
 
@@ -390,25 +400,41 @@ class _EditConfigPageState extends State<EditConfigPage> {
         ],
       ),
     );
-    for (var i = 0; i < cp.stages.length; i++)
-      _ctrlList.add(TextEditingController(text: cp.stages[i].count.toString()));
 
+    list.add(SizedBox(height: 10));
+    list.add(Text(
+      'Long press and drag any row to reorder stages',
+      style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+    ));
+    list.add(SizedBox(height: 10));
+
+    for (var i = 0; i < cp.stages.length; i++)
+      _ctrlList.add(TextEditingController(text: cp.stages[i].name));
+
+    List<Widget> elist = [];
     for (var i = 0; i < cp.stages.length; i++) {
       bool disableCount = (cp.sameCount & (i > 0));
-      list.add(Row(
+      elist.add(Row(
+        key: Key('$i'),
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Expanded(flex: 10, child: Container()),
           Expanded(
-            flex: 45,
+            flex: 55,
+            child: TextField(
+              controller: _ctrlList[i],
+              style: settingsTextStyle,
+              onChanged: (value) {
+                cp.stages[i].name = value;
+              },
+            ), /*
             child: FormBuilderTextField(
               name: 'stagename$i',
               initialValue: cp.stages[i].name,
               style: settingsTextStyle,
-            ),
+            ),*/
           ),
           Expanded(
-            flex: 10,
+            flex: 5,
             child: Text(
                 (exl == null)
                     ? ''
@@ -419,6 +445,62 @@ class _EditConfigPageState extends State<EditConfigPage> {
                             : '',
                 style: starStyle),
           ),
+          Expanded(
+            flex: 20,
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 30,
+                  child: ElevatedButton(
+                    onPressed: (cp.stages[i].count <= 1) | disableCount
+                        ? null
+                        : () {
+                            setState(() {
+                              cp.stages[i].count -= 1;
+                              if (cp.sameCount & (i == 0))
+                                for (int j = 1; j < cp.stages.length; j++)
+                                  cp.stages[j].count = cp.stages[i].count;
+                            });
+                          },
+                    child: FittedBox(child: Icon(Icons.remove)),
+                    style: ElevatedButton.styleFrom(
+                      shape: CircleBorder(),
+                      padding: EdgeInsets.all(2),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 40,
+                  child: Text(
+                    cp.stages[i].count.toString(),
+                    style: settingsTextStyle,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Expanded(
+                  flex: 30,
+                  child: ElevatedButton(
+                    onPressed: (cp.stages[i].count > 98) | disableCount
+                        ? null
+                        : () {
+                            setState(() {
+                              cp.stages[i].count += 1;
+                              if (cp.sameCount & (i == 0))
+                                for (int j = 1; j < cp.stages.length; j++)
+                                  cp.stages[j].count = cp.stages[i].count;
+                            });
+                          },
+                    child: FittedBox(child: Icon(Icons.add)),
+                    style: ElevatedButton.styleFrom(
+                      shape: CircleBorder(),
+                      padding: EdgeInsets.all(2),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          /*
           Expanded(
             flex: 10,
             child: TextFormField(
@@ -443,9 +525,9 @@ class _EditConfigPageState extends State<EditConfigPage> {
                 cp.stages[i].count = int.tryParse(val) ?? 1;
               },
             ),
-          ),
+          ),*/
           Expanded(
-            flex: 10,
+            flex: 5,
             child: Text(
                 (exl == null)
                     ? ''
@@ -457,7 +539,7 @@ class _EditConfigPageState extends State<EditConfigPage> {
                 style: starStyle),
           ),
           Expanded(
-            flex: 5,
+            flex: 10,
             child: cp.stages.length == 1
                 ? Container()
                 : IconButton(
@@ -466,10 +548,20 @@ class _EditConfigPageState extends State<EditConfigPage> {
                     onPressed: () => _deleteStage(context, cfg, i),
                   ),
           ),
-          Expanded(flex: 10, child: Container()),
+          Expanded(flex: 5, child: Container()),
+          kIsWeb ? SizedBox(width: 40, child: Container()) : Container(),
         ],
       ));
     }
+
+    list.add(
+      ReorderableListView(
+        children: elist,
+        shrinkWrap: true,
+        onReorder: (int oldIndex, int newIndex) =>
+            _reorder(oldIndex, newIndex, cfg),
+      ),
+    );
 
     list.add(SizedBox(height: 20));
     list.add(CircleAvatar(
@@ -481,5 +573,19 @@ class _EditConfigPageState extends State<EditConfigPage> {
     ));
 
     return list;
+  }
+
+  void _reorder(int oldIndex, int newIndex, String cfg) {
+    var settings = Provider.of<YogaSettings>(context, listen: false);
+
+    setState(() {
+      int index = settings.findParamIndex(cfg);
+      ConfigParam ex = settings.getParam(index);
+      if (oldIndex < newIndex) {
+        newIndex -= 1;
+      }
+      Stage e = ex.stages.removeAt(oldIndex);
+      ex.stages.insert(newIndex, e);
+    });
   }
 }

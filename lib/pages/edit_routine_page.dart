@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -293,7 +292,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
     int rindex = settings.findRoutineIndex(cfg);
     Routine r = settings.getRoutine(rindex);
     Routine? rl = settings.getRoutineFromLib(cfg);
-    List<TextEditingController> _ctrlList = [];
+    //List<TextEditingController> _ctrlList = [];
 
     List<int> exTime = [];
     int totTime = 0;
@@ -350,9 +349,9 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
       style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
     ));
 
-    for (var i = 0; i < r.exercises.length; i++)
-      _ctrlList
-          .add(TextEditingController(text: r.exercises[i].rounds.toString()));
+    //for (var i = 0; i < r.exercises.length; i++)
+    //  _ctrlList
+    //      .add(TextEditingController(text: r.exercises[i].rounds.toString()));
 
     List<Widget> elist = [];
     for (var i = 0; i < r.exercises.length; i++) {
@@ -433,7 +432,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
-                  flex: 70,
+                  flex: 60,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -447,7 +446,7 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                                 ConfigParam ex = settings.getParam(
                                     settings.findParamIndex(newValue));
                                 r.exercises[i].rounds = ex.rounds;
-                                _ctrlList[i].text = ex.rounds.toString();
+                                //_ctrlList[i].text = ex.rounds.toString();
                               }
                             });
                           },
@@ -479,23 +478,73 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                       style: starStyle),
                 ),
                 Expanded(
+                  flex: 20,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 30,
+                        child: ElevatedButton(
+                          onPressed: (r.exercises[i].rounds > 1)
+                              ? () {
+                                  setState(() {
+                                    r.exercises[i].rounds -= 1;
+                                  });
+                                }
+                              : null,
+                          child: FittedBox(child: Icon(Icons.remove)),
+                          style: ElevatedButton.styleFrom(
+                            shape: CircleBorder(),
+                            padding: EdgeInsets.all(2),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 40,
+                        child: Text(
+                          r.exercises[i].rounds.toString(),
+                          style: settingsTextStyle,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Expanded(
+                        flex: 30,
+                        child: ElevatedButton(
+                          onPressed: (r.exercises[i].rounds > 98)
+                              ? null
+                              : () {
+                                  setState(() {
+                                    r.exercises[i].rounds += 1;
+                                  });
+                                },
+                          child: FittedBox(child: Icon(Icons.add)),
+                          style: ElevatedButton.styleFrom(
+                            shape: CircleBorder(),
+                            padding: EdgeInsets.all(2),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                /*
+                Expanded(
                   flex: 10,
                   child: TextFormField(
                     controller: _ctrlList[i],
                     //initialValue: r.exercises[i].rounds.toString(),
                     keyboardType: TextInputType.number,
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp('[0-9]+'))
+                      FilteringTextInputFormatter.allow(RegExp('[1-9][0-9]*'))
                     ],
                     textAlign: TextAlign.center,
                     style: settingsTextStyle,
                     onChanged: (val) {
                       setState(() {
-                        r.exercises[i].rounds = int.parse(val);
+                        r.exercises[i].rounds = int.tryParse(val) ?? 1;
                       });
                     },
                   ),
-                ),
+                ),*/
                 Expanded(
                   flex: 5,
                   child: Text(
