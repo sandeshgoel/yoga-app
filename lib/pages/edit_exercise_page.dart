@@ -148,21 +148,60 @@ class _EditConfigPageState extends State<EditConfigPage> {
                   SizedBox(height: 10),
                   Row(
                     children: [
-                      Text('Total Rounds', style: settingsTextStyle),
-                      Expanded(child: Container()),
-                      Text('${cp.rounds}'),
+                      Expanded(
+                        flex: 75,
+                        child: Text('Total Rounds', style: settingsTextStyle),
+                      ),
+                      Expanded(
+                        flex: 25,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 30,
+                              child: ElevatedButton(
+                                onPressed: (cp.rounds <= 1)
+                                    ? null
+                                    : () {
+                                        setState(() {
+                                          cp.rounds -= 1;
+                                        });
+                                      },
+                                child: FittedBox(child: Icon(Icons.remove)),
+                                style: ElevatedButton.styleFrom(
+                                  shape: CircleBorder(),
+                                  padding: EdgeInsets.all(2),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 40,
+                              child: Text(
+                                cp.rounds.toString(),
+                                style: settingsTextStyle,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 30,
+                              child: ElevatedButton(
+                                onPressed: (cp.rounds > 98)
+                                    ? null
+                                    : () {
+                                        setState(() {
+                                          cp.rounds += 1;
+                                        });
+                                      },
+                                child: FittedBox(child: Icon(Icons.add)),
+                                style: ElevatedButton.styleFrom(
+                                  shape: CircleBorder(),
+                                  padding: EdgeInsets.all(2),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
-                  ),
-                  Slider(
-                    value: cp.rounds.toDouble(),
-                    min: 1,
-                    max: 50,
-                    divisions: 49,
-                    onChanged: (val) {
-                      setState(() {
-                        cp.rounds = val.toInt();
-                      });
-                    },
                   ),
 
                   // Alternate Left Right

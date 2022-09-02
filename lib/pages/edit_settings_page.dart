@@ -343,28 +343,74 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                 SizedBox(height: 10),
                 Row(
                   children: [
-                    Text(
-                      settings.getGapRoutine() == settings.defGapRoutine
-                          ? ''
-                          : '* ',
-                      style: starStyle,
+                    Expanded(
+                      flex: 75,
+                      child: Row(
+                        children: [
+                          Text(
+                            settings.getGapRoutine() == settings.defGapRoutine
+                                ? ''
+                                : '* ',
+                            style: starStyle,
+                          ),
+                          Text('Gap between exercises (sec)',
+                              style: settingsTextStyle),
+                          _infoIcon(topicGapRoutine),
+                        ],
+                      ),
                     ),
-                    Text('Gap between exercises', style: settingsTextStyle),
-                    _infoIcon(topicGapRoutine),
-                    Expanded(child: Container()),
-                    Text('${settings.getGapRoutine()} seconds'),
+                    Expanded(
+                      flex: 25,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 30,
+                            child: ElevatedButton(
+                              onPressed: (settings.getGapRoutine() <= 1)
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        settings.setGapRoutine(
+                                            settings.getGapRoutine() - 1);
+                                      });
+                                    },
+                              child: FittedBox(child: Icon(Icons.remove)),
+                              style: ElevatedButton.styleFrom(
+                                shape: CircleBorder(),
+                                padding: EdgeInsets.all(2),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 40,
+                            child: Text(
+                              '${settings.getGapRoutine()}',
+                              style: settingsTextStyle,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Expanded(
+                            flex: 30,
+                            child: ElevatedButton(
+                              onPressed: (settings.getGapRoutine() > 98)
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        settings.setGapRoutine(
+                                            settings.getGapRoutine() + 1);
+                                      });
+                                    },
+                              child: FittedBox(child: Icon(Icons.add)),
+                              style: ElevatedButton.styleFrom(
+                                shape: CircleBorder(),
+                                padding: EdgeInsets.all(2),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
-                ),
-                Slider(
-                  value: settings.getGapRoutine().toDouble(),
-                  min: 1,
-                  max: 20,
-                  divisions: 19,
-                  onChanged: (val) {
-                    setState(() {
-                      settings.setGapRoutine(val.toInt());
-                    });
-                  },
                 ),
 
                 // Notify
