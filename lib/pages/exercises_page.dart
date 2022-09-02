@@ -317,7 +317,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
         context: context,
         builder: (_) => AlertDialog(
               content: Scrollbar(
-                isAlwaysShown: true,
+                thumbVisibility: true,
                 child: SingleChildScrollView(
                   child: Column(
                     children: <Widget>[

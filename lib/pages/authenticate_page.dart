@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:yoga/services/auth.dart';
 import 'package:yoga/shared/constants.dart';
@@ -303,10 +303,10 @@ class _AuthenticatePageState extends State<AuthenticatePage> {
                   recognizer: TapGestureRecognizer()
                     ..onTap = () async {
                       final url = 'https://sites.google.com/view/yogabuddy';
-                      if (await canLaunch(url)) {
-                        await launch(
+                      if (await canLaunchUrlString(url)) {
+                        await launchUrlString(
                           url,
-                          forceSafariVC: false,
+                          mode: LaunchMode.externalApplication,
                         );
                       }
                     },

@@ -248,7 +248,8 @@ class _EditConfigPageState extends State<EditConfigPage> {
                         child: Text('Defaults', style: settingsTextStyle),
                       ),
                       ElevatedButton(
-                          style: ElevatedButton.styleFrom(primary: Colors.red),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red),
                           onPressed: () => _deleteConfig(context, cfg),
                           child: Text('Delete', style: settingsTextStyle)),
                     ],

@@ -160,8 +160,8 @@ class _EditRoutinePageState extends State<EditRoutinePage> {
                           child: Text('Defaults', style: settingsTextStyle),
                         ),
                         ElevatedButton(
-                            style:
-                                ElevatedButton.styleFrom(primary: Colors.red),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red),
                             onPressed: () => _deleteRoutine(context, cfg),
                             child: Text('Delete')),
                       ],

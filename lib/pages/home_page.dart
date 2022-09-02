@@ -1,10 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:yoga/pages/activity_page.dart';
 import 'package:yoga/pages/exercises_page.dart';
@@ -60,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             icon: Icon(Icons.help_rounded),
                             onPressed: () {
                               setState(() {
-                                ShowCaseWidget.of(context)!.startShowCase(
+                                ShowCaseWidget.of(context).startShowCase(
                                     [_skey0, _skey1, _skey2, _skey3, _skey4]);
                               });
                             },
@@ -315,10 +314,10 @@ class _MyHomePageState extends State<MyHomePage> {
             recognizer: TapGestureRecognizer()
               ..onTap = () async {
                 final url = 'https://sites.google.com/view/yogabuddy';
-                if (await canLaunch(url)) {
-                  await launch(
+                if (await canLaunchUrlString(url)) {
+                  await launchUrlString(
                     url,
-                    forceSafariVC: false,
+                    mode: LaunchMode.externalApplication,
                   );
                 }
               },
