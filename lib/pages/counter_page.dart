@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+import 'package:video_player/video_player.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:yoga/services/database.dart';
 
@@ -422,21 +425,68 @@ class _CounterPageState extends State<CounterPage> {
     var settings = Provider.of<YogaSettings>(context, listen: false);
     int index = settings.findParamIndex(cfg);
     ConfigParam cp = settings.getParam(index);
-
+    /*
+    VideoPlayerController _controller = VideoPlayerController.network(cp
+                .video ==
+            ''
+        ? 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4'
+        : cp.video)
+      ..initialize().then((_) {
+        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+        setState(() {});
+      });
+    */
     showDialog(
         context: context,
         builder: (_) => AlertDialog(
               title: Text('Info'),
+              scrollable: true,
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   cp.desc == ''
-                      ? Text(
-                          'No description provided',
+                      ? Text('No description provided',
                           style: TextStyle(
-                              fontStyle: FontStyle.italic, fontSize: 12),
+                              fontStyle: FontStyle.italic, fontSize: 12))
+                      : Text(
+                          cp.desc,
+                          style: TextStyle(fontSize: 14),
+                        ),
+                  SizedBox(height: 20),
+                  cp.image == ''
+                      ? Image.asset(
+                          "assets/icon/yoga_icon_circular.png",
+                          height: 100,
                         )
-                      : Text(cp.desc),
+                      : Image.network(
+                          cp.image,
+                          height: 100,
+                        ),
+                  SizedBox(height: 20),
+                  RichText(
+                    text: TextSpan(
+                      text: cp.video,
+                      style: TextStyle(color: Colors.blue),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () async {
+                          final url = 'https://sites.google.com/view/yogabuddy';
+                          if (await canLaunchUrlString(url)) {
+                            await launchUrlString(
+                              url,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          }
+                        },
+                    ),
+                  ),
+
+                  //Container(
+                  //  height: 100,
+                  //  child: AspectRatio(
+                  //    aspectRatio: _controller.value.aspectRatio,
+                  //    child: VideoPlayer(_controller),
+                  //  ),
+                  //),
                   SizedBox(height: 20),
                   Text(
                     'Exercise stages:\n',

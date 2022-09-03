@@ -239,9 +239,15 @@ class ConfigParam {
   late List<Stage> stages;
   bool sameCount = false;
   late String desc;
+  late String image;
+  late String video;
 
   ConfigParam(this.name, this.category, this.rounds, this.stages,
-      {this.altLeftRight = false, this.sameCount = false, this.desc = ''});
+      {this.altLeftRight = false,
+      this.sameCount = false,
+      this.desc = '',
+      this.image = '',
+      this.video = ''});
 
   @override
   String toString() {
@@ -256,6 +262,8 @@ class ConfigParam {
       'altLeftRight': this.altLeftRight,
       'sameCount': this.sameCount,
       'desc': this.desc,
+      'image': this.image,
+      'video': this.video,
       'stages': this.stages.map((x) => x.toJson()).toList()
     };
   }
@@ -268,6 +276,8 @@ class ConfigParam {
     this.altLeftRight = json['altLeftRight'] ?? false;
     this.sameCount = json['sameCount'] ?? false;
     this.desc = json['desc'] ?? '';
+    this.image = json['image'] ?? '';
+    this.video = json['video'] ?? '';
     this.stages = json['stages'].map<Stage>((x) => Stage.fromJson(x)).toList();
   }
 
@@ -291,6 +301,8 @@ class ConfigParam {
         (this.altLeftRight == ex.altLeftRight) &
         (this.sameCount == ex.sameCount) &
         (this.desc == ex.desc) &
+        (this.image == ex.image) &
+        (this.video == ex.video) &
         this.stagesEquals(ex.stages))
       return true;
     else

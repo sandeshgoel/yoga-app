@@ -94,6 +94,26 @@ class _EditConfigPageState extends State<EditConfigPage> {
                     //style: TextStyle(fontWeight: FontWeight.bold),
                   ),
 
+                  // Image
+
+                  FormBuilderTextField(
+                    name: 'image',
+                    initialValue: cp.image,
+                    decoration: InputDecoration(
+                      labelText: 'Image URL',
+                    ),
+                  ),
+
+                  // Video
+
+                  FormBuilderTextField(
+                    name: 'video',
+                    initialValue: cp.video,
+                    decoration: InputDecoration(
+                      labelText: 'Video URL',
+                    ),
+                  ),
+
                   // Category
 
                   Row(
@@ -326,6 +346,8 @@ class _EditConfigPageState extends State<EditConfigPage> {
     ConfigParam cp = settings.getParam(pindex);
     cp.name = values['configName'];
     cp.desc = values['desc'];
+    cp.image = values['image'];
+    cp.video = values['video'];
     //for (var i = 0; i < cp.stages.length; i++) {
     //  cp.stages[i].name = values['stagename' + i.toString()];
     //}
