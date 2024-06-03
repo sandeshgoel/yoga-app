@@ -4,8 +4,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:video_player/video_player.dart';
-import 'package:wakelock/wakelock.dart';
+//import 'package:video_player/video_player.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:yoga/services/database.dart';
 
 import 'package:yoga/services/tts.dart';
@@ -81,7 +81,7 @@ class _CounterPageState extends State<CounterPage> {
     _timerClock.cancel();
     _am.pauseMusic();
     _tts.stop();
-    Wakelock.disable();
+    WakelockPlus.disable();
 
     super.dispose();
 
@@ -95,7 +95,7 @@ class _CounterPageState extends State<CounterPage> {
     _tts.setSpeechRate(settings.getSpeechRate());
     _tts.setSpeechVoice(settings.getVoice());
 
-    Wakelock.enable();
+    WakelockPlus.enable();
 
     double dur = (widget.routine == '') ? _totSeconds : _totSecondsRoutine;
 

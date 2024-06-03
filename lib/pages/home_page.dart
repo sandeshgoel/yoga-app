@@ -14,7 +14,6 @@ import 'package:yoga/services/auth.dart';
 import 'package:yoga/services/settings.dart';
 
 import 'edit_settings_page.dart';
-import 'activity_page.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key? key}) : super(key: key);
@@ -50,117 +49,110 @@ class _MyHomePageState extends State<MyHomePage> {
               return DefaultTabController(
                 initialIndex: 0,
                 length: 4,
-                child: ShowCaseWidget(
-                  builder: Builder(builder: (context) {
-                    return Scaffold(
-                      appBar: AppBar(
-                        actions: [
-                          IconButton(
-                            icon: Icon(Icons.help_rounded),
-                            onPressed: () {
-                              setState(() {
-                                ShowCaseWidget.of(context).startShowCase(
-                                    [_skey0, _skey1, _skey2, _skey3, _skey4]);
-                              });
-                            },
+                child: ShowCaseWidget(builder: (context) {
+                  return Scaffold(
+                    appBar: AppBar(
+                      actions: [
+                        IconButton(
+                          icon: Icon(Icons.help_rounded),
+                          onPressed: () {
+                            setState(() {
+                              ShowCaseWidget.of(context).startShowCase(
+                                  [_skey0, _skey1, _skey2, _skey3, _skey4]);
+                            });
+                          },
+                        ),
+                      ],
+                      title: Text('Welcome: ${settings.getUser().name}',
+                          style: TextStyle(fontSize: 18)),
+                      leading: Showcase(
+                        key: _skey4,
+                        description:
+                            'Click here to access the settings menu, or logout from the application',
+                        targetPadding: EdgeInsets.fromLTRB(-5, 0, 5, 0),
+                        //contentPadding: EdgeInsets.all(20),
+                        targetShapeBorder: CircleBorder(),
+                        child: _popupMenu(settings),
+                      ),
+                      bottom: TabBar(
+                        tabs: [
+                          Showcase(
+                            key: _skey0,
+                            description:
+                                'First tab lists routines, a routine is a sequence of exercises.\n\nYou can add new routines using the add button at the bottom. Choose from a library of predefined routines, or create your own custom routine',
+                            targetPadding: EdgeInsets.symmetric(horizontal: 15),
+                            //contentPadding: EdgeInsets.all(20),
+                            child: Tab(
+                              child: Text(
+                                'Routines',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ),
+                          Showcase(
+                            key: _skey1,
+                            description:
+                                'Second tab lists exercises.\n\nYou can add new exercises using the add button at the bottom. Choose from a library of predefined exercises, or create your own custom exercise',
+                            targetPadding: EdgeInsets.symmetric(horizontal: 15),
+                            //contentPadding: EdgeInsets.all(50),
+                            child: Tab(
+                              child: Text(
+                                'Exercises',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ),
+                          Showcase(
+                            key: _skey2,
+                            description:
+                                'Third tab shows your activity and your progress relative to the target you have set',
+                            targetPadding: EdgeInsets.symmetric(horizontal: 15),
+                            //contentPadding: EdgeInsets.all(20),
+                            child: Tab(
+                              child: Text(
+                                'Activity',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ),
+                          Showcase(
+                            key: _skey3,
+                            description:
+                                'The last tab shows shared routines by other users',
+                            targetPadding: EdgeInsets.symmetric(horizontal: 15),
+                            //contentPadding: EdgeInsets.all(20),
+                            child: Tab(
+                              child: Text(
+                                'Social',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
                           ),
                         ],
-                        title: Text('Welcome: ${settings.getUser().name}',
-                            style: TextStyle(fontSize: 18)),
-                        leading: Showcase(
-                          key: _skey4,
-                          description:
-                              'Click here to access the settings menu, or logout from the application',
-                          overlayPadding: EdgeInsets.fromLTRB(-5, 0, 5, 0),
-                          contentPadding: EdgeInsets.all(20),
-                          shapeBorder: CircleBorder(),
-                          child: _popupMenu(settings),
+                      ),
+                    ),
+                    body: Stack(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage("assets/images/background.jpg"),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
-                        bottom: TabBar(
-                          tabs: [
-                            Showcase(
-                              key: _skey0,
-                              description:
-                                  'First tab lists routines, a routine is a sequence of exercises.\n\nYou can add new routines using the add button at the bottom. Choose from a library of predefined routines, or create your own custom routine',
-                              overlayPadding:
-                                  EdgeInsets.symmetric(horizontal: 15),
-                              contentPadding: EdgeInsets.all(20),
-                              child: Tab(
-                                child: Text(
-                                  'Routines',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ),
-                            Showcase(
-                              key: _skey1,
-                              description:
-                                  'Second tab lists exercises.\n\nYou can add new exercises using the add button at the bottom. Choose from a library of predefined exercises, or create your own custom exercise',
-                              overlayPadding:
-                                  EdgeInsets.symmetric(horizontal: 15),
-                              contentPadding: EdgeInsets.all(50),
-                              child: Tab(
-                                child: Text(
-                                  'Exercises',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ),
-                            Showcase(
-                              key: _skey2,
-                              description:
-                                  'Third tab shows your activity and your progress relative to the target you have set',
-                              overlayPadding:
-                                  EdgeInsets.symmetric(horizontal: 15),
-                              contentPadding: EdgeInsets.all(20),
-                              child: Tab(
-                                child: Text(
-                                  'Activity',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ),
-                            Showcase(
-                              key: _skey3,
-                              description:
-                                  'The last tab shows shared routines by other users',
-                              overlayPadding:
-                                  EdgeInsets.symmetric(horizontal: 15),
-                              contentPadding: EdgeInsets.all(20),
-                              child: Tab(
-                                child: Text(
-                                  'Social',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ),
+                        TabBarView(
+                          children: [
+                            RoutinesPage(),
+                            ExercisesPage(),
+                            ActivityPage(),
+                            SocialPage(),
                           ],
                         ),
-                      ),
-                      body: Stack(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image:
-                                    AssetImage("assets/images/background.jpg"),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          TabBarView(
-                            children: [
-                              RoutinesPage(),
-                              ExercisesPage(),
-                              ActivityPage(),
-                              SocialPage(),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ),
+                      ],
+                    ),
+                  );
+                }),
               );
             });
           } else if (snapshot.hasError) {

@@ -129,14 +129,14 @@ class _EditConfigPageState extends State<EditConfigPage> {
                           style: starStyle),
                       Expanded(child: Container()),
                       DropdownButton<String>(
-                        value: describeEnum(cp.category),
+                        value: cp.category.name,
                         onChanged: (String? newValue) {
                           setState(() {
                             cp.category = ConfigParam.strToCategory(newValue!);
                           });
                         },
                         items: ExCategory.values
-                            .map((e) => describeEnum(e))
+                            .map((e) => e.name)
                             .toList()
                             .asMap()
                             .entries

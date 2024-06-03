@@ -1,10 +1,8 @@
-//import 'dart:ui';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:fl_chart/fl_chart.dart';
 
 import 'package:yoga/services/database.dart';
@@ -243,30 +241,76 @@ class _ActivityPageState extends State<ActivityPage> {
                               style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                         Container(
-                          margin: EdgeInsets.all(20),
+                          margin: EdgeInsets.fromLTRB(15, 15, 20, 10),
                           height: 150,
-                          child: charts.TimeSeriesChart(
-                            <charts.Series<ActData, DateTime>>[
-                              charts.Series(
-                                id: "Minutes",
-                                data: data,
-                                domainFn: (ActData s, _) => s.day,
-                                measureFn: (ActData s, _) => s.minutes,
-                                colorFn: (d, _) {
-                                  if (d.minutes >= settings.getDailyTarget())
-                                    return charts.Color(r: 0, b: 0, g: 0xff);
-                                  else if (d.minutes >=
-                                      settings.getDailyTarget() / 2)
-                                    return charts.Color(r: 0xff, b: 0, g: 0xcc);
-                                  else
-                                    return charts.Color(r: 0xff, b: 0, g: 0);
-                                },
+                          child: BarChart(
+                            BarChartData(
+                              titlesData: FlTitlesData(
+                                //show: false,
+                                topTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                                rightTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 20,
+                                    getTitlesWidget: (value, meta) {
+                                      var date = value.toInt();
+                                      return SideTitleWidget(
+                                          axisSide:
+                                              AxisSide.right, // meta.axisSide,
+                                          child: Text(
+                                            "$date",
+                                            style: TextStyle(fontSize: 10),
+                                          ));
+                                    },
+                                  ),
+                                ),
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    //interval: 10,
+                                    reservedSize: 20,
+                                    getTitlesWidget: (value, meta) {
+                                      var date = value.toInt();
+                                      return SideTitleWidget(
+                                          axisSide:
+                                              AxisSide.top, // meta.axisSide,
+                                          child: Text(
+                                            "$date",
+                                            style: TextStyle(fontSize: 10),
+                                          ));
+                                    },
+                                  ),
+                                ),
                               ),
-                            ],
-                            animationDuration: Duration(seconds: 2),
-                            animate: true,
-                            defaultRenderer:
-                                charts.BarRendererConfig<DateTime>(),
+                              gridData: FlGridData(show: false),
+                              borderData: FlBorderData(show: false),
+                              barGroups: data
+                                  .map((s) => BarChartGroupData(
+                                        x: s.day.day,
+                                        barRods: [
+                                          BarChartRodData(
+                                            //toY:
+                                            //    Random().nextInt(20).toDouble(),
+                                            toY: s.minutes,
+                                            backDrawRodData:
+                                                BackgroundBarChartRodData(
+                                              show: true,
+                                              toY: settings
+                                                  .getDailyTarget()
+                                                  .toDouble(),
+                                              color: Color(0xffefefef),
+                                            ),
+                                          ),
+                                        ],
+                                      ))
+                                  .toList(),
+                            ),
+                            swapAnimationDuration:
+                                Duration(milliseconds: 1000), // Optional
+                            swapAnimationCurve: Curves.linear, // Optional
                           ),
                         ),
                         Container(

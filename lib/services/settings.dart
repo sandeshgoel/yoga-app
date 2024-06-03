@@ -257,7 +257,7 @@ class ConfigParam {
   Map<String, dynamic> toJson() {
     return {
       'name': this.name,
-      'category': describeEnum(this.category),
+      'category': this.category.name,
       'rounds': this.rounds,
       'altLeftRight': this.altLeftRight,
       'sameCount': this.sameCount,
@@ -271,7 +271,7 @@ class ConfigParam {
   ConfigParam.fromJson(Map<String, dynamic> json) {
     this.name = json['name'];
     this.category =
-        strToCategory(json['category'] ?? describeEnum(ExCategory.breathing));
+        strToCategory(json['category'] ?? ExCategory.breathing.name);
     this.rounds = json['rounds'];
     this.altLeftRight = json['altLeftRight'] ?? false;
     this.sameCount = json['sameCount'] ?? false;
@@ -282,8 +282,8 @@ class ConfigParam {
   }
 
   static ExCategory strToCategory(String c) {
-    ExCategory res = ExCategory.values.firstWhere((e) => describeEnum(e) == c,
-        orElse: () => ExCategory.breathing);
+    ExCategory res = ExCategory.values
+        .firstWhere((e) => e.name == c, orElse: () => ExCategory.breathing);
 
     return res;
   }

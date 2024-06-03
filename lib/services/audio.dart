@@ -2,14 +2,14 @@ import 'package:audioplayers/audioplayers.dart';
 
 class AudioMusic {
   AudioCache player = AudioCache();
-  var audioPlayer;
+  AudioPlayer audioPlayer = AudioPlayer();
   bool audioInitialized = false;
 
   void initMusic() async {
-    audioPlayer = await player.loop("audio/yoga.mp3");
+    await audioPlayer.setReleaseMode(ReleaseMode.loop);
+    await audioPlayer.play(AssetSource("audio/yoga.mp3"));
     audioInitialized = true;
     //audioPlayer.setUrl("assets/audio/yoga.mp3");
-    //audioPlayer.setReleaseMode(ReleaseMode.LOOP);
   }
 
   void startMusic() {

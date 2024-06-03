@@ -215,7 +215,7 @@ class _WrapperState extends State<Wrapper> {
     if (!kIsWeb) {
       VolumeControl.setVolume(settings.getSpeechVolume());
 
-      //await NotificationService().show('', 'User ${user.email} has logged in');
+      await NotificationService().show('', 'User ${user.email} has logged in');
 
       // calculate initial delay
       int targetHour = 7;

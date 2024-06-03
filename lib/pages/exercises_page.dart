@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -36,9 +35,9 @@ class _ExercisesPageState extends State<ExercisesPage> {
               description:
                   'Add exercise from a list of pre-defined exercises, ' +
                       'or define a custom exercise',
-              shapeBorder: CircleBorder(),
-              overlayPadding: EdgeInsets.all(8),
-              contentPadding: EdgeInsets.all(20),
+              targetShapeBorder: CircleBorder(),
+              targetPadding: EdgeInsets.all(8),
+              //contentPadding: EdgeInsets.all(20),
               child: FloatingActionButton(
                 onPressed: () {
                   _showExercisePicker();
@@ -153,7 +152,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
   List<bool> expanded = [true, true, true];
 
   Widget _buildPanel(YogaSettings settings, ExCategory cat, int index) {
-    String catName = describeEnum(cat);
+    String catName = cat.name;
     catName = catName[0].toUpperCase() + catName.substring(1);
     List<Widget> exlist = _getExerciseList(settings, cat);
     if (exlist.length == 0) return Container();

@@ -7,6 +7,7 @@ import 'package:volume_control/volume_control.dart';
 import 'package:yoga/services/settings.dart';
 import 'package:yoga/services/tts.dart';
 import 'package:yoga/shared/constants.dart';
+import 'package:yoga/services/notifications.dart';
 
 class EditSettingsPage extends StatefulWidget {
   const EditSettingsPage({Key? key}) : super(key: key);
@@ -427,6 +428,20 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                           ),
                           Text('Daily Notifications', style: settingsTextStyle),
                           _infoIcon(topicNotify),
+                          ElevatedButton.icon(
+                            style: ButtonStyle(
+                              padding: WidgetStatePropertyAll(
+                                EdgeInsets.symmetric(
+                                    vertical: 0, horizontal: 5),
+                              ),
+                            ),
+                            icon: Icon(Icons.notifications_active, size: 15),
+                            label: Text(
+                              'Test',
+                              style: TextStyle(fontSize: 10),
+                            ),
+                            onPressed: () => _sendSampleNotification(settings),
+                          ),
                           Expanded(
                             child: Container(),
                           ),
@@ -467,6 +482,11 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
         )
       ]),
     );
+  }
+
+  void _sendSampleNotification(settings) async {
+    String msg = 'This is a sample notification from Yoga Buddy App';
+    await NotificationService().show('', msg);
   }
 
   void _playVoiceSample(settings) async {

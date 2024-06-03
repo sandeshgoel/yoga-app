@@ -19,8 +19,8 @@ class NotificationService {
     final AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('yoga_icon_circular_trans_white');
 
-    final IOSInitializationSettings initializationSettingsIOS =
-        IOSInitializationSettings(
+    final DarwinInitializationSettings initializationSettingsIOS =
+        DarwinInitializationSettings(
       requestSoundPermission: false,
       requestBadgePermission: false,
       requestAlertPermission: false,
@@ -33,8 +33,10 @@ class NotificationService {
             iOS: initializationSettingsIOS,
             macOS: null);
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: selectNotification);
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      //onSelectNotification: selectNotification
+    );
   }
 
   Future selectNotification(String? payload) async {
@@ -68,7 +70,7 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.zonedSchedule(
         0, title, message, time, platformChannelSpecifics,
         matchDateTimeComponents: DateTimeComponents.time,
-        androidAllowWhileIdle: true,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime);
   }
