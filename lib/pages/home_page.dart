@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:yoga/pages/activity_page.dart';
 import 'package:yoga/pages/exercises_page.dart';
+import 'package:yoga/pages/manage_users_page.dart';
 import 'package:yoga/pages/routines_page.dart';
 import 'package:yoga/pages/social_page.dart';
 
@@ -195,7 +196,7 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
-  Widget _popupMenu(settings) {
+  Widget _popupMenu(YogaSettings settings) {
     GoogleSignInProvider _google =
         Provider.of<GoogleSignInProvider>(context, listen: false);
     var _photo = settings.getUser().photo;
@@ -219,53 +220,7 @@ class _MyHomePageState extends State<MyHomePage> {
       offset: Offset(0, 50),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10))),
-      itemBuilder: (context) => [
-        PopupMenuItem<int>(
-          value: 0,
-          child: Row(
-            children: [
-              Icon(
-                Icons.settings,
-                color: Colors.black,
-              ),
-              Text(
-                "  Settings",
-                style: TextStyle(color: Colors.black),
-              ),
-            ],
-          ),
-        ),
-        PopupMenuItem<int>(
-          value: 1,
-          child: Row(
-            children: [
-              Icon(
-                Icons.logout,
-                color: Colors.black,
-              ),
-              Text(
-                "  Log out",
-                style: TextStyle(color: Colors.black),
-              ),
-            ],
-          ),
-        ),
-        PopupMenuItem<int>(
-          value: 2,
-          child: Row(
-            children: [
-              Icon(
-                Icons.info,
-                color: Colors.black,
-              ),
-              Text(
-                "  About",
-                style: TextStyle(color: Colors.black),
-              ),
-            ],
-          ),
-        ),
-      ],
+      itemBuilder: (context) => _menuItemList(settings),
       onSelected: (item) async {
         switch (item) {
           case 0:
@@ -278,11 +233,94 @@ class _MyHomePageState extends State<MyHomePage> {
           case 2:
             await _about();
             break;
+          case 3:
+            _manageUsers();
+            break;
           default:
             print('invalid item $item');
         }
       },
     );
+  }
+
+  List<PopupMenuItem<int>> _menuItemList(YogaSettings settings) {
+    List<PopupMenuItem<int>> list = [
+      PopupMenuItem<int>(
+        value: 0,
+        child: Row(
+          children: [
+            Icon(
+              Icons.settings,
+              color: Colors.black,
+            ),
+            Text(
+              "  Settings",
+              style: TextStyle(color: Colors.black),
+            ),
+          ],
+        ),
+      ),
+      PopupMenuItem<int>(
+        value: 1,
+        child: Row(
+          children: [
+            Icon(
+              Icons.logout,
+              color: Colors.black,
+            ),
+            Text(
+              "  Log out",
+              style: TextStyle(color: Colors.black),
+            ),
+          ],
+        ),
+      ),
+      PopupMenuItem<int>(
+        value: 2,
+        child: Row(
+          children: [
+            Icon(
+              Icons.info,
+              color: Colors.black,
+            ),
+            Text(
+              "  About",
+              style: TextStyle(color: Colors.black),
+            ),
+          ],
+        ),
+      ),
+    ];
+
+    if (settings.getSuperUser()) {
+      list.add(PopupMenuItem<int>(
+        value: 3,
+        child: Row(
+          children: [
+            Icon(
+              Icons.person,
+              color: Colors.black,
+            ),
+            Text(
+              "  Manage Users",
+              style: TextStyle(color: Colors.black),
+            ),
+          ],
+        ),
+      ));
+    }
+
+    return list;
+  }
+
+  void _manageUsers() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (BuildContext context) {
+        return ManageUsers();
+      }),
+    ).then((value) {
+      setState(() {});
+    });
   }
 
   Future _about() async {

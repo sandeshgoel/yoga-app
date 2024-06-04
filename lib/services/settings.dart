@@ -854,6 +854,19 @@ class YogaSettings with ChangeNotifier {
   bool getMuteCounting() {
     return this._muteCounting;
   }
+  // ----------------------------------------------------
+
+  void setSuperUser(bool val) {
+    //_superUser = val;
+  }
+
+  bool getSuperUser() {
+    if ((this._user.email == 'sandesh@gmail.com') ||
+        (this._user.email == 'sandesh+1@gmail.com'))
+      return true;
+    else
+      return false;
+  }
 
   // ----------------------------------------------------
 
