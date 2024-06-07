@@ -426,7 +426,9 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                                 : '* ',
                             style: starStyle,
                           ),
-                          Text('Daily Notifications', style: settingsTextStyle),
+                          Text(
+                              'Daily Notifications (@${settings.getTargetHour()})',
+                              style: settingsTextStyle),
                           _infoIcon(topicNotify),
                           ElevatedButton.icon(
                             style: ButtonStyle(
@@ -438,7 +440,7 @@ class _EditSettingsPageState extends State<EditSettingsPage> {
                             icon: Icon(Icons.notifications_active, size: 15),
                             label: Text(
                               'Test',
-                              style: TextStyle(fontSize: 10),
+                              style: TextStyle(fontSize: 12),
                             ),
                             onPressed: () => _sendSampleNotification(settings),
                           ),

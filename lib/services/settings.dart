@@ -479,6 +479,7 @@ class YogaSettings with ChangeNotifier {
   late Set<String> friendsPending;
   late Set<String> friendsReceived;
 
+  late int _targetHour;
   late bool _loadComplete;
 
   YogaSettings() {
@@ -521,6 +522,7 @@ class YogaSettings with ChangeNotifier {
     friendsReceived = Set();
 
     _loadComplete = false;
+    _targetHour = 7;
   }
 
   bool allDefaults() {
@@ -916,6 +918,16 @@ class YogaSettings with ChangeNotifier {
 
   int getCountDuration() {
     return this._countDuration;
+  }
+
+  // ----------------------------------------------------
+
+  void setTargetHour(int targetHour) {
+    this._targetHour = targetHour;
+  }
+
+  int getTargetHour() {
+    return this._targetHour;
   }
 
   // ----------------------------------------------------

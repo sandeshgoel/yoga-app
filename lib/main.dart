@@ -25,6 +25,7 @@ import 'pages/home_page.dart';
 List<String> filterVoices = [];
 String appVersion = '';
 
+@pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     await NotificationService().init();
@@ -218,7 +219,7 @@ class _WrapperState extends State<Wrapper> {
       await NotificationService().show('', 'User ${user.email} has logged in');
 
       // calculate initial delay
-      int targetHour = 7;
+      int targetHour = settings.getTargetHour();
       var now = DateTime.now();
       var nextTarget;
 
